@@ -1,15 +1,21 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
   server: {
-    host: '0.0.0.0', // 监听所有网络接口
-    port: 5173, // 默认端口
+    host: '0.0.0.0',
+    port: 5173,
     allowedHosts: [
-      'dev.ricecandy.cn', // 添加你的自定义域名
-      'localhost', // 保留本地访问
-      '127.0.0.1' // 保留本地IP访问
+      'dev.ricecandy.cn',
+      'localhost',
+      '127.0.0.1'
     ]
+  },
+  resolve: {
+    alias: {
+      "@": resolve(__dirname, 'src') // 更简洁的写法
+    }
   }
 })

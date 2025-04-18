@@ -21,7 +21,7 @@ const handleClick = (e, to) => {
 
 <template>
   <div class="header">
-    <img class="logo" src="../assets/images/logo.png"/>
+    <img class="logo" src="../assets/images/logo_movie.svg"/>
     <div class="nav">
       <ul>
         <li 
