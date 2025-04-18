@@ -1,12 +1,14 @@
 <script setup>
-const nav = [
-  {title:'主页'},
-  {}
-]
+import { RouterView } from 'vue-router';
+// const nav = [
+//   { title: '主页' },
+//   {}
+// ]
 </script>
 
 <template>
-  <div class="header">
+  <router-view></router-view>
+  <!-- <div class="header">
     <span class="logo"></span>
     <div>
       <ul class="nav">
@@ -16,22 +18,12 @@ const nav = [
         <li></li>
       </ul>
     </div>
-    
-  </div>
 
-
-  <div class="container">
-    <div class="image">
-      
-    </div>
-    <div class="content">
-
-    </div>
-  </div>
+  </div> -->
 </template>
 
 <style scoped>
-.header {
+/* .header {
   position: fixed;
   top: 0;
   left: 0;
@@ -66,5 +58,5 @@ const nav = [
   width: inherit;
   height: inherit;
   z-index: 1;
-}
+} */
 </style>
