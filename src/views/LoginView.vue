@@ -1,12 +1,12 @@
 <script setup>
-import { Position } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 
 
 // 背景图片集
 const i = ref(0)
 const images = [
-    { id: 1, url: '/src/assets/LoginImage1.jpeg' }
+    { id: 1, url: '/src/assets/images/LoginImage1.jpeg' },
+    { id: 2, url: '/src/assets/images/LoginImage2.jpg' }
 ]
 
 // 登录 and 注册
@@ -36,36 +36,34 @@ const submitForm = () => {
 
 // 动画
 // target图片换位
-const Position1 = ref(1)
-const Position2 = ref(2)
-
 const isAnimate = ref(false)
 const Switch = (value) => {
-    if (isAnimate.value) return;
-    isAnimate.value = true;
-    setTimeout(() => {
-        isAnimate.value = false
-    }, 750)
-    if (value){
+    if (value) {
         isRegister.value = true, isLogin.value = false;
-        Position1.value = 2, Position2.value = 1;
     }
     else {
         isLogin.value = true, isRegister.value = false;
-        Position1.value = 1, Position2.value = 2;
     }
 }
 
+const RightImage = () => {
+    i.value = (i.value + 1) % images.length;
+}
 
+const LeftImage = () => {
+    i.value = (i.value + images.length - 1) % images.length;
+}
 
 </script>
 
 <template>
-    <div class="main" :style="{ background: `url(${images[i].url}) center/cover no-repeat` }">
-        <div class="box" :class="{ 'animated flipInY': isAnimate }">
+    <div class="main" :style="{ background: `url('${images[i].url}') center center / cover no-repeat` }">
+        <img class="left" src="/src/assets/images/left.svg" @click="LeftImage"></img>
+        <img class="right" src="/src/assets/images/right.svg" @click="RightImage"></img>
+        <div class="box">
             <div class="target">
-                <img :src="images[i].url" alt="" :style="{ order: Position1 }">
-                <img src="/src/assets/logo.png" alt="" :style="{ order: Position2 }">
+                <img class="slide-image" :src="images[i].url" :class="{ 'slide': isRegister }" alt="">
+                <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -116,6 +114,22 @@ const Switch = (value) => {
     height: 100vh;
 }
 
+.left,
+.right {
+    position: fixed;
+    width: 5%;
+    height: 10%;
+    cursor: pointer
+}
+
+.left {
+    left: 30px;
+}
+
+.right {
+    right: 30px;
+}
+
 .box {
     position: relative;
     display: flex;
@@ -128,37 +142,73 @@ const Switch = (value) => {
     position: absolute;
     display: flex;
     flex-direction: column;
+    align-items: center;
     left: 10px;
     top: 0;
-    width: 25%;
+    width: 30%;
     height: 100%;
     z-index: 2;
-    background-color: #ffccff;
-    padding: 15px;
-    box-sizing: border-box;
+    background: url(/src/assets/images/未命名的设计.png);
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
 .targetbox {
     display: flex;
     flex-direction: column;
-    width: 5%;
+    width: 15%;
     height: 95%;
-    background-color: rgba(255, 140, 213, 0.7);
+    background-color: white;
 }
 
-.target img {
+.slide-image {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: 50%;
+    object-fit: cover;
+    position: absolute;
+    top: 10px;
+    transition: all 0.7s ease-in-out;
+}
+
+.slide {
+    top: 47.5%;
+}
+
+.logo {
+    width: 80%;
 }
 
 .loginbox {
     width: 95%;
     height: 95%;
-    background-color: rgba(255, 140, 213, 0.7);
+    background-color: white;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+}
+
+:deep(.el-form-item__label) {
+    color: #000;
+}
+
+.el-input {
+    width: 200px;
+}
+
+.el-input {
+    border: none;
+    border-bottom: 1px solid #333;
+    border-radius: 0;
+    border-radius: 0;
+    box-shadow: none !important;
+}
+
+.el-input:hover {
+    border-bottom: 1px solid #333 !important;
+}
+
+.el-input:focus {
+    border-bottom: 1px solid #409EFF !important;
 }
 
 .Label {
@@ -170,41 +220,5 @@ const Switch = (value) => {
     height: 25%;
     background-color: pink;
     z-index: 2;
-}
-
-.animated {
-    animation-duration: 0.75s;
-    animation-fill-mode: both;
-}
-
-@keyframes flipInY {
-    from {
-        transform: perspective(400px) rotate3d(0, 1, 0, 90deg);
-        animation-timing-function: ease-in;
-        opacity: 0;
-    }
-
-    40% {
-        transform: perspective(400px) rotate3d(0, 1, 0, -20deg);
-        animation-timing-function: ease-in;
-    }
-
-    60% {
-        transform: perspective(400px) rotate3d(0, 1, 0, 10deg);
-        opacity: 1;
-    }
-
-    80% {
-        transform: perspective(400px) rotate3d(0, 1, 0, -5deg);
-    }
-
-    to {
-        transform: perspective(400px);
-    }
-}
-
-.flipInY {
-    backface-visibility: visible !important;
-    animation-name: flipInY;
 }
 </style>
