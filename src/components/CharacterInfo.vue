@@ -2,32 +2,32 @@
 import { ref } from 'vue';
 const characters = [
     {
-        name: '后藤一里', romaji: 'GOTOU  HITORI  ', instrument: 'Gt.', color: '#d65484', line: [
+        name: '后藤一里', romaji: 'GOTOU  HITORI  ', instrument: 'Gt.', cv: '青山吉能', cv_romaji: 'Yoshino Aoyama', color: '#d65484', line: [
             '​绝对不要！',
             '​不想工作！！',
             '好可怕！社会好可怕！！'
-        ], desc: ''
+        ], desc: '极度怕生、性格内向的高中一年级学生。是结束乐队的吉他主奏。虽然性格内向，却因憧憬能在乐队活动中闪闪发光而开始学习吉他。实力是货真价实的，但无法在乐队演出或人前好好发挥。每次开口说话前必定会先冒出一声“啊…”。'
     },
     {
-        name: '伊地知虹夏', romaji: 'IJICHI  NIJIKA  ',instrument: 'Dr.', color: '#f9b000', line: [
+        name: '伊地知虹夏', romaji: 'IJICHI  NIJIKA  ', instrument: 'Dr.', cv: '铃代纱弓', cv_romaji: 'Sayumi Sazushiro', color: '#f9b000', line: [
             '我的梦想',
             '或许在不远的将来',
             '就能实现...'
-        ], desc: ''
+        ], desc: '活力满满、开朗的高中二年级学生，结束乐队的鼓手。作为乐队核心成员，总是热心地照顾每位新加入的伙伴。她是Livehouse「STARRY」店长星歌的妹妹，对这家Livehouse怀有特殊的感情。'
     },
     {
-        name: '山田凉', romaji: 'YAMADA  RYO  ', instrument: 'Ba.',color: '#99d6f1', line: [
+        name: '山田凉', romaji: 'YAMADA  RYO  ', instrument: 'Ba.', cv: '水野朔', cv_romaji: 'Saku Mizuno', color: '#99d6f1', line: [
             '分散各异的人类个性',
             '汇聚在一起',
             '便成为了一种音乐'
-        ], desc: ''
+        ], desc: '孤高冷静的高中二年级学生，结束乐队的贝斯手。虹夏的挚友。兴趣爱好脱离世俗，被人称作“怪人”反而会开心。虽然家境优渥，但在乐器上挥霍无度，总是陷入经济危机。偶尔会靠吃杂草充饥'
     },
     {
-        name: '喜多郁代', romaji: 'KITA  IKUYO  ', instrument: 'Gt.Vo.',color: '#ce2525', line: [
+        name: '喜多郁代', romaji: 'KITA  IKUYO  ', instrument: 'Gt.Vo.', cv: '长谷川育美', cv_romaji: 'Ikumi Hasegawa', color: '#ce2525', line: [
             '如果这么厉害的后藤同学',
             '愿意教导我的话',
             '或许就能提起干劲了…'
-        ], desc: ''
+        ], desc: '开朗受欢迎的高中一年级学生，结束乐队的主唱兼吉他手。天生擅长交际，即使初次见面也能毫不怯场地笑着搭话，是典型的现充。对凉抱有憧憬之情，偶尔会因这份感情过度热情。经常给伊地知星歌（イソスタ）发送照片。'
     }
 ]
 
@@ -74,14 +74,38 @@ const switchItem = (index) => {
             <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">
                 {{ activeItem.instrument }}
             </div>
-            
+
             <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
                 <span v-for="i in 10">{{ activeItem.romaji }}</span>
             </div>
 
             <span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span>
+
+            <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
+                <div>
+                    <span class="cv-logo">CV</span>
+                    <span class="cv-name">{{ activeItem.cv }}</span>
+                </div>
+
+                <span class="cv-instrument">{{ activeItem.instrument }}</span>
+                <div class="cv-info">
+                    <div class="cv-romaji">
+                        {{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}
+                    </div>
+                    
+                    
+                </div>
+                <div class="desc-content">
+                        {{ activeItem.desc }}
+                    </div>
+            </div>
+
             <div class="character-image">
                 <img :src="'src/assets/images/立绘_' + activeItem.name + '.png'" />
+            </div>
+
+            <div class="logo">
+                <img src="../assets/images/logo.png"/>
             </div>
         </div>
     </div>
@@ -186,7 +210,7 @@ const switchItem = (index) => {
     font-size: 20em;
     font-family: '黑体';
     font-weight: bolder;
-    color: #2b2b2b;
+    color: #141414;
     text-shadow: 0 0 1px #fff;
     position: absolute;
     top: 5%;
@@ -284,5 +308,61 @@ const switchItem = (index) => {
 
 .character-image img {
     height: 90vh;
+}
+
+.character-desc {
+    z-index: 2;
+    position: absolute;
+    top: 60%;
+    left: 5%;
+    align-items: center;
+    width: 30%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.cv-logo {
+    background-color: var(--highlight-color);
+    border-radius: 100%;
+    padding: 0.4em;
+}
+
+.cv-name {
+    margin-left: 20px;
+    font-size: 1.2em;
+}
+
+.cv-instrument {
+    color: var(--highlight-color);
+}
+
+.cv-info {
+    margin-top: 10px;
+    color: #fff;
+    font-size: 0.5em;
+    border-bottom: 1px solid #fff;
+    width: 100%;
+    text-align: left;
+    font-weight: bold;
+}
+
+
+.desc-content {
+    margin-top: 15px;
+    text-align: left;
+    font-family: '宋体';
+    font-size: 1.2em;
+}
+
+.logo {
+    position: absolute;
+    left: 60%;
+    top: 70%;
+    z-index: 5;
+}
+
+.logo img {
+    width: 400px;
 }
 </style>
