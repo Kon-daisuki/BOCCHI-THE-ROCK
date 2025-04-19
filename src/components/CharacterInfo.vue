@@ -1,10 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 const characters = [
-    { name: '后藤一里', avatar: 'src/assets/images/海报_一里.png', color: '#d65484', desc: '' },
-    { name: '伊地知虹夏', avatar: 'src/assets/images/海报_虹夏.png', color: '#feea93', desc: '' },
-    { name: '山田凉', avatar: 'src/assets/images/海报_凉.png', color: '#99d6f1', desc: '' },
-    { name: '喜多郁代', avatar: 'src/assets/images/海报_喜多.png', color: '#ce2525', desc: '' }
+    { name: '后藤一里', color: '#d65484', desc: '' },
+    { name: '伊地知虹夏', color: '#feea93', desc: '' },
+    { name: '山田凉', color: '#99d6f1', desc: '' },
+    { name: '喜多郁代', color: '#ce2525', desc: '' }
 ]
 
 
@@ -20,21 +20,27 @@ const switchItem = (index) => {
 <template>
     <div class="info-container">
         <div class="left-part">
-            <img :src="activeItem.avatar">
+            <img :src="'src/assets/images/海报_'+activeItem.name+'.png'">
         </div>
 
-        <div class="right-part">
-            <span class="info-name">{{ activeItem.name }}</span>
-            <div class="info-desc">
-                {{ activeItem.desc }}
-            </div>
-        </div>
+
 
         <div class="select-part">
             <ul>
                 <li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)" :class="{'selected':activeItem.name === character.name}"  :style="{'--highlight-color' :character.color}" >
-                <img :src="character.avatar" /></li>
+                <img :src="'src/assets/images/海报_'+character.name+'.png'" /></li>
             </ul>
+        </div>
+
+
+        <div class="right-part">
+            <div class="character-head">
+                <img :src="'src/assets/images/大头_'+activeItem.name+'.webp'"/>
+            </div>
+            <span class="name-line" :style="{'--highlight-color' :activeItem.color}">{{ activeItem.name }}</span>
+            <div class="character-image">
+                <img :src="'src/assets/images/立绘_'+activeItem.name+'.webp'"/>
+            </div>
         </div>
     </div>
 
@@ -49,6 +55,7 @@ const switchItem = (index) => {
     overflow: hidden;
     display: flex;
 }
+
 
 .left-part img {
     height: 100%;
@@ -79,6 +86,7 @@ const switchItem = (index) => {
     
 }
 
+
 .select-part img {
     height: 100%;
     width: 100%;
@@ -102,6 +110,8 @@ const switchItem = (index) => {
     pointer-events: none; /* 防止伪元素拦截点击 */
 }
 
+
+/* 角色列表被选中时的样式 */
 .select-part li.selected::before,
 .select-part li:hover::before {
     content: '';
@@ -112,5 +122,60 @@ const switchItem = (index) => {
     height: 100%;
     box-shadow: inset 0 0 0 5px var(--highlight-color);
     pointer-events: none; /* 防止伪元素拦截点击事件 */
+}
+
+.right-part {
+    display: flex;
+    flex: 1;
+    position: relative;
+}
+
+.name-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: flex-start;
+    background-color: var(--highlight-color);
+    color: #000;
+    font-size: 3em;
+    transform: translate(0, -50%);
+    z-index: -1;
+    text-indent: 2em;
+    font-family: 'Xiangsu';
+    
+}
+
+.character-head {
+    justify-self: flex-start;
+    align-self: flex-start;
+    z-index: -2;
+
+}
+
+.character-head img{
+    height: 50vh;
+    margin-left: 10%;
+    opacity: 0.3;
+}
+
+.character-image {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.character-image img{
+    height: 90vh;
+}
+
+/* 定义字体 */
+@font-face {
+  font-family: 'Xiangsu'; /* 自定义字体名称 */
+  src: url('src/assets/fonts/AaHuanMengKongJianXiangSuTi-2.ttf') format('truetype');
+  font-weight: bold;
+  font-display: swap; /* 优化加载时的显示行为 */
 }
 </style>
