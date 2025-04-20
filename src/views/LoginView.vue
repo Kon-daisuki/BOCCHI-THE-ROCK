@@ -1,13 +1,25 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
 
-
-// 背景图片集
-const i = ref(0)
-const images = [
-    { id: 1, url: '/src/assets/images/LoginImage1.jpeg' },
-    { id: 2, url: '/src/assets/images/LoginImage2.jpg' }
+// 原始背景图片集
+const originalImages = [
+    { url: '/src/assets/images/LoginImage1.jpg', filter: 'none' },
+    { url: '/src/assets/images/LoginImage2.jpg', filter: 'none' },
+    { url: '/src/assets/images/LoginImage3.jpg', filter: 'none' },
+    { url: '/src/assets/images/LoginImage4.jpg', filter: 'none' },
+    { url: '/src/assets/images/LoginImage5.jpg', filter: 'none' }
 ]
+
+// 扩展图片集（首尾添加复制项，实现无缝衔接）
+const extendedImages = ref([
+    originalImages[originalImages.length - 1],
+    ...originalImages,
+    originalImages[0]
+])
+
+const containerRef = ref(null)
+const i = ref(1)
 
 // 登录 and 注册
 const isRegister = ref(false)
@@ -18,25 +30,12 @@ const FormModel = ref({
     RePassword: ''
 })
 
-const rules = {
-    username: [
-        { required: true, message: '请输入用户名', trigger: 'blur' }
-    ],
-    password: [
-        { required: true, message: '请输入密码', trigger: 'blur' }
-    ],
-    RePassword: [
-        { required: true, message: '请再次输入密码', trigger: 'blur' }
-    ]
-}
-
 const submitForm = () => {
 
 }
 
 // 动画
 // target图片换位
-const isAnimate = ref(false)
 const Switch = (value) => {
     if (value) {
         isRegister.value = true, isLogin.value = false;
@@ -47,58 +46,91 @@ const Switch = (value) => {
 }
 
 const RightImage = () => {
-    i.value = (i.value + 1) % images.length;
+    i.value++;
+    if (i.value === extendedImages.value.length - 1) {
+        setTimeout(() => {
+            containerRef.value.classList.add('no-transition');
+            i.value = 1;
+            requestAnimationFrame(() => {
+                containerRef.value.classList.remove('no-transition');
+            })
+        }, 490)
+    }
 }
 
 const LeftImage = () => {
-    i.value = (i.value + images.length - 1) % images.length;
+    i.value--;
+    if (i.value === 0) {
+        setTimeout(() => {
+            containerRef.value.classList.add('no-transition');
+            i.value = extendedImages.value.length - 2;
+            requestAnimationFrame(() => {
+                containerRef.value.classList.remove('no-transition');
+            })
+        }, 500)
+    }
 }
 
+const router = useRouter()
+const mainRef = ref(null)
+
+onMounted(() => {
+    requestAnimationFrame(() => {
+    mainRef.value.style.transition = 'opacity 0.5s ease'
+    mainRef.value.style.opacity = 1
+  })
+})
+
+const goHome = () => {
+  mainRef.value.style.opacity = 0
+  setTimeout(() => {
+    router.push('/')
+  }, 500)
+}
 </script>
 
 <template>
-    <div class="main" :style="{ background: `url('${images[i].url}') center center / cover no-repeat` }">
+    <div class="main" ref="mainRef">
+        <div class="background-container"
+            :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
+            ref="containerRef">
+            <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
+                backgroundImage: `url('${img.url}')`,
+                filter: img.filter
+            }"></div>
+        </div>
         <img class="left" src="/src/assets/images/left.svg" @click="LeftImage"></img>
         <img class="right" src="/src/assets/images/right.svg" @click="RightImage"></img>
         <div class="box">
             <div class="target">
-                <img class="slide-image" :src="images[i].url" :class="{ 'slide': isRegister }" alt="">
+                <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
                 <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
-                <el-form :model="FormModel" :rules="rules" :label-width="'auto'" v-if="isLogin">
-                    <el-form-item label="账号" prop="username" :required="false">
-                        <el-input v-model="FormModel.username" :prefix-icon="User" placeholder="请输入用户名"></el-input>
-                    </el-form-item>
-                    <el-form-item label="密码" prop="password" :required="false">
-                        <el-input v-model="FormModel.password" :prefix-icon="Lock" type="password" placeholder="请输入密码"
-                            show-password></el-input>
-                    </el-form-item>
-                    <el-button type="success">登录</el-button>
-                </el-form>
-                <el-form :model="FormModel" :rules="rules" :label-width="'auto'" v-if="isRegister">
-                    <el-form-item label="账号" prop="username" :required="false">
-                        <el-input v-model="FormModel.username" placeholder="请输入用户名"></el-input>
-                    </el-form-item>
-                    <el-form-item label="密码" prop="password" :required="false">
-                        <el-input v-model="FormModel.password" type="password" placeholder="请输入密码"
-                            show-password></el-input>
-                    </el-form-item>
-                    <el-form-item label="确认密码" prop="RePassword" :required="false">
-                        <el-input v-model="FormModel.RePassword" type="password" placeholder="请再次输入密码"
-                            show-password></el-input>
-                    </el-form-item>
-                    <el-button type="success">注册</el-button>
-                </el-form>
+                <form :model="FormModel" @submit.prevent="submitForm" v-if="isLogin">
+                    <h2>Welcome Back</h2>
+                    <label class="input-name">Username:</label>
+                    <input v-model="FormModel.username"></input>
+                    <label class="input-name">Password:</label>
+                    <input v-model="FormModel.password"></input>
+                    <button>Login</button>
+                </form>
+                <form :model="FormModel" @submit.prevent="submitForm" v-if="isRegister">
+                    <h2>Join Us</h2>
+                    <label class="input-name">Username:</label>
+                    <input v-model="FormModel.username"></input>
+                    <label class="input-name">Password:</label>
+                    <input v-model="FormModel.password"></input>
+                    <label class="input-name">RePassword:</label>
+                    <input v-model="FormModel.RePassword"></input>
+                    <button>Register</button>
+                </form>
             </div>
-            <button class="Label" v-if="isLogin" @click="Switch(isLogin)">
-                注册
-            </button>
-            <button class="Label" v-if="isRegister" @click="Switch(isLogin)">
-                登录
-            </button>
+            <img class="switch-login" src="/src/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
+            <div class="ribbons"></div>
         </div>
+        <img class="close-login" src="/src/assets/images/关闭.svg" alt="" @click="goHome">
     </div>
 </template>
 
@@ -112,6 +144,29 @@ const LeftImage = () => {
     left: 0;
     width: 100vw;
     height: 100vh;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.background-container {
+    position: absolute;
+    display: flex;
+    width: var(--background-width);
+    height: 100%;
+    transition: left 0.5s ease-in-out;
+    z-index: 0;
+}
+
+.background-container.no-transition {
+    transition: none !important;
+}
+
+.main-background {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
 }
 
 .left,
@@ -134,8 +189,11 @@ const LeftImage = () => {
     position: relative;
     display: flex;
     align-items: center;
-    width: 45%;
-    height: 50%;
+    width: 50%;
+    height: 60%;
+    z-index: 1;
+    outline: 1.5px dashed #000;
+    outline-offset: -20px;
 }
 
 .target {
@@ -154,10 +212,11 @@ const LeftImage = () => {
 
 .targetbox {
     display: flex;
-    flex-direction: column;
-    width: 15%;
+    width: 25%;
     height: 95%;
     background-color: white;
+    outline: 1.5px dashed #000;
+    outline-offset: -8px;
 }
 
 .slide-image {
@@ -166,7 +225,8 @@ const LeftImage = () => {
     object-fit: cover;
     position: absolute;
     top: 10px;
-    transition: all 0.7s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
 .slide {
@@ -178,47 +238,80 @@ const LeftImage = () => {
 }
 
 .loginbox {
-    width: 95%;
+    width: 73.5%;
     height: 95%;
     background-color: white;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
-:deep(.el-form-item__label) {
-    color: #000;
+@font-face {
+    font-family: 'Note-Script-SemiBold-2';
+    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    font-style: normal;
 }
 
-.el-input {
-    width: 200px;
-}
-
-.el-input {
-    border: none;
-    border-bottom: 1px solid #333;
-    border-radius: 0;
-    border-radius: 0;
-    box-shadow: none !important;
-}
-
-.el-input:hover {
-    border-bottom: 1px solid #333 !important;
-}
-
-.el-input:focus {
-    border-bottom: 1px solid #409EFF !important;
-}
-
-.Label {
-    position: absolute;
+form {
     display: flex;
-    top: 0;
-    right: 40px;
-    width: 10%;
-    height: 25%;
-    background-color: pink;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+h2 {
+    font-family: 'Brush Script MT';
+    font-size: 3em;
+    font-weight: bolder;
+}
+
+input {
+    width: 50%;
+    border: none;
+    border-bottom: 1px solid black;
+    font-size: 1.2em;
+}
+
+input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.input-name {
+    font-family: 'Note-Script-SemiBold-2';
+    width: 50%;
+    text-align: left;
+    font-size: 20px;
+}
+
+button {
+    font-family: 'Note-Script-SemiBold-2';
+}
+
+.switch-login {
+    position: absolute;
+    top: 5%;
+    right: 25px;
+    width: 60px;
+    height: auto;
     z-index: 2;
+    cursor: pointer;
+}
+
+.close-login {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5%;
+    height: auto;
+    z-index: 4;
+    cursor: pointer;
 }
 </style>
