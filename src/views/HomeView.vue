@@ -2,6 +2,7 @@
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
+import MusicPlayer from '@/components/MusicPlayer.vue';
 
 const scrollContainer = ref(null);
 const isScrolling = ref(false); // 变成响应式
@@ -93,9 +94,7 @@ onMounted(() => {
     </section>
 
     <section id="section3" class="scroll-page">
-      <div class="content">
-        <h1>第三模块</h1>
-      </div>
+      <MusicPlayer />
     </section>
 
     <section id="section4" class="scroll-page">
