@@ -1,6 +1,6 @@
 <script setup>
-import Header from '../components/Header.vue';
-import CharacterInfo from '../components/CharacterInfo.vue';
+import Header from '@/components/Header.vue';
+import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
 
 const scrollContainer = ref(null);
@@ -84,7 +84,7 @@ onMounted(() => {
       </div>
 
       <div class="title-container">
-        <h1 class="main-title">Bocchi The Rock!</h1>
+        <img src="@/assets/images/logo_movie_cn.png"/>
       </div>
     </section>
 
@@ -187,20 +187,16 @@ onMounted(() => {
   text-align: center;
 }
 
-.main-title {
-  opacity: 0;
-  transform: translateY(20px);
+.title-container img {
   animation: fadeInUp 1s ease-out forwards;
-  animation-delay: 0.5s;
-  color: white;
-  font-size: 5em;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  animation-delay: 0.9s;
+  opacity: 0;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(180px);
   }
   to {
     opacity: 1;

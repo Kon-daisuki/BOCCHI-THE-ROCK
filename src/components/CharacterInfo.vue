@@ -31,11 +31,21 @@ const characters = [
     }
 ]
 
+const getCharacterImage = (name) => {
+    return new URL(`/src/assets/images/立绘_${name}.png`, import.meta.url).href;
+}
+
+const getPostImage = (name) => {
+    return new URL(`/src/assets/images/海报_${name}.png`, import.meta.url).href;
+
+}
+
 
 
 const activeItem = ref(characters[0]);
-
+const lastItem = ref(activeItem);
 const switchItem = (index) => {
+    lastItem.value = activeItem
     activeItem.value = characters[index];
 };
 </script>
@@ -43,8 +53,14 @@ const switchItem = (index) => {
 
 <template>
     <div class="info-container">
-        <div class="left-part">
-            <img :src="'src/assets/images/海报_' + activeItem.name + '.png'">
+        <div class="left-part"
+            :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }">
+            <Transition name="wait" mode="out-in">
+                <img :key="activeItem.name" :src="getPostImage(activeItem.name)">
+            </Transition>
+            <transition name="slip" mode="out-in">
+                <div class="box-cover" :key="activeItem.name"></div>
+            </transition>
         </div>
 
 
@@ -54,7 +70,7 @@ const switchItem = (index) => {
                 <li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)"
                     :class="{ 'selected': activeItem.name === character.name }"
                     :style="{ '--highlight-color': character.color }">
-                    <img :src="'src/assets/images/海报_' + character.name + '.png'" />
+                    <img :src="getPostImage(character.name)" />
                 </li>
             </ul>
         </div>
@@ -76,7 +92,11 @@ const switchItem = (index) => {
             </div>
 
             <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
-                <span v-for="i in 10">{{ activeItem.romaji }}</span>
+                <div class="scroll-wrapper">
+                    <div class="scroll-romaji" v-for="i in 2" :key="i">
+                        <span v-for="i in 16">{{ activeItem.romaji }}</span>
+                    </div>
+                </div>
             </div>
 
             <span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span>
@@ -92,20 +112,22 @@ const switchItem = (index) => {
                     <div class="cv-romaji">
                         {{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}
                     </div>
-                    
-                    
+
+
                 </div>
                 <div class="desc-content">
-                        {{ activeItem.desc }}
-                    </div>
+                    {{ activeItem.desc }}
+                </div>
             </div>
+            <transition name="fade" appear>
+                <div :key="activeItem.name" class="character-image">
+                    <img :src="getCharacterImage(activeItem.name)" />
+                </div>
+            </transition>
 
-            <div class="character-image">
-                <img :src="'src/assets/images/立绘_' + activeItem.name + '.png'" />
-            </div>
 
             <div class="logo">
-                <img src="../assets/images/logo.png"/>
+                <img src="@/assets/images/logo_movie.svg" />
             </div>
         </div>
     </div>
@@ -122,9 +144,22 @@ const switchItem = (index) => {
     display: flex;
 }
 
+.left-part {
+    position: relative;
+    overflow: hidden;
+}
 
 .left-part img {
     height: 100%;
+}
+
+.box-cover {
+    position: absolute;
+    left: -100%;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--highlight-color);
 }
 
 .select-part {
@@ -143,9 +178,10 @@ const switchItem = (index) => {
     width: 80px;
     height: 80px;
     align-self: flex-end;
-    /* 新增：让所有li贴紧底部 */
     transition: all 0.3s;
 }
+
+
 
 .select-part li.selected,
 .select-part li:hover {
@@ -155,7 +191,7 @@ const switchItem = (index) => {
 
 }
 
-
+/* 角色选择框内图片样式 */
 .select-part img {
     height: 100%;
     width: 100%;
@@ -229,6 +265,7 @@ const switchItem = (index) => {
     align-items: flex-start;
     color: var(--highlight-color);
     font-family: '宋体';
+    transition: color 1.5s;
 }
 
 
@@ -238,6 +275,7 @@ const switchItem = (index) => {
     position: absolute;
     width: 55px;
     height: 55px;
+
 }
 
 .character-line::before {
@@ -245,6 +283,7 @@ const switchItem = (index) => {
     left: 0;
     border-top: 2px solid var(--highlight-color);
     border-left: 2px solid var(--highlight-color);
+    transition: border 1.5s;
 }
 
 .character-line::after {
@@ -252,7 +291,10 @@ const switchItem = (index) => {
     right: 0;
     border-right: 2px solid var(--highlight-color);
     border-bottom: 2px solid var(--highlight-color);
+    transition: border 1.5s;
 }
+
+
 
 
 .romaji-line {
@@ -263,9 +305,34 @@ const switchItem = (index) => {
     white-space: nowrap;
     color: var(--highlight-color);
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    transition: color 1.5s;
 }
 
+.romaji-line:hover .scroll-wrapper {
+    animation-play-state: paused;
+}
 
+.scroll-wrapper {
+    display: inline-block;
+    animation: scrollRomaji 25s linear infinite;
+}
+
+.scroll-romaji {
+    display: inline-block;
+    padding-right: 2em;
+    /* 增加文字间距 */
+}
+
+@keyframes scrollRomaji {
+    0% {
+        transform: translateX(0%);
+    }
+
+    100% {
+        transform: translateX(-50%);
+        /* 移动文本总长度的一半 */
+    }
+}
 
 
 
@@ -283,6 +350,7 @@ const switchItem = (index) => {
     z-index: -1;
     text-indent: 2em;
     font-family: 'Aa幻梦空间像素体';
+    transition: background-color 1.5s;
 
 }
 
@@ -308,6 +376,13 @@ const switchItem = (index) => {
 
 .character-image img {
     height: 90vh;
+    transition: all 0.3s;
+
+}
+
+.character-image img:hover {
+    transform: scale(1.1);
+    transition: all 0.3s ease;
 }
 
 .character-desc {
@@ -326,6 +401,7 @@ const switchItem = (index) => {
     background-color: var(--highlight-color);
     border-radius: 100%;
     padding: 0.4em;
+    transition: background-color 1.5s;
 }
 
 .cv-name {
@@ -335,6 +411,7 @@ const switchItem = (index) => {
 
 .cv-instrument {
     color: var(--highlight-color);
+    transition: color 1.5s;
 }
 
 .cv-info {
@@ -364,5 +441,56 @@ const switchItem = (index) => {
 
 .logo img {
     width: 400px;
+}
+
+
+
+/* 定义进入和离开的动画 */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-enter-from {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+
+
+
+.slip-enter-active,
+.slip-leave-active {
+    transition: left 0.5s ease, background-color 0.4s ease;
+}
+
+
+
+.slip-leave-to {
+    left: 0;
+}
+
+.slip-leave-from {
+    left: -100%;
+    background-color: var(--last-hightlight-color);
+}
+
+.slip-enter-from {
+    left: 0;
+    background-color: var(--highlight-color);
+}
+
+.slip-enter-to {
+    left: 100%;
+}
+
+.wait-enter-active,
+.wait-leave-active {
+    transition: all 0.5s ease;
 }
 </style>
