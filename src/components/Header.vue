@@ -1,4 +1,6 @@
 <script setup>
+import { ref } from 'vue';
+
 const props = defineProps({
   activeSection: String
 });
@@ -13,21 +15,33 @@ const nav = [
   {title: '关于', to: '#section5'},
 ];
 
+const bg_color = ref('rgba(0, 0, 0, 0.35)');
+
 const handleClick = (e, to) => {
   e.preventDefault();
   emit('nav-click', to);
+  if (to != '#section1'){
+    bg_color.value = 'rgba(0, 0, 0, 0)';
+  }else {
+    bg_color.value = 'rgba(0, 0, 0, 0.35)';
+  }
 };
+
+
+
+
 </script>
 
 <template>
   <div class="header">
-    <img class="logo" src="@/assets/images/logo_movie_cn.png"/>
+    <img class="logo" src="/assets/images/logo_movie_cn.png"/>
     <div class="nav">
       <ul>
         <li 
           v-for="i in nav" 
           :key="i.title" 
           :class="{ active: i.to === `#${activeSection}` }"
+          :style="{'--bg-color': bg_color}"
         >
           <a 
             :href="i.to" 
@@ -47,7 +61,7 @@ const handleClick = (e, to) => {
   top: 0;
   left: 0;
   right: 0;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: var(--bg-color, rgba(0, 0, 0, 0.35));
   height: 48px;
   display: flex;
   justify-content: space-between;

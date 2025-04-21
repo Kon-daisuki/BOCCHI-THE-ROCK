@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 
 const producers = [
-    { name: 'Sudoria', url: '/src/assets/images/Alola.jpg', color: 'white', drc: '1111' },
-    { name: 'Alola', url: '/src/assets/images/Alola.jpg', color: 'white', drc: '111' },
-    { name: 'Daxi', url: '/src/assets/images/Alola.jpg', color: 'white', drc: '111' },
-    { name: 'Rquars', url: '/src/assets/images/Alola.jpg', color: 'white', drc: '1111' }
+    { name: 'Sudoria', url: '/assets/images/Alola.jpg', color: 'white', drc: '1111' },
+    { name: 'Alola', url: '/assets/images/Alola.jpg', color: 'white', drc: '111' },
+    { name: 'Daxi', url: '/assets/images/Alola.jpg', color: 'white', drc: '111' },
+    { name: 'Rquars', url: '/assets/images/Alola.jpg', color: 'white', drc: '1111' }
 ]
 
 </script>
@@ -43,7 +43,7 @@ const producers = [
     top: 0;
     width: 100%;
     height: 100%;
-    background: url(/src/assets/images/pagebg.png) 100% 100% no-repeat;
+    background: url(/src//assets/images/pagebg.png) 100% 100% no-repeat;
 }
 
 .head {
@@ -96,18 +96,18 @@ const producers = [
     animation: onpuLineAnime 5s linear infinite alternate-reverse;
     opacity: 0.5;
     transform-origin: 0 20%;
-    background-image: url(/src/assets/images/onpu_line.png);
+    background-image: url(/src//assets/images/onpu_line.png);
 
 }
 
 .c-onpu__layer.-layer2 {
     animation: onpuAnime1 2s linear infinite alternate-reverse;
-    background-image: url(/src/assets/images/onpu_item1.png);
+    background-image: url(/src//assets/images/onpu_item1.png);
 }
 
 .c-onpu__layer.-layer3 {
     animation: onpuAnime2 2s linear infinite alternate-reverse;
-    background-image: url(/src/assets/images/onpu_item2.png);
+    background-image: url(/src//assets/images/onpu_item2.png);
 }
 
 .label1 {
@@ -160,7 +160,7 @@ const producers = [
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    src: url('/src//assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
 

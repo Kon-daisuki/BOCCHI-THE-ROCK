@@ -4,11 +4,11 @@ import { useRouter } from 'vue-router';
 
 // 原始背景图片集
 const originalImages = [
-    { url: '/src/assets/images/LoginImage1.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage2.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage3.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage4.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage5.jpg', filter: 'none' }
+    { url: '/assets/images/LoginImage1.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage2.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage3.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage4.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage5.jpg', filter: 'none' }
 ]
 
 // 扩展图片集（首尾添加复制项，实现无缝衔接）
@@ -94,17 +94,17 @@ const goHome = () => {
         <div class="background-container"
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
             ref="containerRef">
-            <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
+            <div v-for="(img, index) in extendedImages" :key="index" class="main-backgrnpound" :style="{
                 backgroundImage: `url('${img.url}')`,
                 filter: img.filter
             }"></div>
         </div>
-        <img class="left" src="/src/assets/images/left.svg" @click="LeftImage"></img>
-        <img class="right" src="/src/assets/images/right.svg" @click="RightImage"></img>
+        <img class="left" src="/assets/images/left.svg" @click="LeftImage"></img>
+        <img class="right" src="/assets/images/right.svg" @click="RightImage"></img>
         <div class="box">
             <div class="target">
                 <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
+                <img class="logo" src="/assets/images/Loginlogo.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -127,10 +127,10 @@ const goHome = () => {
                     <button>Register</button>
                 </form>
             </div>
-            <img class="switch-login" src="/src/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
             <div class="ribbons"></div>
         </div>
-        <img class="close-login" src="/src/assets/images/关闭.svg" alt="" @click="goHome">
+        <img class="close-login" src="/assets/images/关闭.svg" alt="" @click="goHome">
     </div>
 </template>
 
@@ -206,7 +206,7 @@ const goHome = () => {
     width: 30%;
     height: 100%;
     z-index: 2;
-    background: url(/src/assets/images/未命名的设计.png);
+    background: url(/assets/images/未命名的设计.png);
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -249,7 +249,7 @@ const goHome = () => {
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
 
