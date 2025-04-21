@@ -334,8 +334,6 @@ const switchItem = (index) => {
     }
 }
 
-
-
 .name-line {
     position: absolute;
     top: 50%;
@@ -395,6 +393,7 @@ const switchItem = (index) => {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    color: #fff;
 }
 
 .cv-logo {

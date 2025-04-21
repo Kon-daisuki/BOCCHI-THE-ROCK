@@ -197,14 +197,14 @@ onMounted(() => {
 
                         <!-- 控制面板 -->
                         <div class="control-panel">
-                            <span class="icon-like">
+                            <span>
                                 <img src="@/assets/images/icon_like.png" />
                             </span>
-                            <span class="icon-mode">
+                            <span>
                                 <img src="@/assets/images/icon_mode.png" />
                             </span>
-                            <span class="icon-volume">
-                                <img src="@/assets/images/icon_volume_forbidden.png" />
+                            <span>
+                                <img src="@/assets/images/icon_mv.png" />
                             </span>
                         </div>
 
@@ -681,4 +681,5 @@ onMounted(() => {
         transform: rotate(360deg);
     }
 }
+
 </style>
