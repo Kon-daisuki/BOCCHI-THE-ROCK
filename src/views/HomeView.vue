@@ -2,6 +2,7 @@
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
+import About from '../components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
 
 const scrollContainer = ref(null);
@@ -105,7 +106,7 @@ onMounted(() => {
 
     <section id="section5" class="scroll-page">
       <div class="content">
-        <h1>第五模块</h1>
+        <About></About>
       </div>
     </section>
   </div>
