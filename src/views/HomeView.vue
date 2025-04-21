@@ -2,7 +2,7 @@
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
-import About from '../components/About.vue';
+import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
 
 const scrollContainer = ref(null);
@@ -86,7 +86,7 @@ onMounted(() => {
       </div>
 
       <div class="title-container">
-        <img src="@/assets/images/logo_movie_cn.png"/>
+        <img src="/assets/images/logo_movie_cn.png"/>
       </div>
     </section>
 

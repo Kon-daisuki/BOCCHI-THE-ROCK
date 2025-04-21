@@ -32,11 +32,11 @@ const characters = [
 ]
 
 const getCharacterImage = (name) => {
-    return new URL(`/src/assets/images/立绘_${name}.png`, import.meta.url).href;
+    return new URL(`/assets/images/立绘_${name}.png`, import.meta.url).href;
 }
 
 const getPostImage = (name) => {
-    return new URL(`/src/assets/images/海报_${name}.png`, import.meta.url).href;
+    return new URL(`/assets/images/海报_${name}.png`, import.meta.url).href;
 
 }
 
@@ -127,7 +127,7 @@ const switchItem = (index) => {
 
 
             <div class="logo">
-                <img src="@/assets/images/logo_movie.svg" />
+                <img src="/assets/images/logo_movie.svg" />
             </div>
         </div>
     </div>

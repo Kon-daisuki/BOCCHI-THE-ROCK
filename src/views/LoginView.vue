@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router';
 
 // 原始背景图片集
 const originalImages = [
-    { url: '/src/assets/images/LoginImage1.jpg' },
-    { url: '/src/assets/images/LoginImage2.jpg' },
-    { url: '/src/assets/images/LoginImage3.png' },
+    { url: '/assets/images/LoginImage1.jpg' },
+    { url: '/assets/images/LoginImage2.jpg' },
+    { url: '/assets/images/LoginImage3.png' },
 ]
 
 // 扩展图片集（首尾添加复制项，实现无缝衔接）
@@ -115,13 +115,13 @@ const goHome = () => {
                 backgroundImage: `url('${img.url}')`
             }"></div>
         </div>
-        <img class="left" src="/src/assets/images/left.svg" @click="LeftImage"></img>
-        <img class="right" src="/src/assets/images/right.svg" @click="RightImage"></img>
+        <img class="left" src="/assets/images/left.svg" @click="LeftImage"></img>
+        <img class="right" src="/assets/images/right.svg" @click="RightImage"></img>
         <div class="box">
             <div class="target">
                 <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="target-image" src="/src/assets/images/target-image1.png" alt="">
-                <img class="target-image" src="/src/assets/images/target-image2.png" alt="">
+                <img class="target-image" src="/assets/images/target-image1.png" alt="">
+                <img class="target-image" src="/assets/images/target-image2.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -144,10 +144,10 @@ const goHome = () => {
                     <button>Register</button>
                 </form>
             </div>
-            <img class="switch-login" src="/src/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
             <div class="ribbons"></div>
         </div>
-        <img class="close-login" src="/src/assets/images/关闭.svg" alt="" @click="goHome">
+        <img class="close-login" src="/assets/images/关闭.svg" alt="" @click="goHome">
     </div>
 </template>
 
@@ -233,7 +233,7 @@ const goHome = () => {
     top: 0;
     width: 30%;
     z-index: 2;
-    background: url(/src/assets/images/target-background.png);
+    background: url(/assets/images/target-background.png);
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -275,13 +275,13 @@ const goHome = () => {
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Brush-Script-MT';
-    src: url('/src/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
+    src: url('/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
     font-style: normal;
 }
 

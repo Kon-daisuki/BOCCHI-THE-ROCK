@@ -2,21 +2,21 @@
 import { onMounted, ref, watch } from 'vue';
 
 const musics = [
-    { index: 1, name: 'Distortion!!', duration: '03:23', image: '/src/assets/albums/Distortion!!.jpg', src: '/src/assets/musics/Distortion!!.mp3', singer: '结束バンド' },
-    { index: 2, name: 'なにが悪い', duration: '03:47', image: '/src/assets/albums/なにが悪い.jpg', src: '/src/assets/musics/なにが悪い.mp3', singer: '结束バンド' },
-    { index: 3, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/src/assets/albums/転がる岩、君に朝が降る.jpg', src: '/src/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' },
-    { index: 4, name: '星座になれたら', duration: '04:18', image: '/src/assets/albums/星座になれたら.jpg', src: '/src/assets/musics/星座になれたら.mp3', singer: '结束バンド' },
-    { index: 5, name: '青春コンプレックス', duration: '03:23', image: '/src/assets/albums/結束バンド.jpg', src: '/src/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' },
-    { index: 6, name: 'あのバンド', duration: '03:33', image: '/src/assets/albums/あのバンド.jpg', src: '/src/assets/musics/あのバンド.mp3', singer: '结束バンド' },
-    { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/src/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/src/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド' },
-    { index: 8, name: 'milky way', duration: '03:32', image: '/src/assets/albums/We will.png', src: '/src/assets/musics/milky way.mp3', singer: '结束バンド' },
-    { index: 9, name: 'カラカラ', duration: '04:25', image: '/src/assets/albums/カラカラ.jpg', src: '/src/assets/musics/カラカラ.mp3', singer: '结束バンド' },
+    { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' },
+    { index: 2, name: 'なにが悪い', duration: '03:47', image: '/assets/albums/なにが悪い.jpg', src: '/assets/musics/なにが悪い.mp3', singer: '结束バンド' },
+    { index: 3, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' },
+    { index: 4, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' },
+    { index: 5, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' },
+    { index: 6, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' },
+    { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド' },
+    { index: 8, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' },
+    { index: 9, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' },
 
 ]
 
 const playerIcons = [
-    "/src/assets/images/icon_play.png",
-    "/src/assets/images/icon_pause.png"
+    "/assets/images/icon_play.png",
+    "/assets/images/icon_pause.png"
 ]
 
 // 0: pause   1：playing
@@ -184,27 +184,27 @@ onMounted(() => {
                         <!-- 音量控制 -->
                         <div class="volume-control">
                             <span class="icon-defuse">
-                                <img src="@/assets/images/icon_defuse.png" />
+                                <img src="/assets/images/icon_defuse.png" />
                             </span>
                             <div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }"
                                 @click="onVolumeProgressClicked($event)">
                                 <div class="volume-progress-fill"></div>
                             </div>
                             <span class="icon-add">
-                                <img src="@/assets/images/icon_add.png" />
+                                <img src="/assets/images/icon_add.png" />
                             </span>
                         </div>
 
                         <!-- 控制面板 -->
                         <div class="control-panel">
                             <span class="icon-like">
-                                <img src="@/assets/images/icon_like.png" />
+                                <img src="/assets/images/icon_like.png" />
                             </span>
                             <span class="icon-mode">
-                                <img src="@/assets/images/icon_mode.png" />
+                                <img src="/assets/images/icon_mode.png" />
                             </span>
                             <span class="icon-volume">
-                                <img src="@/assets/images/icon_volume_forbidden.png" />
+                                <img src="/assets/images/icon_volume_forbidden.png" />
                             </span>
                         </div>
 
@@ -226,7 +226,7 @@ onMounted(() => {
                         <div class="btn-bar">
                             <!-- 上一首 -->
                             <div @click="switchMusic(activeItem.index - 2)">
-                                <img src="@/assets/images/icon_last.png" />
+                                <img src="/assets/images/icon_last.png" />
                             </div>
 
                             <!-- 播放、暂停 -->
@@ -236,7 +236,7 @@ onMounted(() => {
 
                             <!-- 下一首 -->
                             <div @click="switchMusic(activeItem.index)">
-                                <img src="@/assets/images/icon_next.png" />
+                                <img src="/assets/images/icon_next.png" />
                             </div>
                         </div>
                     </div>
