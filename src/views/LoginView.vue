@@ -4,9 +4,11 @@ import { useRouter } from 'vue-router';
 
 // 原始背景图片集
 const originalImages = [
-    { url: '/assets/images/LoginImage1.jpg' },
-    { url: '/assets/images/LoginImage2.jpg' },
-    { url: '/assets/images/LoginImage3.png' },
+    { url: '/assets/images/LoginImage1.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage2.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage3.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage4.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage5.jpg', filter: 'none' }
 ]
 
 // 扩展图片集（首尾添加复制项，实现无缝衔接）
@@ -112,7 +114,8 @@ const goHome = () => {
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
             ref="containerRef">
             <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
-                backgroundImage: `url('${img.url}')`
+                backgroundImage: `url('${img.url}')`,
+                filter: img.filter
             }"></div>
         </div>
         <img class="left" src="/assets/images/left.svg" @click="LeftImage"></img>
@@ -120,8 +123,7 @@ const goHome = () => {
         <div class="box">
             <div class="target">
                 <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="target-image" src="/assets/images/target-image1.png" alt="">
-                <img class="target-image" src="/assets/images/target-image2.png" alt="">
+                <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -233,7 +235,7 @@ const goHome = () => {
     top: 0;
     width: 30%;
     z-index: 2;
-    background: url(/assets/images/target-background.png);
+    background: url(/src/assets/images/未命名的设计.png);
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -275,13 +277,7 @@ const goHome = () => {
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Brush-Script-MT';
-    src: url('/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
+    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
 

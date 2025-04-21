@@ -11,6 +11,10 @@ const musics = [
     { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド' },
     { index: 8, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' },
     { index: 9, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' },
+    { index: 10, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/ぼっち・ざ・ろっく! vol.6 特典CD.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド' },
+    { index: 11, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' },
+    { index: 12, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' },
+    { index: 13, name: '小さな海', duration: '03:43', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' },
 
 ]
 
@@ -72,10 +76,10 @@ watch(volumeProgress, (newVolume) => {
 
 // 在播放状态变化时更新音符动画
 watch(playStatu, (newVal) => {
-  document.documentElement.style.setProperty(
-    '--animation-state', 
-    newVal === 1 ? 'running' : 'paused'
-  );
+    document.documentElement.style.setProperty(
+        '--animation-state',
+        newVal === 1 ? 'running' : 'paused'
+    );
 });
 
 
@@ -143,14 +147,14 @@ onMounted(() => {
 
 <template>
     <div class="bg">
-    <div class="music-note note1">♪</div>
-    <div class="music-note note2">♫</div>
-    <div class="music-note note3">♩</div>
-    <div class="music-note note4">♬</div>
-    <div class="music-note note5">♪</div>
-    <div class="music-note note6">♫</div>
-    <div class="music-note note7">♩</div>
-    <div class="music-note note8">♬</div>
+        <div class="music-note note1">♪</div>
+        <div class="music-note note2">♫</div>
+        <div class="music-note note3">♩</div>
+        <div class="music-note note4">♬</div>
+        <div class="music-note note5">♪</div>
+        <div class="music-note note6">♫</div>
+        <div class="music-note note7">♩</div>
+        <div class="music-note note8">♬</div>
 
         <div class="player-container">
             <div class="player-select">
@@ -197,14 +201,14 @@ onMounted(() => {
 
                         <!-- 控制面板 -->
                         <div class="control-panel">
-                            <span class="icon-like">
+                            <span>
                                 <img src="/assets/images/icon_like.png" />
                             </span>
-                            <span class="icon-mode">
+                            <span>
                                 <img src="/assets/images/icon_mode.png" />
                             </span>
-                            <span class="icon-volume">
-                                <img src="/assets/images/icon_volume_forbidden.png" />
+                            <span>
+                                <img src="/assets/images/icon_mv.png" />
                             </span>
                         </div>
 
@@ -257,98 +261,117 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(-45deg, 
-    #ff86be 0%, 
-    #ffd859 25%, 
-    #5ad0ff 50%, 
-    #ff5656 75%);
-    background-size: 300% 300%;  /* 修改为百分比值 */
-    animation: gradient 15s ease infinite; /* 延长动画时间，移除linear */
+    background: linear-gradient(90deg,
+            #ff86be 0%,
+            #ffd859 25%,
+            #5ad0ff 50%,
+            #ff5656 75%);
+    background-size: 300% 300%;
+    /* 修改为百分比值 */
+    animation: gradient 15s ease infinite;
+    /* 延长动画时间，移除linear */
     animation-play-state: var(--animation-state, paused);
 }
 
 .music-note {
-  position: absolute;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 60px;
-  z-index: 0;
-  opacity: 0;
-  animation: floatNote 8s linear infinite;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
+    position: absolute;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 60px;
+    z-index: 0;
+    opacity: 0;
+    animation: floatNote 8s linear infinite;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
 }
 
 .note1 {
-  top: 20%;
-  left: 10%;
-  animation-delay: 3s;
+    top: 20%;
+    left: 10%;
+    animation-delay: 1s;
 }
+
 .note2 {
-  top: 70%;
-  left: 15%;
-  animation-delay: 2s;
+    top: 70%;
+    left: 15%;
+    animation-delay: 1s;
 }
+
 .note3 {
-  top: 40%;
-  left: 85%;
-  animation-delay: 4s;
+    top: 40%;
+    left: 85%;
+    animation-delay: 1s;
 }
+
 .note4 {
-  top: 80%;
-  left: 90%;
-  animation-delay: 6s;
+    top: 80%;
+    left: 90%;
+    animation-delay: 1s;
 }
 
 
 .note5 {
-  top: 40%;
-  left: 30%;
-  animation-delay: 3s;
+    top: 70%;
+    left: 20%;
+    animation-delay: 1s;
 }
+
 .note6 {
-  top: 20%;
-  left:55%;
-  animation-delay: 2s;
+    top: 20%;
+    left: 55%;
+    animation-delay: 1s;
 }
+
 .note7 {
-  top: 50%;
-  left: 2%;
-  animation-delay: 4s;
+    top: 60%;
+    left: 2%;
+    animation-delay: 1s;
 }
+
 .note8 {
-  top: 20%;
-  left: 40%;
-  animation-delay: 6s;
+    top: 80%;
+    left: 30%;
+    animation-delay: 1s;
 }
 
 /* 音符浮动动画 */
 @keyframes floatNote {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.7;
-  }
-  90% {
-    opacity: 0.7;
-  }
-  100% {
-    transform: translateY(-100px) rotate(360deg);
-    opacity: 0;
-  }
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.7;
+    }
+
+    90% {
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
 }
 
 /* 播放时音符动画更活跃 */
 .bg .music-note {
-  animation-play-state: var(--animation-state, paused);
+    animation-play-state: var(--animation-state, paused);
 }
 
 @keyframes gradient {
-    0% { background-position: 0% 0%; }
-    50% { background-position: 100% 100%; }
-    100% { background-position: 0% 0%; }
+    0% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
 }
 
 .player-container {
@@ -358,21 +381,23 @@ onMounted(() => {
     max-width: 1200px;
     height: 80vh;
     min-height: 600px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(170, 170, 170, 0.3);
+
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .player-select {
     width: 35%;
-    background-color: #f8f8f8;
+    background-color: rgba(255, 255, 255, 0.5);
     overflow-y: auto;
     border-right: 1px solid #e0e0e0;
     /* 新增滚动条样式 */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+    scrollbar-width: none;
+
 }
 
 /* 滚动条轨道 */
@@ -472,7 +497,8 @@ onMounted(() => {
     flex-direction: column;
     padding: 30px;
     box-sizing: border-box;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(2rem);
+
     box-shadow: 2px 2px 5px #666;
 }
 
@@ -507,6 +533,34 @@ onMounted(() => {
     height: 200px;
     border-radius: 50%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.4s ease;
+
+}
+
+.album-image:hover {
+    width: 220px;
+    height: 220px;
+    animation: shiny 5s infinite linear;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* 添加初始阴影 */
+    transition: all 0.4s ease, box-shadow 0.5s ease; /* 分开定义过渡 */
+}
+
+@keyframes shiny {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 113, 201, 0.7);
+    }
+    25% {
+        box-shadow: 0 0 24px #ff71c9;
+    }
+    50% {
+        box-shadow: 0 0 34px #ffd261;
+    }
+    75% {
+        box-shadow: 0 0 44px #47d7ff;
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255, 101, 101, 0.7); /* 回到柔和状态 */
+    }
 }
 
 .music-info {
@@ -565,7 +619,7 @@ onMounted(() => {
 }
 
 .volume-progress-fill {
-    background: linear-gradient(90deg, #90e0ff, #90fff4, #3dfff5);
+    background: linear-gradient(90deg, rgb(167, 255, 227), #ffe047);
     height: 100%;
     width: var(--volume-progress);
     transition: width 0.1s ease;
@@ -619,7 +673,7 @@ onMounted(() => {
 }
 
 .music-progress-fill {
-    background: linear-gradient(90deg, #ff9eb5, #f06292, #ec407a);
+    background: linear-gradient(90deg, #ffc4da, #ff727e);
     height: 100%;
     width: var(--music-progress);
     transition: width 0.1s ease;

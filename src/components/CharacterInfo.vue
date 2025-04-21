@@ -32,11 +32,11 @@ const characters = [
 ]
 
 const getCharacterImage = (name) => {
-    return new URL(`/assets/images/立绘_${name}.png`, import.meta.url).href;
+    return `/assets/images/立绘_${name}.png`
 }
 
 const getPostImage = (name) => {
-    return new URL(`/assets/images/海报_${name}.png`, import.meta.url).href;
+    return `/assets/images/海报_${name}.png`
 
 }
 
@@ -52,6 +52,7 @@ const switchItem = (index) => {
 
 
 <template>
+    <div class="bg"></div>
     <div class="info-container">
         <div class="left-part"
             :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }">
@@ -83,15 +84,15 @@ const switchItem = (index) => {
             </div>
 
             <div class="character-head">
-                <img :src="'src/assets/images/大头_' + activeItem.name + '.webp'" />
+                <img :src="'/assets/images/大头_' + activeItem.name + '.webp'" />
             </div>
 
 
             <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">
                 {{ activeItem.instrument }}
             </div>
-
-            <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
+            <div class="line-container">
+                <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
                 <div class="scroll-wrapper">
                     <div class="scroll-romaji" v-for="i in 2" :key="i">
                         <span v-for="i in 16">{{ activeItem.romaji }}</span>
@@ -100,6 +101,8 @@ const switchItem = (index) => {
             </div>
 
             <span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span>
+            </div>
+            
 
             <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
                 <div>
@@ -136,6 +139,13 @@ const switchItem = (index) => {
 
 
 <style scoped>
+.bg {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(-45deg, #2c2126, #2b271f, #1f262b, #342626);
+}
+
 .info-container {
     width: 100%;
     height: 100%;
@@ -294,19 +304,31 @@ const switchItem = (index) => {
     transition: border 1.5s;
 }
 
-
+.line-container {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+}
 
 
 .romaji-line {
-    position: absolute;
-    top: 43.25%;
+    /* position: absolute;
+    top: 43.25%; */
     font-size: 1.4em;
-    overflow: hidden;
+    /* overflow: hidden; */
     white-space: nowrap;
     color: var(--highlight-color);
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     transition: color 1.5s;
 }
+
+
+
+
 
 .romaji-line:hover .scroll-wrapper {
     animation-play-state: paused;
@@ -334,19 +356,17 @@ const switchItem = (index) => {
     }
 }
 
-
-
 .name-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
+    /* position: absolute; */
+    /* top: 50%; */
+    /* left: 0;
+    right: 0; */
     display: flex;
     justify-content: flex-start;
     background-color: var(--highlight-color);
     color: #000;
     font-size: 3em;
-    transform: translate(0, -50%);
+    /* transform: translate(0, -50%); */
     z-index: -1;
     text-indent: 2em;
     font-family: 'Aa幻梦空间像素体';
@@ -357,7 +377,7 @@ const switchItem = (index) => {
 .character-head {
     justify-self: flex-start;
     align-self: flex-start;
-    z-index: -2;
+    z-index: 0;
 
 }
 
@@ -395,6 +415,7 @@ const switchItem = (index) => {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    color: #fff;
 }
 
 .cv-logo {
@@ -492,5 +513,24 @@ const switchItem = (index) => {
 .wait-enter-active,
 .wait-leave-active {
     transition: all 0.5s ease;
+}
+
+
+@media (max-width: 1000px) {
+  .character-line {
+    transform: scale(0.8);
+  }
+}
+
+@media (max-height: 800px) {
+  .character-line {
+    transform: scale(0.8);
+    top: 15%;
+    left: 5%;
+  }
+
+  .character-desc {
+    transform: scale(0.8);
+  }
 }
 </style>

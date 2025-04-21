@@ -4,6 +4,7 @@ import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
 import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
+import Photos from '../components/Photos.vue';
 
 const scrollContainer = ref(null);
 const isScrolling = ref(false); // 变成响应式
@@ -80,7 +81,7 @@ onMounted(() => {
     <section id="section1" class="scroll-page">
       <div class="video-background-container">
         <video autoplay loop muted playsinline class="video-background">
-          <source src="../assets/videos/video_天台.mp4" type="video/mp4" />
+          <source src="/assets/videos/video_和服.mp4" type="video/mp4" />
           视频加载失败
         </video>
       </div>
@@ -99,9 +100,7 @@ onMounted(() => {
     </section>
 
     <section id="section4" class="scroll-page">
-      <div class="content">
-        <h1>第四模块</h1>
-      </div>
+      <Photos/>
     </section>
 
     <section id="section5" class="scroll-page">
