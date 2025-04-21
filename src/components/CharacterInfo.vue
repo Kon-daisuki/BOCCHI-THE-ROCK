@@ -143,7 +143,6 @@ const switchItem = (index) => {
     position: absolute;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(-45deg, #2c2126, #2b271f, #1f262b, #342626);
 }
 
 .info-container {
@@ -433,6 +432,7 @@ const switchItem = (index) => {
 .cv-instrument {
     color: var(--highlight-color);
     transition: color 1.5s;
+
 }
 
 .cv-info {
