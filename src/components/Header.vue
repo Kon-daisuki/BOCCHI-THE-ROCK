@@ -52,6 +52,7 @@ const handleClick = (e, to) => {
         </li>
       </ul>
     </div>
+    <router-link class="login" to="/login">登录/注册</router-link>
   </div>
 </template>
 
@@ -71,7 +72,10 @@ const handleClick = (e, to) => {
 
 .logo{
   height: 35px;
+}
 
+.login {
+  color: yellow;
 }
 
 .nav {

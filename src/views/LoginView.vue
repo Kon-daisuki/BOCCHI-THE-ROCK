@@ -7,8 +7,6 @@ const originalImages = [
     { url: '/assets/images/LoginImage1.jpg', filter: 'none' },
     { url: '/assets/images/LoginImage2.jpg', filter: 'none' },
     { url: '/assets/images/LoginImage3.jpg', filter: 'none' },
-    { url: '/assets/images/LoginImage4.jpg', filter: 'none' },
-    { url: '/assets/images/LoginImage5.jpg', filter: 'none' }
 ]
 
 // 扩展图片集（首尾添加复制项，实现无缝衔接）
@@ -95,7 +93,7 @@ const mainRef = ref(null)
 
 onMounted(() => {
     requestAnimationFrame(() => {
-        mainRef.value.style.transition = 'opacity 0.5s ease'
+        mainRef.value.style.transition = 'opacity 0.7s ease'
         mainRef.value.style.opacity = 1
     })
 })
@@ -123,7 +121,8 @@ const goHome = () => {
         <div class="box">
             <div class="target">
                 <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
+                <img class="target-image-1" src="/assets/images/target-image1.png" alt="">
+                <img class="target-image-2" src="/assets/images/target-image2.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -164,7 +163,7 @@ const goHome = () => {
     width: 100vw;
     height: 100vh;
     opacity: 0;
-    transition: all 0.5s ease;
+    transition: opacity 0.7s ease;
 }
 
 .background-container {
@@ -228,14 +227,13 @@ const goHome = () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8%;
     padding-top: 2.5%;
     height: 96%;
     left: 10px;
     top: 0;
     width: 30%;
     z-index: 2;
-    background: url(/src/assets/images/未命名的设计.png);
+    background: url(/assets/images/target-background.png);
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
@@ -261,8 +259,13 @@ const goHome = () => {
     top: 47.5%;
 }
 
-.target-image {
+.target-image-1 {
     width: 85%;
+}
+
+.target-image-2 {
+    width: 85%;
+    margin-top: auto;
 }
 
 .loginbox {
@@ -277,7 +280,13 @@ const goHome = () => {
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Brush-Script-MT';
+    src: url('/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
     font-style: normal;
 }
 

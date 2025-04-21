@@ -1,11 +1,10 @@
 <script setup>
-import { ref } from 'vue'
 
 const producers = [
-    { name: 'Sudoria', url: '/assets/images/Alola.jpg', color: 'white', drc: '1111' },
-    { name: 'Alola', url: '/assets/images/Alola.jpg', color: 'white', drc: '111' },
-    { name: 'Daxi', url: '/assets/images/Alola.jpg', color: 'white', drc: '111' },
-    { name: 'Rquars', url: '/assets/images/Alola.jpg', color: 'white', drc: '1111' }
+    { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', drc: '这个人很懒，什么都没有写~' },
+    { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', drc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' },
+    { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', drc: '这个人很懒，什么都没有写~' },
+    { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', drc: '这个人很懒，什么都没有写~' }
 ]
 
 </script>
@@ -18,8 +17,8 @@ const producers = [
                 <div class="c-onpu__layer -layer2"></div>
                 <div class="c-onpu__layer -layer3"></div>
             </div>
-            <p class="label1">ALOLAALOLA</p>
-            <p class="label2">Ciallo~</p>
+            <p class="label1">制作组名单</p>
+            <p class="label2">Ciallo~Ciallo~Ciallo~</p>
         </div>
         <div class="container">
             <div class="container-producer">
@@ -30,7 +29,7 @@ const producers = [
                         <img class="producer-image" :src="producer.url">
                     </div>
                     <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
-                    <div class="producer-drc" :style="{ color: producer.color }">{{ producer.drc }}</div>
+                    <p class="producer-drc" :style="{ color: producer.color }">{{ producer.drc }}</p>
                 </div>
             </div>
         </div>
@@ -43,7 +42,7 @@ const producers = [
     top: 0;
     width: 100%;
     height: 100%;
-    background: url(/src/assets/images/pagebg.png) 100% 100% no-repeat;
+    background: url(/assets/images/pagebg.png) 100% 100% no-repeat;
 }
 
 .head {
@@ -96,18 +95,18 @@ const producers = [
     animation: onpuLineAnime 5s linear infinite alternate-reverse;
     opacity: 0.5;
     transform-origin: 0 20%;
-    background-image: url(/src/assets/images/onpu_line.png);
+    background-image: url(/assets/images/onpu_line.png);
 
 }
 
 .c-onpu__layer.-layer2 {
     animation: onpuAnime1 2s linear infinite alternate-reverse;
-    background-image: url(/src/assets/images/onpu_item1.png);
+    background-image: url(/assets/images/onpu_item1.png);
 }
 
 .c-onpu__layer.-layer3 {
     animation: onpuAnime2 2s linear infinite alternate-reverse;
-    background-image: url(/src/assets/images/onpu_item2.png);
+    background-image: url(/assets/images/onpu_item2.png);
 }
 
 .label1 {
@@ -160,7 +159,7 @@ const producers = [
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
-    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
 
@@ -188,15 +187,14 @@ const producers = [
     box-shadow: 0 0 0 rgba(197, 89, 255, 0);
 }
 
-.producer-item:hover .producer-image {
+.producer-image:hover {
     transform: rotate(360deg);
     box-shadow: 0 0 20px rgba(197, 89, 255, 0.7);
     filter: brightness(1.1);
 }
 
-.producer-item:hover .producer-scale {
+.producer-scale:hover {
     transform: scale(1.2);
-    
 }
 
 .producer-name {
@@ -209,6 +207,9 @@ const producers = [
 
 .producer-drc {
     position: absolute;
+    text-align: left;
+    width: 800%;
+    height: auto;
     top: 27%;
     left: 130%;
     font-size: 1.2em;
