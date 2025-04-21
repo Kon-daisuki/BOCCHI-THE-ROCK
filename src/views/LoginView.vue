@@ -4,11 +4,9 @@ import { useRouter } from 'vue-router';
 
 // 原始背景图片集
 const originalImages = [
-    { url: '/src/assets/images/LoginImage1.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage2.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage3.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage4.jpg', filter: 'none' },
-    { url: '/src/assets/images/LoginImage5.jpg', filter: 'none' }
+    { url: '/src/assets/images/LoginImage1.jpg' },
+    { url: '/src/assets/images/LoginImage2.jpg' },
+    { url: '/src/assets/images/LoginImage3.png' },
 ]
 
 // 扩展图片集（首尾添加复制项，实现无缝衔接）
@@ -34,8 +32,9 @@ const submitForm = () => {
 
 }
 
-// 动画
-// target图片换位
+// target图片换位 + 动画
+const isAnimating = ref(false);
+
 const Switch = (value) => {
     if (value) {
         isRegister.value = true, isLogin.value = false;
@@ -46,6 +45,9 @@ const Switch = (value) => {
 }
 
 const RightImage = () => {
+    if (isAnimating.value) return;
+    isAnimating.value = true;
+
     i.value++;
     if (i.value === extendedImages.value.length - 1) {
         setTimeout(() => {
@@ -53,12 +55,21 @@ const RightImage = () => {
             i.value = 1;
             requestAnimationFrame(() => {
                 containerRef.value.classList.remove('no-transition');
+                isAnimating.value = false;
             })
-        }, 490)
+        }, 500)
+    }
+    else {
+        setTimeout(() => {
+            isAnimating.value = false;
+        }, 500);
     }
 }
 
 const LeftImage = () => {
+    if (isAnimating.value) return;
+    isAnimating.value = true;
+
     i.value--;
     if (i.value === 0) {
         setTimeout(() => {
@@ -66,8 +77,14 @@ const LeftImage = () => {
             i.value = extendedImages.value.length - 2;
             requestAnimationFrame(() => {
                 containerRef.value.classList.remove('no-transition');
+                isAnimating.value = false;
             })
         }, 500)
+    }
+    else {
+        setTimeout(() => {
+            isAnimating.value = false;
+        }, 500);
     }
 }
 
@@ -95,8 +112,7 @@ const goHome = () => {
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
             ref="containerRef">
             <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
-                backgroundImage: `url('${img.url}')`,
-                filter: img.filter
+                backgroundImage: `url('${img.url}')`
             }"></div>
         </div>
         <img class="left" src="/src/assets/images/left.svg" @click="LeftImage"></img>
@@ -104,7 +120,8 @@ const goHome = () => {
         <div class="box">
             <div class="target">
                 <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="logo" src="/src/assets/images/Loginlogo.png" alt="">
+                <img class="target-image" src="/src/assets/images/target-image1.png" alt="">
+                <img class="target-image" src="/src/assets/images/target-image2.png" alt="">
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -149,6 +166,7 @@ const goHome = () => {
 }
 
 .background-container {
+    will-change: left;
     position: absolute;
     display: flex;
     width: var(--background-width);
@@ -158,7 +176,7 @@ const goHome = () => {
 }
 
 .background-container.no-transition {
-    transition: none !important;
+    transition: none;
 }
 
 .main-background {
@@ -174,7 +192,14 @@ const goHome = () => {
     position: fixed;
     width: 5%;
     height: 10%;
-    cursor: pointer
+    cursor: pointer;
+    transform: scale(1);
+    transition: transform 0.5s ease;
+}
+
+.left:hover,
+.right:hover {
+    transform: scale(1.3);
 }
 
 .left {
@@ -201,17 +226,18 @@ const goHome = () => {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 8%;
+    padding-top: 2.5%;
+    height: 96%;
     left: 10px;
     top: 0;
     width: 30%;
-    height: 100%;
     z-index: 2;
-    background: url(/src/assets/images/未命名的设计.png);
+    background: url(/src/assets/images/target-background.png);
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
 
 .targetbox {
-    display: flex;
     width: 25%;
     height: 95%;
     background-color: white;
@@ -233,8 +259,8 @@ const goHome = () => {
     top: 47.5%;
 }
 
-.logo {
-    width: 80%;
+.target-image {
+    width: 85%;
 }
 
 .loginbox {
@@ -253,22 +279,28 @@ const goHome = () => {
     font-style: normal;
 }
 
+@font-face {
+    font-family: 'Brush-Script-MT';
+    src: url('/src/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
+    font-style: normal;
+}
+
 form {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     width: 100%;
 }
 
 h2 {
-    font-family: 'Brush Script MT';
+    font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
 }
 
 input {
-    width: 50%;
+    width: 60%;
     border: none;
     border-bottom: 1px solid black;
     font-size: 1.2em;
@@ -286,12 +318,17 @@ button:focus {
 
 .input-name {
     font-family: 'Note-Script-SemiBold-2';
-    width: 50%;
+    width: 60%;
     text-align: left;
     font-size: 20px;
 }
 
 button {
+    background: none;
+    border: none;
+    font-size: 1.4em;
+    width: auto;
+    height: auto;
     font-family: 'Note-Script-SemiBold-2';
 }
 
@@ -303,6 +340,12 @@ button {
     height: auto;
     z-index: 2;
     cursor: pointer;
+    transform: scale(1);
+    transition: transform 0.5s ease;
+}
+
+.switch-login:hover {
+    transform: scale(1.3);
 }
 
 .close-login {

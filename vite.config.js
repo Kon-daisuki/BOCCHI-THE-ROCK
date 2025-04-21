@@ -2,12 +2,10 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import path from 'path'
-import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [
-    vue(),
-    tailwindcss()
+    vue()
   ],
   resolve: {
     alias: {
@@ -22,10 +20,5 @@ export default defineConfig({
       'localhost',
       '127.0.0.1'
     ]
-  },
-  resolve: {
-    alias: {
-      "@": resolve(__dirname, 'src') // 更简洁的写法
-    }
   }
 })

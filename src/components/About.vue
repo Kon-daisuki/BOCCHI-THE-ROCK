@@ -175,6 +175,7 @@ const producers = [
     width: 100%;
     height: 100%;
     transform: scale(1);
+    transition: transform 0.5s ease;
 }
 
 .producer-image {
@@ -182,13 +183,12 @@ const producers = [
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
-    transition: transform 5s ease-in, box-shadow 1s ease;
+    transition: transform 0.8s ease, box-shadow 0.7s ease;
     transform: none;
     box-shadow: 0 0 0 rgba(197, 89, 255, 0);
 }
 
 .producer-item:hover .producer-image {
-    /* animation: producer-spin 10s linear infinite; */
     transform: rotate(360deg);
     box-shadow: 0 0 20px rgba(197, 89, 255, 0.7);
     filter: brightness(1.1);
@@ -198,15 +198,6 @@ const producers = [
     transform: scale(1.2);
     
 }
-
-/* @keyframes producer-spin {
-    from {
-        transform: scale(1.2) rotate(0deg);
-    }
-    to {
-        transform: scale(1.2) rotate(360deg);
-    }
-} */
 
 .producer-name {
     position: absolute;
