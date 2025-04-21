@@ -26,7 +26,9 @@ const producers = [
                 <p class="producer-label">PRODUCER</p>
                 <div class="producer-item" v-for="(producer, index) in producers" :key="producer.name"
                     :style="{ top: index * 25 + 15 + '%' }" @click="clickProducer(index)">
-                    <img class="producer-image" :src="producer.url">
+                    <div class="producer-scale">
+                        <img class="producer-image" :src="producer.url">
+                    </div>
                     <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
                     <div class="producer-drc" :style="{ color: producer.color }">{{ producer.drc }}</div>
                 </div>
@@ -157,9 +159,9 @@ const producers = [
 }
 
 @font-face {
-  font-family: 'Note-Script-SemiBold-2';
-  src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
-  font-style: normal;
+    font-family: 'Note-Script-SemiBold-2';
+    src: url('/src/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
+    font-style: normal;
 }
 
 .producer-item {
@@ -169,12 +171,42 @@ const producers = [
     left: 2%;
 }
 
+.producer-scale {
+    width: 100%;
+    height: 100%;
+    transform: scale(1);
+}
+
 .producer-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+    transition: transform 5s ease-in, box-shadow 1s ease;
+    transform: none;
+    box-shadow: 0 0 0 rgba(197, 89, 255, 0);
 }
+
+.producer-item:hover .producer-image {
+    /* animation: producer-spin 10s linear infinite; */
+    transform: rotate(360deg);
+    box-shadow: 0 0 20px rgba(197, 89, 255, 0.7);
+    filter: brightness(1.1);
+}
+
+.producer-item:hover .producer-scale {
+    transform: scale(1.2);
+    
+}
+
+/* @keyframes producer-spin {
+    from {
+        transform: scale(1.2) rotate(0deg);
+    }
+    to {
+        transform: scale(1.2) rotate(360deg);
+    }
+} */
 
 .producer-name {
     position: absolute;

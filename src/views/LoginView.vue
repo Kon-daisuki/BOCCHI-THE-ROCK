@@ -76,16 +76,16 @@ const mainRef = ref(null)
 
 onMounted(() => {
     requestAnimationFrame(() => {
-    mainRef.value.style.transition = 'opacity 0.5s ease'
-    mainRef.value.style.opacity = 1
-  })
+        mainRef.value.style.transition = 'opacity 0.5s ease'
+        mainRef.value.style.opacity = 1
+    })
 })
 
 const goHome = () => {
-  mainRef.value.style.opacity = 0
-  setTimeout(() => {
-    router.push('/')
-  }, 500)
+    mainRef.value.style.opacity = 0
+    setTimeout(() => {
+        router.push('/')
+    }, 500)
 }
 </script>
 
