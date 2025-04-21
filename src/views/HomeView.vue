@@ -18,7 +18,7 @@ const handleWheel = (e) => {
   const currentScroll = container.scrollTop;
   const pageHeight = window.innerHeight;
   const direction = e.deltaY > 0 ? 1 : -1;
-
+ 
   let targetScroll = Math.floor(currentScroll / pageHeight) * pageHeight;
   targetScroll += direction > 0 ? pageHeight : -pageHeight;
 
