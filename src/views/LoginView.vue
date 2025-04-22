@@ -138,15 +138,15 @@ const goHome = () => {
         <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
         <div class="box">
             <div class="target">
-                <Transition name="fade-split">
-                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="j">
+                <Transition name="fade">
+                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="i">
                         <img class="slide-image" :src="extendedImages[i].url" :key="i">
                     </div>
                 </Transition>
-                <Transition name="fade-split-target">
+                <Transition name="fade">
                     <img class="target-image-1" :src="targetImage[target_i].url" alt="">
                 </Transition>
-                <Transition name="fade-split-target">
+                <Transition name="fade">
                     <img class="target-image-2" :src="targetImage[target_i + 1].url" alt="">
                 </Transition>
             </div>
