@@ -9,7 +9,6 @@ const originalImages = [
     { url: '/assets/images/LoginImage3.jpg', filter: 'none' },
 ]
 
-// 扩展图片集（首尾添加复制项，实现无缝衔接）
 const extendedImages = ref([
     originalImages[originalImages.length - 1],
     ...originalImages,
