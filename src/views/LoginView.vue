@@ -2,11 +2,10 @@
     @Author: Alola
 -->
 
-
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router';
-import {Icon} from '@iconify/vue'
+import { useRouter } from 'vue-router'
+import { Icon } from '@iconify/vue'
 
 // 原始背景图片集
 const originalImages = [
@@ -22,7 +21,9 @@ const extendedImages = ref([
 ])
 
 const containerRef = ref(null)
+
 const i = ref(1)
+const j = ref(0)
 
 // 登录 and 注册
 const isRegister = ref(false)
@@ -38,6 +39,17 @@ const submitForm = () => {
 }
 
 // target图片换位 + 动画
+const targetImage = [
+    { url: '/assets/images/target-image1.png' },
+    { url: '/assets/images/target-image2.png' },
+    { url: '/assets/images/target-image3.png' },
+    { url: '/assets/images/target-image4.png' },
+    { url: '/assets/images/target-image5.png' },
+    { url: '/assets/images/target-image6.png' },
+]
+
+const target_i = ref(0);
+
 const isAnimating = ref(false);
 
 const Switch = (value) => {
@@ -47,13 +59,14 @@ const Switch = (value) => {
     else {
         isLogin.value = true, isRegister.value = false;
     }
+    target_i.value = (target_i.value + 2) % (targetImage.length - 1)
 }
 
 const RightImage = () => {
     if (isAnimating.value) return;
     isAnimating.value = true;
 
-    i.value++;
+    i.value++, j.value++;
     if (i.value === extendedImages.value.length - 1) {
         setTimeout(() => {
             containerRef.value.classList.add('no-transition');
@@ -75,7 +88,7 @@ const LeftImage = () => {
     if (isAnimating.value) return;
     isAnimating.value = true;
 
-    i.value--;
+    i.value--, j.value++;
     if (i.value === 0) {
         setTimeout(() => {
             containerRef.value.classList.add('no-transition');
@@ -121,48 +134,50 @@ const goHome = () => {
             }"></div>
         </div>
 
-        <Icon class="left" icon="material-symbols:arrow-back-ios-new-rounded" @click="LeftImage"/>
-        <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage"/>
+        <Icon class="left" icon="material-symbols:arrow-back-ios-new-rounded" @click="LeftImage" />
+        <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
         <div class="box">
             <div class="target">
-                <Transition name="fade">
-                    <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" :key="i">
-                    
+                <Transition name="fade-split">
+                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="j">
+                        <img class="slide-image" :src="extendedImages[i].url" :key="i">
+                    </div>
                 </Transition>
-                <img class="target-image-1" src="/assets/images/target-image1.png" alt="">
-                <img class="target-image-2" src="/assets/images/target-image2.png" alt="">
+                <Transition name="fade-split-target">
+                    <img class="target-image-1" :src="targetImage[target_i].url" alt="">
+                </Transition>
+                <Transition name="fade-split-target">
+                    <img class="target-image-2" :src="targetImage[target_i + 1].url" alt="">
+                </Transition>
             </div>
             <div class="targetbox"></div>
-            
 
             <div class="loginbox">
-                
+
                 <form :model="FormModel" @submit.prevent="submitForm">
                     <Transition name="fade">
-                    <h2 :key="isLogin">{{isLogin?'Log In':'Join Us'}}</h2>
-                </Transition>
+                        <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
+                    </Transition>
                     <label class="input-name">Username:</label>
                     <input v-model="FormModel.username"></input>
                     <label class="input-name">Password:</label>
                     <input v-model="FormModel.password"></input>
                     <Transition name="fade">
-                    <label v-if="isRegister" class="input-name">RePassword:</label>
-                </Transition>
-                <Transition name="fade">
-                    <input v-if="isRegister" v-model="FormModel.RePassword"></input>
-                </Transition>
-                <Transition name="fade">
-                    <button :key="isLogin">{{isLogin?'Login':'Register'}}</button>
-                </Transition>
+                        <label v-if="isRegister" class="input-name">RePassword:</label>
+                    </Transition>
+                    <Transition name="fade">
+                        <input v-if="isRegister" v-model="FormModel.RePassword"></input>
+                    </Transition>
+                    <Transition name="fade">
+                        <button :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
+                    </Transition>
                 </form>
-        
-
 
             </div>
             <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)"></img>
             <div class="ribbons"></div>
         </div>
-        <Icon class="close-login" icon="material-symbols:close-rounded" @click="goHome"/>
+        <Icon class="close-login" icon="material-symbols:close-rounded" @click="goHome" />
     </div>
 </template>
 
@@ -273,27 +288,73 @@ const goHome = () => {
     outline-offset: -8px;
 }
 
-.slide-image {
+.slide-image-container {
+    will-change: opacity;
+    position: absolute;
     width: 100%;
     height: 50%;
-    object-fit: cover;
-    position: absolute;
     top: 10px;
     transition: all 0.8s ease-in-out;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+}
+
+.slide-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .slide {
     top: 47.5%;
 }
 
+@keyframes fadeOutIn {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.87;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.fade-split-enter-active,
+.fade-split-leave-active {
+    animation: fadeOutIn 0.5s linear;
+}
+
 .target-image-1 {
-    width: 60%;
+    width: 70%;
+    transition: all 0.8s ease;
 }
 
 .target-image-2 {
-    width: 60%;
-    margin-top: auto;
+    width: 70%;
+    margin-top: 29%;
+    transition: all 0.8s ease;
+}
+
+@keyframes fadeOutIn-target {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.fade-split-target-enter-active,
+.fade-split-target-leave-active {
+    animation: fadeOutIn-target 0.5s linear;
 }
 
 .loginbox {

@@ -1,3 +1,7 @@
+<!-- 
+    @Author: Sudoria
+-->
+
 <script setup>
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
