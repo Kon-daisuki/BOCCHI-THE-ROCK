@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router';
 
 // 原始背景图片集
 const originalImages = [
-    { url: '/assets/images/LoginImage1.jpg', filter: 'none' },
-    { url: '/assets/images/LoginImage2.jpg', filter: 'none' },
-    { url: '/assets/images/LoginImage3.jpg', filter: 'none' },
+    { url: '/assets/images/LoginImage1.jpg' },
+    { url: '/assets/images/LoginImage2.jpg' },
+    { url: '/assets/images/LoginImage3.jpg' },
 ]
 
 const extendedImages = ref([
@@ -92,7 +92,7 @@ const mainRef = ref(null)
 
 onMounted(() => {
     requestAnimationFrame(() => {
-        mainRef.value.style.transition = 'opacity 0.7s ease'
+        mainRef.value.style.transition = 'opacity 1s ease'
         mainRef.value.style.opacity = 1
     })
 })
@@ -111,17 +111,16 @@ const goHome = () => {
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
             ref="containerRef">
             <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
-                backgroundImage: `url('${img.url}')`,
-                filter: img.filter
+                backgroundImage: `url('${img.url}')`
             }"></div>
         </div>
         <img class="left" src="/assets/images/left.svg" @click="LeftImage"></img>
         <img class="right" src="/assets/images/right.svg" @click="RightImage"></img>
         <div class="box">
             <div class="target">
-                <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt="">
-                <img class="target-image-1" src="/assets/images/target-image1.png" alt="">
-                <img class="target-image-2" src="/assets/images/target-image2.png" alt="">
+                <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt=""></img>
+                <img class="target-image-1" src="/assets/images/target-image1.png" alt=""></img>
+                <img class="target-image-2" src="/assets/images/target-image2.png" alt=""></img>
             </div>
             <div class="targetbox"></div>
             <div class="loginbox">
@@ -144,10 +143,10 @@ const goHome = () => {
                     <button>Register</button>
                 </form>
             </div>
-            <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)">
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)"></img>
             <div class="ribbons"></div>
         </div>
-        <img class="close-login" src="/assets/images/关闭.svg" alt="" @click="goHome">
+        <img class="close-login" src="/assets/images/关闭.svg" alt="" @click="goHome"></img>
     </div>
 </template>
 
@@ -162,7 +161,7 @@ const goHome = () => {
     width: 100vw;
     height: 100vh;
     opacity: 0;
-    transition: opacity 0.7s ease;
+    transition: opacity 1s ease;
 }
 
 .background-container {

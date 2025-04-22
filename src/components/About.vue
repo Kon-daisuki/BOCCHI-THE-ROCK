@@ -18,7 +18,7 @@ const producers = [
                 <div class="c-onpu__layer -layer3"></div>
             </div>
             <p class="label1">制作组名单</p>
-            <p class="label2">Ciallo~Ciallo~Ciallo~</p>
+            <p class="label2">Ciallo～(∠・ω< )⌒☆</p>
         </div>
         <div class="container">
             <div class="container-producer">
@@ -26,7 +26,7 @@ const producers = [
                 <div class="producer-item" v-for="(producer, index) in producers" :key="producer.name"
                     :style="{ top: index * 25 + 15 + '%' }" @click="clickProducer(index)">
                     <div class="producer-scale">
-                        <img class="producer-image" :src="producer.url">
+                        <img class="producer-image" :src="producer.url"></img>
                     </div>
                     <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
                     <p class="producer-drc" :style="{ color: producer.color }">{{ producer.drc }}</p>
