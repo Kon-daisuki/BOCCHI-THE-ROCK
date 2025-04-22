@@ -31,7 +31,7 @@ const producers = [
                 <div class="producer-item" v-for="(producer, index) in producers" :key="producer.name"
                     :style="{ top: index * 25 + 15 + '%' }" @click="clickProducer(index)">
                     <div class="producer-scale">
-                        <img class="producer-image" :src="producer.url">
+                        <img class="producer-image" :src="producer.url"></img>
                     </div>
                     <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
                     <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
