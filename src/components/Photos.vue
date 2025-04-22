@@ -106,7 +106,7 @@ onMounted(() => {
     position: relative;
     margin-top: 20px;
     width: 100vw;
-    height: 220px;
+    height: 250px;
 }
 
 .boxes {
@@ -115,6 +115,8 @@ onMounted(() => {
     height: 100%;
     animation: scroll linear infinite;
     animation-duration: 50s;
+    gap: 20px ;
+    margin-top: 60px;
 }
 
 .boxes-forward {
@@ -157,6 +159,7 @@ onMounted(() => {
     transition: all 0.5s ease;
     box-shadow: 0 0px 5px rgba(0, 0, 0, 0.5);
     opacity: 0.8;
+    transform: perspective(100px) rotateY(-15deg);
 }
 
 .box img {
@@ -165,7 +168,7 @@ onMounted(() => {
     object-fit: cover;
     object-position: center;
     border-radius: 15px;
-    transition: all 0.5s ease;
+    transition: all 0.8s ease;
 }
 
 .box:hover {
@@ -173,14 +176,19 @@ onMounted(() => {
     z-index: 1;
     width: 300px;
     transition: all 0.5s ease;
-    transform: rotate(-15deg);
+    transform: scale(1.1);
 }
 
 .boxes:hover {
     animation-play-state: paused;
 }
 
+.boxes-backward .box {
+    transform: perspective(100px) rotateY(15deg);
+
+}
+
 .boxes-backward .box:hover {
-    transform: rotate(15deg);
+    transform: scale(1.1);
 }
 </style>

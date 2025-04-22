@@ -269,7 +269,7 @@ const switchItem = (index) => {
 
 .character-line {
     left: 5%;
-    top: 20%;
+    top: 15%;
     padding: 30px;
     font-size: 1.5em;
     position: absolute;
@@ -389,7 +389,7 @@ const switchItem = (index) => {
 .character-head img {
     height: 50vh;
     margin-left: 10%;
-    opacity: 0.1;
+    opacity: 0.25;
 }
 
 .character-image {

@@ -6,10 +6,10 @@
 <script setup>
 
 const producers = [
-    { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', drc: 'Bocchi the Rock！！！' },
-    { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', drc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' },
-    { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', drc: '关注永雏塔菲喵，关注永雏塔菲谢谢喵8' },
-    { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', drc: '这个人很懒，什么都没有写~' }
+    { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', desc: 'Bocchi the Rock！！！' },
+    { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', desc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' },
+    { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', desc: '关注永雏塔菲喵，关注永雏塔菲谢谢喵8' },
+    { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', desc: '什么时候才能长高...' }
 ]
 
 </script>
@@ -34,7 +34,7 @@ const producers = [
                         <img class="producer-image" :src="producer.url">
                     </div>
                     <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
-                    <p class="producer-drc" :style="{ color: producer.color }">{{ producer.drc }}</p>
+                    <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
                 </div>
             </div>
         </div>

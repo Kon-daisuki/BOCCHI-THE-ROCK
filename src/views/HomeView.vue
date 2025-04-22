@@ -8,7 +8,7 @@ import Photos from '../components/Photos.vue';
 
 const scrollContainer = ref(null);
 const isScrolling = ref(false); // 变成响应式
-const activeSection = ref('section1'); // 当前活跃的 section
+const activeSection = ref('section1'); // 当前选中的 section
 
 // 处理滚动事件
 const handleWheel = (e) => {
@@ -53,7 +53,7 @@ const handleNavClick = (to) => {
   }
 };
 
-// 使用交叉观察器来更新活跃的 section
+// 更新选中的 section
 onMounted(() => {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -181,26 +181,28 @@ onMounted(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 2;
   text-align: center;
 }
 
 .title-container img {
-  animation: fadeInUp 1s ease-out forwards;
-  animation-delay: 0.9s;
-  opacity: 0;
+  animation: spinAndLand 2s ease-out forwards;
+  opacity: 0; /* 初始透明 */
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(180px);
+@keyframes spinAndLand {
+  0% {
+    opacity: 0.5;
+    transform: translate(100%, -100%) scale(2) rotate(1300deg); /* 初始放大 + 旋转2圈 */
   }
-  to {
+
+  80% {
+    transform: translate(-50%, -90%) scale(1.5) rotate(0); /* 初始放大 + 旋转2圈 */
+  }
+
+  100% {
     opacity: 1;
-    font-size: 1.5rem;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1) rotate(0deg); /* 最终大小 + 停止旋转 */
   }
 }
 </style>

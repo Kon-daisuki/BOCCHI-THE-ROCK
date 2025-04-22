@@ -13,11 +13,11 @@ const props = defineProps({
 const emit = defineEmits(['nav-click']);
 
 const nav = [
-  {title: '主页', to: '#section1'},
-  {title: '角色', to: '#section2'},
-  {title: '音乐', to: '#section3'},
-  {title: '相册', to: '#section4'},
-  {title: '关于', to: '#section5'},
+  {title: '主页', to: '#section1', 'color': '#fff'},
+  {title: '角色', to: '#section2', 'color': '#ff90b9'},
+  {title: '音乐', to: '#section3', 'color': '#fff475'},
+  {title: '相册', to: '#section4', 'color': '#75bfff'},
+  {title: '关于', to: '#section5', 'color': '#ff5252'},
 ];
 
 const bg_color = ref('rgba(0, 0, 0, 0.35)');
@@ -38,7 +38,7 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <div class="header" :style="{'--bg-color': bg_color}">
+  <div class="header" :style="{'--bg-color': bg_color}" >
     <img class="logo" src="/assets/images/logo_movie_cn.png"/>
     <div class="nav">
       <ul>
@@ -46,6 +46,7 @@ const goToLogin = () => {
           v-for="i in nav" 
           :key="i.title" 
           :class="{ active: i.to === `#${activeSection}` }"
+          :style="{'--active-color': i.color}"
         >
           <a 
             :href="i.to" 
@@ -120,12 +121,14 @@ const goToLogin = () => {
 }
 
 .nav li a:hover {
-  color: white;
+  color: var(--active-color);
+
   transform: translateY(-2px);
 }
 
 .nav li.active a {
-  color: white;
+  color: var(--active-color);
+
   font-weight: 600;
 }
 
@@ -135,7 +138,7 @@ const goToLogin = () => {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  background: linear-gradient(90deg, #ff8a00, #ff5252);
   transition: width 0.3s ease;
 }
 
@@ -145,7 +148,8 @@ const goToLogin = () => {
 }
 
 .nav li.active .underline {
-  background: white;
+  background: linear-gradient(90deg, #ff8a00, #ff5252);
+
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
