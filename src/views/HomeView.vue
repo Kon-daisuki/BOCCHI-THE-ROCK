@@ -2,7 +2,7 @@
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
-import About from '../components/About.vue';
+import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
 import Photos from '../components/Photos.vue';
 
