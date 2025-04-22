@@ -1,9 +1,14 @@
+<!-- 
+    @Author: Alola
+-->
+
+
 <script setup>
 
 const producers = [
-    { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', drc: '这个人很懒，什么都没有写~' },
+    { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', drc: 'Bocchi the Rock！！！' },
     { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', drc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' },
-    { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', drc: '这个人很懒，什么都没有写~' },
+    { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', drc: '关注永雏塔菲喵，关注永雏塔菲谢谢喵8' },
     { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', drc: '这个人很懒，什么都没有写~' }
 ]
 
@@ -213,5 +218,6 @@ const producers = [
     top: 27%;
     left: 130%;
     font-size: 1.2em;
+    font-family: '宋体';
 }
 </style>

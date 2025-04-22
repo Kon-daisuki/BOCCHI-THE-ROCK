@@ -1,6 +1,12 @@
+<!-- 
+    @Author: Alola
+-->
+
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
+import {Icon} from '@iconify/vue'
 
 // 原始背景图片集
 const originalImages = [
@@ -114,39 +120,49 @@ const goHome = () => {
                 backgroundImage: `url('${img.url}')`
             }"></div>
         </div>
-        <img class="left" src="/assets/images/left.svg" @click="LeftImage"></img>
-        <img class="right" src="/assets/images/right.svg" @click="RightImage"></img>
+
+        <Icon class="left" icon="material-symbols:arrow-back-ios-new-rounded" @click="LeftImage"/>
+        <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage"/>
         <div class="box">
             <div class="target">
-                <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" alt=""></img>
-                <img class="target-image-1" src="/assets/images/target-image1.png" alt=""></img>
-                <img class="target-image-2" src="/assets/images/target-image2.png" alt=""></img>
+                <Transition name="fade">
+                    <img class="slide-image" :src="extendedImages[i].url" :class="{ 'slide': isRegister }" :key="i">
+                    
+                </Transition>
+                <img class="target-image-1" src="/assets/images/target-image1.png" alt="">
+                <img class="target-image-2" src="/assets/images/target-image2.png" alt="">
             </div>
             <div class="targetbox"></div>
+            
+
             <div class="loginbox">
-                <form :model="FormModel" @submit.prevent="submitForm" v-if="isLogin">
-                    <h2>Welcome Back</h2>
+                
+                <form :model="FormModel" @submit.prevent="submitForm">
+                    <Transition name="fade">
+                    <h2 :key="isLogin">{{isLogin?'Log In':'Join Us'}}</h2>
+                </Transition>
                     <label class="input-name">Username:</label>
                     <input v-model="FormModel.username"></input>
                     <label class="input-name">Password:</label>
                     <input v-model="FormModel.password"></input>
-                    <button>Login</button>
+                    <Transition name="fade">
+                    <label v-if="isRegister" class="input-name">RePassword:</label>
+                </Transition>
+                <Transition name="fade">
+                    <input v-if="isRegister" v-model="FormModel.RePassword"></input>
+                </Transition>
+                <Transition name="fade">
+                    <button :key="isLogin">{{isLogin?'Login':'Register'}}</button>
+                </Transition>
                 </form>
-                <form :model="FormModel" @submit.prevent="submitForm" v-if="isRegister">
-                    <h2>Join Us</h2>
-                    <label class="input-name">Username:</label>
-                    <input v-model="FormModel.username"></input>
-                    <label class="input-name">Password:</label>
-                    <input v-model="FormModel.password"></input>
-                    <label class="input-name">RePassword:</label>
-                    <input v-model="FormModel.RePassword"></input>
-                    <button>Register</button>
-                </form>
+        
+
+
             </div>
             <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)"></img>
             <div class="ribbons"></div>
         </div>
-        <img class="close-login" src="/assets/images/关闭.svg" alt="" @click="goHome"></img>
+        <Icon class="close-login" icon="material-symbols:close-rounded" @click="goHome"/>
     </div>
 </template>
 
@@ -172,6 +188,7 @@ const goHome = () => {
     height: 100%;
     transition: left 0.5s ease-in-out;
     z-index: 0;
+
 }
 
 .background-container.no-transition {
@@ -186,6 +203,17 @@ const goHome = () => {
     flex-shrink: 0;
 }
 
+.main-background::before {
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    content: '';
+    background: linear-gradient(-10deg, rgba(255, 130, 130, 0.05) 50%, rgba(255, 212, 112, 0.05) 100%);
+    backdrop-filter: blur(3px);
+}
+
 .left,
 .right {
     position: fixed;
@@ -194,6 +222,7 @@ const goHome = () => {
     cursor: pointer;
     transform: scale(1);
     transition: transform 0.5s ease;
+    color: #ffffff61;
 }
 
 .left:hover,
@@ -226,13 +255,14 @@ const goHome = () => {
     flex-direction: column;
     align-items: center;
     padding-top: 2.5%;
-    height: 96%;
+    height: 100%;
     left: 10px;
     top: 0;
     width: 30%;
     z-index: 2;
-    background: url(/assets/images/target-background.png);
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+    background-color: #ffecd7;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
 }
 
 .targetbox {
@@ -249,8 +279,8 @@ const goHome = () => {
     object-fit: cover;
     position: absolute;
     top: 10px;
-    transition: all 0.5s ease-in-out;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+    transition: all 0.8s ease-in-out;
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
 }
 
 .slide {
@@ -258,11 +288,11 @@ const goHome = () => {
 }
 
 .target-image-1 {
-    width: 85%;
+    width: 60%;
 }
 
 .target-image-2 {
-    width: 85%;
+    width: 60%;
     margin-top: auto;
 }
 
@@ -275,6 +305,7 @@ const goHome = () => {
     justify-content: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
 }
+
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
@@ -294,12 +325,15 @@ form {
     align-items: center;
     gap: 10px;
     width: 100%;
+    min-height: 220px;
 }
 
 h2 {
     font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
+    position: absolute;
+    top: 10%;
 }
 
 input {
@@ -324,6 +358,7 @@ button:focus {
     width: 60%;
     text-align: left;
     font-size: 20px;
+    position: relative;
 }
 
 button {
@@ -333,6 +368,8 @@ button {
     width: auto;
     height: auto;
     font-family: 'Note-Script-SemiBold-2';
+    position: absolute;
+    top: 70%;
 }
 
 .switch-login {
@@ -359,5 +396,20 @@ button {
     height: auto;
     z-index: 4;
     cursor: pointer;
+    color: #ff3aa0bc;
+}
+
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-enter-from {
+    opacity: 0;
+}
+
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

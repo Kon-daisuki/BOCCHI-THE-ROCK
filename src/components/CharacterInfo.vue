@@ -1,3 +1,8 @@
+<!-- 
+    @Author: Sudoria
+-->
+
+
 <script setup>
 import { ref } from 'vue';
 const characters = [
@@ -310,6 +315,7 @@ const switchItem = (index) => {
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 20vh;
     overflow: hidden;
 }
 
@@ -364,7 +370,7 @@ const switchItem = (index) => {
     justify-content: flex-start;
     background-color: var(--highlight-color);
     color: #000;
-    font-size: 3em;
+    font-size: 3rem;
     /* transform: translate(0, -50%); */
     z-index: -1;
     text-indent: 2em;
