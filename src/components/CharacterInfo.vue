@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终重构版 - 修复切换器割裂感]
+    [终极重构版]
 -->
 <script setup>
 import { ref } from 'vue';
@@ -9,7 +9,6 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 </script>
 
 <template>
-    <!-- [重构] 移除了错误的 .bg 根元素 -->
     <div class="info-container">
         <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }"><Transition name="wait" mode="out-in"><img :key="activeItem.name" :src="getPostImage(activeItem.name)"></Transition><transition name="slip" mode="out-in"><div class="box-cover" :key="activeItem.name"></div></transition></div>
         <div class="right-part">
@@ -30,7 +29,7 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 </template>
 
 <style scoped>
-.info-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; background-color: #141414; /* 添加背景色防止黑边 */ }
+.info-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; background-color: #141414; }
 .left-part { position: relative; overflow: hidden; }
 .left-part img { height: 100%; }
 .box-cover { position: absolute; left: -100%; top: 0; height: 100%; width: 100%; background-color: var(--highlight-color); }
@@ -61,19 +60,17 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease, transform 0.5s ease; } .fade-enter-from { opacity: 0; transform: translateY(20px); } .fade-leave-to { opacity: 0; transform: translateY(-20px); }
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
-/* --- [最终重构] --- */
 @media (max-width: 768px) {
     .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
     .character-image { z-index: 1; }
-    .character-image img { height: 70vh; /* 缩小立绘，为底部留出更多空间 */ object-fit: contain; }
+    .character-image img { height: 70vh; object-fit: contain; }
     .character-line, .instrument-content, .character-head, .logo { display: none; }
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
     .romaji-line { font-size: 0.9em; }
     .character-desc { top: auto; bottom: 170px; width: 90%; left: 5%; font-size: 0.8em; background-color: rgba(0,0,0,0.6); padding: 8px; border-radius: 8px; z-index: 10; }
-    /* [重构] 向上移动切换器，确保完整显示 */
     .select-part { left: 0; bottom: 15px; width: 100%; background-color: transparent; z-index: 20; }
     .select-part ul { justify-content: center; gap: 8px; }
     .select-part li { width: 55px; height: 55px; }
