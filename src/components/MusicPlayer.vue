@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终稳定版 - 移除歌词功能，恢复稳定布局]
+    [最终修正版 - 修复播放器布局歪斜问题]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -28,7 +28,7 @@ const activeItem = ref(musics[0]);
 const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
-const isMvVisible = ref(false); // MV弹窗状态被保留
+const isMvVisible = ref(false);
 
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
@@ -75,7 +75,6 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
     <div class="bg">
         <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
         <div class="player-container">
-            <!-- [恢复] 左侧面板现在只包含歌曲列表，恢复了原有的简洁布局 -->
             <div class="player-select">
                 <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
             </div>
@@ -92,7 +91,6 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
                 </div>
             </div>
         </div>
-        <!-- MV弹窗功能被完整保留 -->
         <div v-if="isMvVisible" class="mv-modal-overlay" @click="isMvVisible = false">
             <div class="mv-modal-content" @click.stop>
                 <button class="close-mv-btn" @click="isMvVisible = false">&times;</button>
@@ -105,7 +103,6 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 <style scoped>
 .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
 .player-container { display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-/* [恢复] player-select 现在占据左侧面板的全部高度 */
 .player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; }
 .player-select::-webkit-scrollbar { width: 6px; }
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
@@ -117,7 +114,20 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
+
+/* --- [最终修正] --- */
+.player {
+    width: 65%;
+    display: flex;
+    flex-direction: column;
+    /* 新增这两行来实现完美的居中对齐 */
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    box-sizing: border-box;
+    backdrop-filter: blur(2rem);
+    box-shadow: 2px 2px 5px #666;
+}
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -147,7 +157,6 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 @media (max-width: 768px) {
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    /* [恢复] 手机端，歌曲列表重新可见，占据顶部40% */
     .player-select { width: 100%; height: 40%; flex-shrink: 0; }
     .player { width: 100%; height: 60%; padding: 15px; }
     .now-playing { justify-content: space-around; }
