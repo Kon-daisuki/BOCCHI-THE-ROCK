@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美版 - 修复桌面端音符泄露Bug]
+    [最终完美交付版 - 修复长标题挤压问题]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -70,10 +70,8 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 
 <template>
     <div class="bg">
+        <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
         <div class="player-container">
-            <!-- [最终修正] 音符现在是 player-container 的一部分 -->
-            <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
-            
             <div class="player-select">
                 <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
             </div>
@@ -100,15 +98,9 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 </template>
 
 <style scoped>
-.bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
-/* [最终修正] player-container 现在是音符的定位父级 */
-.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-.music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
-.note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
-@keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
-.bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
-@keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
-.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
+.bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
+.player-container { display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; }
 .player-select::-webkit-scrollbar { width: 6px; }
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
@@ -119,7 +111,7 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; }
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -149,13 +141,24 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 @media (max-width: 768px) {
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 40%; flex-shrink: 0; }
-    .player { width: 100%; height: 60%; padding: 15px; }
+    .player-select { width: 100%; height: 35%; flex-shrink: 0; } /* [修复] 调整高度，给播放器更多空间 */
+    .player { width: 100%; height: 65%; padding: 15px; } /* [修复] 调整高度 */
     .now-playing { justify-content: space-around; }
-    .player-bg { width: 150px; height: 150px; }
-    .album-image { width: 100px; height: 100px; }
+    .player-bg { width: 180px; height: 180px; } /* [修复] 缩小专辑图，为文字留出空间 */
+    .album-image { width: 120px; height: 120px; }
+    /* --- [最终艺术性修复] --- */
+    .music-info {
+        margin-bottom: 15px;
+        padding: 0 10px; /* 增加左右内边距，防止文字贴边 */
+    }
+    .music-info h2, .music-info p {
+        white-space: normal; /* 允许文字换行 */
+        word-break: break-all; /* 强制在任何地方换行 */
+        line-height: 1.3; /* 调整行高，让换行后更好看 */
+    }
     .music-info h2 { font-size: 18px; }
     .music-info p { font-size: 14px; }
+    /* --- 修复结束 --- */
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
 }
 </style>
