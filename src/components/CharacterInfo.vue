@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美交付版 - 恢复手机端背景]
+    [最终完美交付版 - 艺术性调整背景]
 -->
 <script setup>
 import { ref } from 'vue';
@@ -67,33 +67,32 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
     .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
-    .character-image { z-index: 2; } /* 提高立绘层级，确保在背景之上 */
+    .character-image { z-index: 2; }
     .character-image img { height: 70vh; object-fit: contain; }
-    /* --- [最终修复] --- */
-    /* 1. 从隐藏列表中移除 .character-head */
     .character-line, .instrument-content, .logo { display: none; }
-    /* 2. 为 .character-head 添加手机端专属的背景样式 */
+    /* --- [最终艺术性调整] --- */
     .character-head {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 1; /* 确保它在立绘之下，在纯黑背景之上 */
-        opacity: 0.15; /* 在手机上可以更淡一些 */
+        z-index: 1;
+        opacity: 0.3; /* [修复] 提高了不透明度，让背景可见 */
         overflow: hidden;
     }
     .character-head img {
-        width: 150%; /* 让图片超大，以填充背景 */
+        width: 150%;
         height: auto;
         position: absolute;
-        top: 40%; /* 调整垂直位置，让头部更好地作为背景 */
+        top: 35%; /* [优化] 向上移动，优化构图 */
         left: 50%;
         transform: translate(-50%, -50%);
         object-fit: cover;
         margin: 0;
+        filter: blur(4px); /* [优化] 添加模糊效果，突出前景文字 */
     }
-    /* --- 修复结束 --- */
+    /* --- 调整结束 --- */
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
     .romaji-line { font-size: 0.9em; }
