@@ -1,18 +1,28 @@
+/* 
+  [最终优化版] 
+  这是一个净化后的全局样式表，移除了所有未在项目中使用的Vite样板代码。
+*/
+
 :root {
+  /* 定义了全局的字体、行高等基础排版规则 */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
+  /* 适配系统的亮色/暗色模式 */
   color-scheme: light dark;
+  /* 默认（暗色模式）的文字和背景颜色 */
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
+  /* 字体平滑处理，让文字在屏幕上更清晰 */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 全局链接样式 (在您的项目中未使用，但保留无害) */
 a {
   font-weight: 500;
   color: #646cff;
@@ -24,17 +34,17 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  /* 
+    [优化] 移除了 display:flex 和 place-items:center, 
+    因为我们的全屏应用布局已完全覆盖 body。
+    保留 margin: 0 是好习惯。
+  */
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
+/* 
+  全局按钮样式，在登录页面可能被继承。
+  这是一个很好的基础样式，可以保留。
+*/
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -54,17 +64,17 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-.card {
-  padding: 2em;
-}
-
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* 
+    [优化] 移除了 max-width, margin, padding, text-align,
+    因为我们的全屏组件不需要这些限制。
+  */
 }
 
+/* 
+  根据系统设置切换到亮色模式的样式。
+  这是一个很好的功能，予以保留。
+*/
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
