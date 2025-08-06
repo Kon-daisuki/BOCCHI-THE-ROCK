@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美交付版 - 艺术性调整背景]
+    [最终完美交付版 - 艺术性氛围光效背景]
 -->
 <script setup>
 import { ref } from 'vue';
@@ -9,7 +9,8 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 </script>
 
 <template>
-    <div class="bg">
+    <!-- [最终修复] 现在背景会根据角色颜色动态生成光效 -->
+    <div class="bg" :style="{ '--highlight-color': activeItem.color }">
         <div class="info-container">
             <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }"><Transition name="wait" mode="out-in"><img :key="activeItem.name" :src="getPostImage(activeItem.name)"></Transition><transition name="slip" mode="out-in"><div class="box-cover" :key="activeItem.name"></div></transition></div>
             <div class="right-part">
@@ -64,35 +65,33 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
 @media (max-width: 768px) {
-    .info-container { padding-bottom: 10px; }
-    .left-part { display: none; }
-    .right-part { width: 100%; }
-    .character-image { z-index: 2; }
-    .character-image img { height: 70vh; object-fit: contain; }
-    .character-line, .instrument-content, .logo { display: none; }
     /* --- [最终艺术性调整] --- */
-    .character-head {
+    .bg {
+        /* 创建一个伪元素作为背景层 */
+        position: relative;
+        z-index: 0;
+    }
+    .bg::before {
+        content: '';
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 1;
-        opacity: 0.3; /* [修复] 提高了不透明度，让背景可见 */
-        overflow: hidden;
-    }
-    .character-head img {
-        width: 150%;
-        height: auto;
-        position: absolute;
-        top: 35%; /* [优化] 向上移动，优化构图 */
-        left: 50%;
-        transform: translate(-50%, -50%);
-        object-fit: cover;
-        margin: 0;
-        filter: blur(4px); /* [优化] 添加模糊效果，突出前景文字 */
+        /* 使用角色的主题色创建柔和的圆形渐变光效 */
+        background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--highlight-color) 25%, transparent), transparent 70%);
+        z-index: -1; /* 确保光效在最底层 */
+        transition: background 0.5s ease; /* 让颜色切换更平滑 */
     }
     /* --- 调整结束 --- */
+
+    .info-container { padding-bottom: 10px; }
+    .left-part { display: none; }
+    .right-part { width: 100%; }
+    .character-image { z-index: 2; }
+    .character-image img { height: 70vh; object-fit: contain; }
+    /* [关键] 彻底移除手机端诡异的背景图 */
+    .character-head, .character-line, .instrument-content, .logo { display: none; }
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
     .romaji-line { font-size: 0.9em; }
