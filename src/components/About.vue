@@ -1,28 +1,24 @@
 <!-- 
     @Author: Alola
-    [终极修复版]
+    [终极重构版]
 -->
 <script setup>
-// Script部分无需修改
 const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', desc: 'Bocchi the Rock！！！' }, { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', desc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' }, { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', desc: '关注永雏塔菲喵，关注永雏塔菲谢谢喵8' }, { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', desc: '什么时候才能长高...' } ];
 </script>
 
 <template>
-    <!-- [最终修复] .main 现在作为根元素，并且内部的 .scrollable-content 负责滚动 -->
     <div class="main">
-        <div class="scrollable-content">
-            <div class="head">
-                <div class="c-onpu"><div class="c-onpu__layer -layer1"></div><div class="c-onpu__layer -layer2"></div><div class="c-onpu__layer -layer3"></div></div>
-                <p class="label1">制作组名单</p><p class="label2">Ciallo～(∠・ω< )⌒☆</p>
-            </div>
-            <div class="container">
-                <div class="container-producer">
-                    <p class="producer-label">PRODUCER</p>
-                    <div class="producer-item" v-for="(producer) in producers" :key="producer.name">
-                        <div class="producer-scale"><img class="producer-image" :src="producer.url"></img></div>
-                        <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
-                        <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
-                    </div>
+        <div class="head">
+            <div class="c-onpu"><div class="c-onpu__layer -layer1"></div><div class="c-onpu__layer -layer2"></div><div class="c-onpu__layer -layer3"></div></div>
+            <p class="label1">制作组名单</p><p class="label2">Ciallo～(∠・ω< )⌒☆</p>
+        </div>
+        <div class="container">
+            <div class="container-producer">
+                <p class="producer-label">PRODUCER</p>
+                <div class="producer-item" v-for="(producer) in producers" :key="producer.name">
+                    <div class="producer-scale"><img class="producer-image" :src="producer.url"></img></div>
+                    <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
+                    <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
                 </div>
             </div>
         </div>
@@ -30,11 +26,8 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 </template>
 
 <style scoped>
-/* [最终修复] .main 负责背景和占位，不再滚动 */
-.main { position: absolute; top: 0; width: 100%; height: 100%; background: url(/assets/images/pagebg.png) 100% 100% no-repeat; background-size: cover; }
-/* [最终修复] 新增 .scrollable-content，真正实现“组件内滚动”，不影响外部布局 */
-.scrollable-content { width: 100%; height: 100%; overflow-y: auto; }
-.head { position: relative; width: 100%; height: 30%; min-height: 200px; /* 最小高度防止被过度压缩 */ }
+.main { position: relative; width: 100%; height: 100%; background: url(/assets/images/pagebg.png) 100% 100% no-repeat; background-size: cover; overflow-y: auto; }
+.head { position: relative; width: 100%; height: 30%; min-height: 200px; }
 @keyframes onpuAnime1 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, -10px); } } @keyframes onpuAnime2 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, 10px); } } @keyframes onpuLineAnime { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.8); } }
 .c-onpu__layer { position: absolute; top: 0; left: 0; background-repeat: no-repeat; background-size: 100% auto; height: 100%; width: 50%; } .c-onpu__layer.-layer1 { animation: onpuLineAnime 5s linear infinite alternate-reverse; opacity: 0.5; transform-origin: 0 20%; background-image: url(/assets/images/onpu_line.png); } .c-onpu__layer.-layer2 { animation: onpuAnime1 2s linear infinite alternate-reverse; background-image: url(/assets/images/onpu_item1.png); } .c-onpu__layer.-layer3 { animation: onpuAnime2 2s linear infinite alternate-reverse; background-image: url(/assets/images/onpu_item2.png); }
 .label1 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 20%; font-size: 4em; font-weight: 900; color: rgba(197, 89, 255, 0.8); } .label2 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 50%; color: yellow; font-size: 1.3em; font-weight: bold; }
@@ -51,6 +44,7 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 .producer-name { position: absolute; top: 0; left: 70%; font-family: 'Note-Script-SemiBold-2'; font-size: 1.5em; }
 .producer-drc { position: absolute; text-align: left; width: 800%; height: auto; top: 27%; left: 130%; font-size: 1.2em; font-family: '宋体'; }
 @media (max-width: 768px) {
+    .main { -webkit-overflow-scrolling: touch; } /* 优化移动端滚动体验 */
     .head { height: 20vh; min-height: 180px; }
     .label1 { font-size: 2.2em; top: 30%; }
     .label2 { font-size: 1em; top: 65%; }
