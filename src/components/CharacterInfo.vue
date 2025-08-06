@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美收官版 - 恢复手机端背景板]
+    [最终完美交付版 - 恢复手机端背景]
 -->
 <script setup>
 import { ref } from 'vue';
@@ -67,25 +67,38 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
     .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
-    .character-image { z-index: 1; }
+    .character-image { z-index: 2; } /* 提高立绘层级，确保在背景之上 */
     .character-image img { height: 70vh; object-fit: contain; }
-    .character-line, .instrument-content, .character-head, .logo { display: none; }
+    /* --- [最终修复] --- */
+    /* 1. 从隐藏列表中移除 .character-head */
+    .character-line, .instrument-content, .logo { display: none; }
+    /* 2. 为 .character-head 添加手机端专属的背景样式 */
+    .character-head {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1; /* 确保它在立绘之下，在纯黑背景之上 */
+        opacity: 0.15; /* 在手机上可以更淡一些 */
+        overflow: hidden;
+    }
+    .character-head img {
+        width: 150%; /* 让图片超大，以填充背景 */
+        height: auto;
+        position: absolute;
+        top: 40%; /* 调整垂直位置，让头部更好地作为背景 */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+        margin: 0;
+    }
+    /* --- 修复结束 --- */
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
     .romaji-line { font-size: 0.9em; }
-    /* --- [最终修复] --- 恢复了背景板，并微调了样式 */
-    .character-desc { 
-        top: auto; 
-        bottom: 170px; 
-        width: 90%; 
-        left: 5%; 
-        font-size: 0.8em; 
-        background-color: rgba(0,0,0,0.6); 
-        padding: 10px; 
-        border-radius: 8px; 
-        z-index: 10; 
-    }
-    .select-part { left: 0; bottom: 15px; width: 100%; background-color: transparent; }
+    .character-desc { top: auto; bottom: 170px; width: 90%; left: 5%; font-size: 0.8em; background-color: rgba(0,0,0,0.6); padding: 10px; border-radius: 8px; z-index: 10; }
+    .select-part { left: 0; bottom: 15px; width: 100%; background-color: transparent; z-index: 10; }
     .select-part ul { justify-content: center; gap: 8px; }
     .select-part li { width: 55px; height: 55px; }
     .select-part li.selected, .select-part li:hover { width: 70px; height: 70px; }
