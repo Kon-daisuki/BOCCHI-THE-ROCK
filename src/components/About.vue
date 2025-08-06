@@ -8,17 +8,19 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 
 <template>
     <div class="main">
-        <div class="head">
-            <div class="c-onpu"><div class="c-onpu__layer -layer1"></div><div class="c-onpu__layer -layer2"></div><div class="c-onpu__layer -layer3"></div></div>
-            <p class="label1">制作组名单</p><p class="label2">Ciallo～(∠・ω< )⌒☆</p>
-        </div>
-        <div class="container">
-            <div class="container-producer">
-                <p class="producer-label">PRODUCER</p>
-                <div class="producer-item" v-for="(producer) in producers" :key="producer.name">
-                    <div class="producer-scale"><img class="producer-image" :src="producer.url"></img></div>
-                    <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
-                    <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
+        <div class="scrollable-content">
+            <div class="head">
+                <div class="c-onpu"><div class="c-onpu__layer -layer1"></div><div class="c-onpu__layer -layer2"></div><div class="c-onpu__layer -layer3"></div></div>
+                <p class="label1">制作组名单</p><p class="label2">Ciallo～(∠・ω< )⌒☆</p>
+            </div>
+            <div class="container">
+                <div class="container-producer">
+                    <p class="producer-label">PRODUCER</p>
+                    <div class="producer-item" v-for="(producer) in producers" :key="producer.name">
+                        <div class="producer-scale"><img class="producer-image" :src="producer.url"></img></div>
+                        <div class="producer-name" :style="{ color: producer.color }">{{ producer.name }}</div>
+                        <p class="producer-drc" :style="{ color: producer.color }">{{ producer.desc }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -26,7 +28,8 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 </template>
 
 <style scoped>
-.main { position: relative; width: 100%; height: 100%; background: url(/assets/images/pagebg.png) 100% 100% no-repeat; background-size: cover; overflow-y: auto; }
+.main { position: relative; width: 100%; height: 100%; background: url(/assets/images/pagebg.png) 100% 100% no-repeat; background-size: cover; }
+.scrollable-content { width: 100%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .head { position: relative; width: 100%; height: 30%; min-height: 200px; }
 @keyframes onpuAnime1 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, -10px); } } @keyframes onpuAnime2 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, 10px); } } @keyframes onpuLineAnime { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.8); } }
 .c-onpu__layer { position: absolute; top: 0; left: 0; background-repeat: no-repeat; background-size: 100% auto; height: 100%; width: 50%; } .c-onpu__layer.-layer1 { animation: onpuLineAnime 5s linear infinite alternate-reverse; opacity: 0.5; transform-origin: 0 20%; background-image: url(/assets/images/onpu_line.png); } .c-onpu__layer.-layer2 { animation: onpuAnime1 2s linear infinite alternate-reverse; background-image: url(/assets/images/onpu_item1.png); } .c-onpu__layer.-layer3 { animation: onpuAnime2 2s linear infinite alternate-reverse; background-image: url(/assets/images/onpu_item2.png); }
@@ -44,7 +47,6 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 .producer-name { position: absolute; top: 0; left: 70%; font-family: 'Note-Script-SemiBold-2'; font-size: 1.5em; }
 .producer-drc { position: absolute; text-align: left; width: 800%; height: auto; top: 27%; left: 130%; font-size: 1.2em; font-family: '宋体'; }
 @media (max-width: 768px) {
-    .main { -webkit-overflow-scrolling: touch; } /* 优化移动端滚动体验 */
     .head { height: 20vh; min-height: 180px; }
     .label1 { font-size: 2.2em; top: 30%; }
     .label2 { font-size: 1em; top: 65%; }
