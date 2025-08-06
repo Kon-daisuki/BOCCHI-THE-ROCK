@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终重构版 - 恢复强制滚动对齐]
+    [最终重构版 - 恢复强制滚动与正确布局]
 -->
 <script setup>
 import Header from '@/components/Header.vue';
@@ -48,6 +48,7 @@ onMounted(() => {
   top: 0;
   left: 0;
 }
+/* [重构] 给 .scroll-page 一个默认的黑色背景，防止任何意外的黑边 */
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
