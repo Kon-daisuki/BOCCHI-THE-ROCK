@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终修复版 - 恢复导航跳转功能]
+    [最终完美交付版 - 恢复开屏背景]
 -->
 <script setup>
 import Header from '@/components/Header.vue';
@@ -12,7 +12,6 @@ import Photos from '../components/Photos.vue';
 const scrollContainer = ref(null);
 const activeSection = ref('section1'); 
 
-// [关键] 这个函数负责接收信号并执行滚动
 const handleNavClick = (to) => {
   const sectionId = to.replace('#', '');
   const target = document.getElementById(sectionId);
@@ -34,11 +33,20 @@ onMounted(() => {
 
 <template>
   <div class="header-container">
-    <!-- [关键] @nav-click="handleNavClick" 就是那根重新接上的“电线” -->
     <Header :active-section="activeSection" @nav-click="handleNavClick" />
   </div>
   <div class="scroll-container" ref="scrollContainer">
-    <section id="section1" class="scroll-page"><div class="video-background-container"><video autoplay loop muted playsinline class="video-background"><source src="/assets/videos/video_和服.mp4" type="video/mp4" />视频加载失败</video></div><div class="title-container"><img src="/assets/images/logo_movie_cn.png"/></div></section>
+    <section id="section1" class="scroll-page">
+        <div class="video-background-container">
+            <video autoplay loop muted playsinline class="video-background">
+                <source src="/assets/videos/video_和服.mp4" type="video/mp4" />
+                视频加载失败
+            </video>
+        </div>
+        <div class="title-container">
+            <img src="/assets/images/logo_movie_cn.png"/>
+        </div>
+    </section>
     <section id="section2" class="scroll-page"><CharacterInfo /></section>
     <section id="section3" class="scroll-page"><MusicPlayer /></section>
     <section id="section4" class="scroll-page"><Photos/></section>
@@ -49,7 +57,19 @@ onMounted(() => {
 <style scoped>
 .header-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
 .scroll-container { height: 100vh; width: 100vw; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; position: fixed; top: 0; left: 0; }
-.scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
+.scroll-page { 
+    padding-top: 80px; 
+    height: 100vh; 
+    width: 100%; 
+    scroll-snap-align: start; 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    overflow: hidden; 
+    /* --- [最终修复] --- 移除了这一行 background-color，解决了背景被遮挡的问题 */
+}
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
 .content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
