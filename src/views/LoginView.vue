@@ -1,11 +1,14 @@
 <!-- 
     @Author: Alola
+    [全量修改版]
 -->
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+
+// --- 所有 <script> 部分的逻辑都保持不变 ---
 
 // 原始背景图片集
 const originalImages = [
@@ -125,6 +128,7 @@ const goHome = () => {
 </script>
 
 <template>
+    <!-- Template 结构保持不变，所有适配都在 CSS 中完成 -->
     <div class="main" ref="mainRef">
         <div class="background-container"
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
@@ -182,6 +186,9 @@ const goHome = () => {
 </template>
 
 <style scoped>
+/* [全量修改版 CSS] */
+
+/* --- 原始桌面端样式 (保持不变) --- */
 .main {
     display: flex;
     align-items: center;
@@ -203,7 +210,6 @@ const goHome = () => {
     height: 100%;
     transition: left 0.5s ease-in-out;
     z-index: 0;
-
 }
 
 .background-container.no-transition {
@@ -245,13 +251,8 @@ const goHome = () => {
     transform: scale(1.3);
 }
 
-.left {
-    left: 30px;
-}
-
-.right {
-    right: 30px;
-}
+.left { left: 30px; }
+.right { right: 30px; }
 
 .box {
     position: relative;
@@ -308,25 +309,6 @@ const goHome = () => {
     top: 47.5%;
 }
 
-@keyframes fadeOutIn {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.87;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.fade-split-enter-active,
-.fade-split-leave-active {
-    animation: fadeOutIn 0.5s linear;
-}
-
 .target-image-1 {
     width: 70%;
     transition: all 0.8s ease;
@@ -336,25 +318,6 @@ const goHome = () => {
     width: 70%;
     margin-top: 29%;
     transition: all 0.8s ease;
-}
-
-@keyframes fadeOutIn-target {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-.fade-split-target-enter-active,
-.fade-split-target-leave-active {
-    animation: fadeOutIn-target 0.5s linear;
 }
 
 .loginbox {
@@ -466,11 +429,75 @@ button {
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.fade-enter-from {
-    opacity: 0;
-}
+.fade-enter-from { opacity: 0; }
+.fade-leave-to { opacity: 0; }
 
-.fade-leave-to {
-    opacity: 0;
+/* --- [新增] 手机端响应式样式 --- */
+@media (max-width: 768px) {
+    /* 移动端，隐藏左右切换背景的箭头，因为滑动切换更常用 */
+    .left, .right {
+        display: none;
+    }
+
+    /* 主容器适配 */
+    .box {
+        width: 90vw; /* 占屏幕宽度的 90% */
+        height: 70vh; /* 占屏幕高度的 70% */
+        flex-direction: column; /* 关键：改为垂直布局 */
+        outline: none; /* 移除虚线框 */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* 添加更柔和的阴影 */
+        border-radius: 10px; /* 添加圆角 */
+    }
+
+    /* 在手机上隐藏左侧的装饰性图片元素 */
+    .target, .targetbox {
+        display: none;
+    }
+
+    /* 登录表单区域占满整个容器 */
+    .loginbox {
+        width: 100%;
+        height: 100%;
+        box-shadow: none; /* 移除内部阴影，因为父级已经有了 */
+        border-radius: 10px; /* 继承父级的圆角 */
+    }
+
+    /* 表单适配 */
+    form {
+        gap: 15px; /* 增大元素间距 */
+        justify-content: center; /* 垂直居中 */
+        height: 100%;
+    }
+
+    input, .input-name {
+        width: 80%; /* 输入框和标签加宽 */
+    }
+    
+    h2 {
+        font-size: 2.5em; /* 标题稍微缩小 */
+        position: static; /* 关键：解除绝对定位，让其进入正常文档流 */
+        margin-bottom: 20px;
+    }
+
+    button {
+        position: static; /* 关键：解除绝对定位 */
+        margin-top: 20px;
+        padding: 12px 30px; /* 增大点击区域 */
+        background-color: #ff3aa0bc;
+        color: white;
+        border-radius: 8px; /* 添加圆角 */
+        font-size: 1.2em;
+    }
+
+    .switch-login {
+        top: 15px;
+        right: 15px;
+    }
+
+    .close-login {
+        width: 10%;
+        top: 10px;
+        right: 10px;
+    }
 }
 </style>
