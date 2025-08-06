@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [终极修复版]
+    [最终重构版 - 恢复强制滚动对齐]
 -->
 <script setup>
 import Header from '@/components/Header.vue';
@@ -41,14 +41,13 @@ onMounted(() => {
   height: 100vh;
   width: 100vw;
   overflow-y: scroll; 
-  /* --- [最终修复] --- 必须使用 mandatory，彻底解决“一半一半”的问题 */
+  /* --- [重构] --- 必须使用 mandatory，彻底解决“一半一半”的问题 */
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: fixed;
   top: 0;
   left: 0;
 }
-/* [最终修复] 给 .scroll-page 一个默认的黑色背景，防止任何意外的黑边 */
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
