@@ -8,7 +8,7 @@ import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
 import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
-import Photos from '../components/Photos.vue';
+import Photos from '@/components/Photos.vue'; // Corrected path
 const scrollContainer = ref(null);
 const activeSection = ref('section1'); 
 const handleNavClick = (to) => {
@@ -54,5 +54,5 @@ onMounted(() => {
 .title-container img { animation: spinAndLand 2s ease-out forwards; opacity: 0; width: 80vw; max-width: 500px; }
 @keyframes spinAndLand { 0% { opacity: 0.5; transform: translate(100%, -100%) scale(2) rotate(1300deg); } 80% { transform: translate(-50%, -90%) scale(1.5) rotate(0); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
 @media (min-width: 768px) { .video-background-container { background: none; } }
-@media (max-width: 767px) { .video-background { display: none; } }
+@media (max-width: 767px) { .video-background { display: none; } .scroll-page { padding-top: 60px; } }
 </style>
