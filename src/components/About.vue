@@ -1,10 +1,9 @@
 <!-- 
     @Author: Alola
-    [全量修改版 - 响应式修复]
+    [最终打磨版 - 修复滚动和缺失问题]
 -->
 
 <script setup>
-// Script 部分无需修改
 const producers = [
     { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', desc: 'Bocchi the Rock！！！' },
     { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', desc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' },
@@ -40,8 +39,18 @@ const producers = [
 </template>
 
 <style scoped>
-/* 桌面端样式保持不变 */
-.main { position: absolute; top: 0; width: 100%; height: 100%; background: url(/assets/images/pagebg.png) 100% 100% no-repeat; }
+/* --- [关键修复] --- */
+.main {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: url(/assets/images/pagebg.png) 100% 100% no-repeat;
+    /* 在手机端，允许垂直滚动以查看所有内容 */
+    overflow-y: auto; 
+}
+/* --- 修复结束 --- */
+
 .head { position: relative; width: 100%; height: 30%; }
 @keyframes onpuAnime1 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, -10px); } }
 @keyframes onpuAnime2 { 0% { transform: translate(0, 0); } 100% { transform: translate(0, 10px); } }
@@ -52,8 +61,8 @@ const producers = [
 .c-onpu__layer.-layer3 { animation: onpuAnime2 2s linear infinite alternate-reverse; background-image: url(/assets/images/onpu_item2.png); }
 .label1 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 20%; font-size: 4em; font-weight: 900; color: rgba(197, 89, 255, 0.8); }
 .label2 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 50%; color: yellow; font-size: 1.3em; font-weight: bold; }
-.container { position: relative; display: flex; width: 100%; height: 70%; justify-content: center; }
-.container-producer { position: absolute; top: -15%; width: 70%; height: 100%; }
+.container { position: relative; display: flex; width: 100%; height: auto; /* 自动高度 */ min-height: 70%; justify-content: center; padding-bottom: 50px; }
+.container-producer { position: relative; /* 改为相对定位 */ top: -15%; width: 70%; }
 .producer-label { position: absolute; font-family: '微软雅黑'; top: 0; left: 0; width: 100%; font-weight: bold; font-size: 2em; text-align: left; color: rgb(197, 89, 255); border-bottom: 1px solid gray; }
 @font-face { font-family: 'Note-Script-SemiBold-2'; src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype'); font-style: normal; }
 .producer-item { position: absolute; width: 10%; aspect-ratio: 1/1; left: 2%; }
@@ -65,66 +74,17 @@ const producers = [
 .producer-name { position: absolute; top: 0; left: 70%; font-family: 'Note-Script-SemiBold-2'; font-size: 1.5em; }
 .producer-drc { position: absolute; text-align: left; width: 800%; height: auto; top: 27%; left: 130%; font-size: 1.2em; font-family: '宋体'; }
 
-/* --- [新增] 手机端响应式样式 --- */
 @media (max-width: 768px) {
-    .head {
-        height: 25%; /* 调整头部高度 */
-    }
-    .label1 {
-        font-size: 2.5em; /* 缩小标题 */
-        left: 5%;
-        top: 25%;
-    }
-    .label2 {
-        font-size: 1em; /* 缩小副标题 */
-        left: 5%;
-        top: 60%;
-    }
-
-    .container-producer {
-        width: 90%; /* 容器加宽 */
-        top: 0;
-    }
-    .producer-label {
-        font-size: 1.5em;
-        text-align: center;
-    }
-
-    /* 核心修改：将绝对定位改为流式布局 */
-    .producer-item {
-        position: relative; /* 解除绝对定位 */
-        left: auto;
-        top: auto;
-        width: 100%;
-        display: flex; /* 使用 flex 布局 */
-        flex-direction: column; /* 垂直排列 */
-        align-items: center; /* 居中对齐 */
-        margin-top: 30px;
-        margin-bottom: 20px;
-    }
-    /* 移除桌面端用于定位的样式 */
-    .producer-item:nth-child(2), .producer-item:nth-child(3), .producer-item:nth-child(4), .producer-item:nth-child(5) {
-        top: auto;
-    }
-
-    .producer-scale {
-        width: 80px; /* 固定头像大小 */
-        height: 80px;
-    }
-
-    .producer-name {
-        position: static; /* 解除绝对定位 */
-        margin-top: 10px;
-        font-size: 1.2em;
-    }
-
-    .producer-drc {
-        position: static; /* 解除绝对定位 */
-        width: 100%; /* 宽度占满 */
-        font-size: 1em;
-        text-align: center; /* 文本居中 */
-        margin-top: 8px;
-        padding: 0 10px; /* 增加一些内边距 */
-    }
+    .head { height: 25vh; /* 使用vh确保高度 */ flex-shrink: 0; }
+    .label1 { font-size: 2.5em; left: 5%; top: 25%; }
+    .label2 { font-size: 1em; left: 5%; top: 60%; }
+    .container { top: 0; }
+    .container-producer { width: 90%; top: 0; position: relative; }
+    .producer-label { font-size: 1.5em; text-align: center; position: relative; }
+    .producer-item { position: relative; left: auto; top: auto; width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 30px; margin-bottom: 20px; }
+    .producer-item:nth-child(n) { top: auto; } /* 统一移除所有定位 */
+    .producer-scale { width: 80px; height: 80px; }
+    .producer-name { position: static; margin-top: 10px; font-size: 1.2em; }
+    .producer-drc { position: static; width: 100%; font-size: 1em; text-align: center; margin-top: 8px; padding: 0 10px; }
 }
 </style>
