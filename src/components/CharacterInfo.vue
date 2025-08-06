@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [终极重构版]
+    [最终完美收官版 - 恢复手机端背景板]
 -->
 <script setup>
 import { ref } from 'vue';
@@ -9,27 +9,30 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 </script>
 
 <template>
-    <div class="info-container">
-        <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }"><Transition name="wait" mode="out-in"><img :key="activeItem.name" :src="getPostImage(activeItem.name)"></Transition><transition name="slip" mode="out-in"><div class="box-cover" :key="activeItem.name"></div></transition></div>
-        <div class="right-part">
-            <div class="character-line" :style="{ '--highlight-color': activeItem.color }"><p v-for="(e, index) in activeItem.line" :key="index">{{ e }}</p></div>
-            <div class="character-head"><img :src="'/assets/images/大头_' + activeItem.name + '.webp'" /></div>
-            <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">{{ activeItem.instrument }}</div>
-            <div class="line-container"><div class="romaji-line" :style="{ '--highlight-color': activeItem.color }"><div class="scroll-wrapper"><div class="scroll-romaji" v-for="i in 2" :key="i"><span v-for="i in 16">{{ activeItem.romaji }}</span></div></div></div><span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span></div>
-            <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
-                <div><span class="cv-logo">CV</span><span class="cv-name">{{ activeItem.cv }}</span></div><span class="cv-instrument">{{ activeItem.instrument }}</span>
-                <div class="cv-info"><div class="cv-romaji">{{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}</div></div>
-                <div class="desc-content">{{ activeItem.desc }}</div>
+    <div class="bg">
+        <div class="info-container">
+            <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }"><Transition name="wait" mode="out-in"><img :key="activeItem.name" :src="getPostImage(activeItem.name)"></Transition><transition name="slip" mode="out-in"><div class="box-cover" :key="activeItem.name"></div></transition></div>
+            <div class="right-part">
+                <div class="character-line" :style="{ '--highlight-color': activeItem.color }"><p v-for="(e, index) in activeItem.line" :key="index">{{ e }}</p></div>
+                <div class="character-head"><img :src="'/assets/images/大头_' + activeItem.name + '.webp'" /></div>
+                <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">{{ activeItem.instrument }}</div>
+                <div class="line-container"><div class="romaji-line" :style="{ '--highlight-color': activeItem.color }"><div class="scroll-wrapper"><div class="scroll-romaji" v-for="i in 2" :key="i"><span v-for="i in 16">{{ activeItem.romaji }}</span></div></div></div><span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span></div>
+                <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
+                    <div><span class="cv-logo">CV</span><span class="cv-name">{{ activeItem.cv }}</span></div><span class="cv-instrument">{{ activeItem.instrument }}</span>
+                    <div class="cv-info"><div class="cv-romaji">{{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}</div></div>
+                    <div class="desc-content">{{ activeItem.desc }}</div>
+                </div>
+                <transition name="fade" appear><div :key="activeItem.name" class="character-image"><img :src="getCharacterImage(activeItem.name)" /></div></transition>
+                <div class="logo"><img src="/assets/images/logo_movie.svg" /></div>
             </div>
-            <transition name="fade" appear><div :key="activeItem.name" class="character-image"><img :src="getCharacterImage(activeItem.name)" /></div></transition>
-            <div class="logo"><img src="/assets/images/logo_movie.svg" /></div>
+            <div class="select-part"><ul><li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)" :class="{ 'selected': activeItem.name === character.name }" :style="{ '--highlight-color': character.color }"><img :src="getPostImage(character.name)" /></li></ul></div>
         </div>
-        <div class="select-part"><ul><li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)" :class="{ 'selected': activeItem.name === character.name }" :style="{ '--highlight-color': character.color }"><img :src="getPostImage(character.name)" /></li></ul></div>
     </div>
 </template>
 
 <style scoped>
-.info-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; background-color: #141414; }
+.bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #141414; }
+.info-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; }
 .left-part { position: relative; overflow: hidden; }
 .left-part img { height: 100%; }
 .box-cover { position: absolute; left: -100%; top: 0; height: 100%; width: 100%; background-color: var(--highlight-color); }
@@ -61,6 +64,7 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
 @media (max-width: 768px) {
+    .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
     .character-image { z-index: 1; }
@@ -69,8 +73,19 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
     .romaji-line { font-size: 0.9em; }
-    .character-desc { top: auto; bottom: 170px; width: 90%; left: 5%; font-size: 0.8em; background-color: rgba(0,0,0,0.6); padding: 8px; border-radius: 8px; z-index: 10; }
-    .select-part { left: 0; bottom: 15px; width: 100%; background-color: transparent; z-index: 20; }
+    /* --- [最终修复] --- 恢复了背景板，并微调了样式 */
+    .character-desc { 
+        top: auto; 
+        bottom: 170px; 
+        width: 90%; 
+        left: 5%; 
+        font-size: 0.8em; 
+        background-color: rgba(0,0,0,0.6); 
+        padding: 10px; 
+        border-radius: 8px; 
+        z-index: 10; 
+    }
+    .select-part { left: 0; bottom: 15px; width: 100%; background-color: transparent; }
     .select-part ul { justify-content: center; gap: 8px; }
     .select-part li { width: 55px; height: 55px; }
     .select-part li.selected, .select-part li:hover { width: 70px; height: 70px; }
