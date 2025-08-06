@@ -1,10 +1,8 @@
 <!-- 
     @Author: Sudoria
-    [最终完美版 - 实现阻尼感与就近吸附]
+    [终极修复版]
 -->
-
 <script setup>
-// Script部分无需修改
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
@@ -43,17 +41,15 @@ onMounted(() => {
   height: 100vh;
   width: 100vw;
   overflow-y: scroll; 
-  /* --- [最终完美方案] --- 
-     使用 proximity 来获得最佳的阻尼感和就近吸附效果。
-     它提供了最自然的滚动物理体验。
-  */
-  scroll-snap-type: y proximity;
+  /* --- [最终修复] --- 必须使用 mandatory，彻底解决“一半一半”的问题 */
+  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: fixed;
   top: 0;
   left: 0;
 }
-.scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+/* [最终修复] 给 .scroll-page 一个默认的黑色背景，防止任何意外的黑边 */
+.scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
 .content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
