@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终重构版 - 恢复强制滚动与正确布局]
+    [终极重构版]
 -->
 <script setup>
 import Header from '@/components/Header.vue';
@@ -41,18 +41,15 @@ onMounted(() => {
   height: 100vh;
   width: 100vw;
   overflow-y: scroll; 
-  /* --- [重构] --- 必须使用 mandatory，彻底解决“一半一半”的问题 */
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: fixed;
   top: 0;
   left: 0;
 }
-/* [重构] 给 .scroll-page 一个默认的黑色背景，防止任何意外的黑边 */
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
-.content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
 .title-container { position: absolute; top: 50%; left: 50%; z-index: 2; text-align: center; transform: translateY(-40px); }
 .title-container img { animation: spinAndLand 2s ease-out forwards; opacity: 0; width: 80vw; max-width: 500px; }
 @keyframes spinAndLand { 0% { opacity: 0.5; transform: translate(100%, -100%) scale(2) rotate(1300deg); } 80% { transform: translate(-50%, -90%) scale(1.5) rotate(0); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
