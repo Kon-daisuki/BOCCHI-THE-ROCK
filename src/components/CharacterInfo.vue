@@ -61,7 +61,6 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
 @media (max-width: 768px) {
-    .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
     .character-image { z-index: 1; }
