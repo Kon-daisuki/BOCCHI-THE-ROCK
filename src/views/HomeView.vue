@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [终极重构版]
+    [最终修复版]
 -->
 <script setup>
 import Header from '@/components/Header.vue';
@@ -8,7 +8,7 @@ import CharacterInfo from '@/components/CharacterInfo.vue';
 import { onMounted, ref } from 'vue';
 import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
-import Photos from '@/components/Photos.vue'; // Corrected path
+import Photos from '@/components/Photos.vue';
 const scrollContainer = ref(null);
 const activeSection = ref('section1'); 
 const handleNavClick = (to) => {
@@ -37,17 +37,12 @@ onMounted(() => {
 
 <style scoped>
 .header-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
-.scroll-container {
-  height: 100vh;
-  width: 100vw;
-  overflow-y: scroll; 
-  scroll-snap-type: y mandatory;
-  scroll-behavior: smooth;
-  position: fixed;
-  top: 0;
-  left: 0;
-}
+.scroll-container { height: 100vh; width: 100vw; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; position: fixed; top: 0; left: 0; }
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; background-color: #141414; }
+/* --- [最终修复] --- 让首页背景透明，以显示视频/图片 */
+#section1 {
+  background-color: transparent;
+}
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
 .video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
 .title-container { position: absolute; top: 50%; left: 50%; z-index: 2; text-align: center; transform: translateY(-40px); }
