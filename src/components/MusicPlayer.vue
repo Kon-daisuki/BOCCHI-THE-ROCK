@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美交付版 - 修复长标题挤压问题]
+    [最终完美交付版 - 优化排版与布局]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -98,7 +98,23 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 </template>
 
 <style scoped>
-.bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
+/* --- [最终收官] --- */
+.bg { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden; 
+    /* 1. 添加 Flexbox 实现居中 */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); 
+    background-size: 300% 300%; 
+    animation: gradient 15s ease infinite; 
+    animation-play-state: var(--animation-state, paused); 
+}
 .player-container { display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; }
 .player-select::-webkit-scrollbar { width: 6px; }
@@ -140,25 +156,25 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 @media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 35%; flex-shrink: 0; } /* [修复] 调整高度，给播放器更多空间 */
-    .player { width: 100%; height: 65%; padding: 15px; } /* [修复] 调整高度 */
+    .player-container { 
+        /* 2. 确保手机端容器占满视口宽度，消除左侧缝隙 */
+        width: 100vw; 
+        height: 100%; 
+        min-width: unset; 
+        min-height: unset; 
+        border-radius: 0; 
+        flex-direction: column;
+    }
+    /* 3. 采纳您的建议，调整上下结构占比 */
+    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
+    .player { width: 100%; height: 70%; padding: 15px; }
     .now-playing { justify-content: space-around; }
-    .player-bg { width: 180px; height: 180px; } /* [修复] 缩小专辑图，为文字留出空间 */
+    .player-bg { width: 180px; height: 180px; }
     .album-image { width: 120px; height: 120px; }
-    /* --- [最终艺术性修复] --- */
-    .music-info {
-        margin-bottom: 15px;
-        padding: 0 10px; /* 增加左右内边距，防止文字贴边 */
-    }
-    .music-info h2, .music-info p {
-        white-space: normal; /* 允许文字换行 */
-        word-break: break-all; /* 强制在任何地方换行 */
-        line-height: 1.3; /* 调整行高，让换行后更好看 */
-    }
+    .music-info { margin-bottom: 15px; padding: 0 10px; }
+    .music-info h2, .music-info p { white-space: normal; word-break: break-all; line-height: 1.3; }
     .music-info h2 { font-size: 18px; }
     .music-info p { font-size: 14px; }
-    /* --- 修复结束 --- */
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
 }
 </style>
