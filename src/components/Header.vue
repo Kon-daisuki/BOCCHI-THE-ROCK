@@ -1,7 +1,7 @@
 <!-- 
     @Author: Sudoria
+    [全量修改版 - 响应式修复]
 -->
-
 
 <script setup>
 import { ref } from 'vue';
@@ -122,13 +122,11 @@ const goToLogin = () => {
 
 .nav li a:hover {
   color: var(--active-color);
-
   transform: translateY(-2px);
 }
 
 .nav li.active a {
   color: var(--active-color);
-
   font-weight: 600;
 }
 
@@ -149,7 +147,6 @@ const goToLogin = () => {
 
 .nav li.active .underline {
   background: linear-gradient(90deg, #ff8a00, #ff5252);
-
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
@@ -168,5 +165,27 @@ const goToLogin = () => {
   background: rgba(255, 255, 255, 0.1);
   border-color: white;
   transform: translateY(-2px);
+}
+
+/* --- [新增] 手机端响应式样式 --- */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 15px; /* 减小左右边距 */
+    height: 60px; /* 减小高度 */
+  }
+
+  .logo {
+    height: 30px; /* 缩小Logo */
+  }
+
+  /* 在手机上隐藏中间的导航链接 */
+  .nav {
+    display: none;
+  }
+
+  .login-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
 }
 </style>
