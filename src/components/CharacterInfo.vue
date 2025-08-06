@@ -1,7 +1,7 @@
 <!-- 
     @Author: Sudoria
+    [全量修改版 - 修复切换器点击Bug并实现响应式布局]
 -->
-
 
 <script setup>
 import { ref } from 'vue';
@@ -42,10 +42,7 @@ const getCharacterImage = (name) => {
 
 const getPostImage = (name) => {
     return `/assets/images/海报_${name}.png`
-
 }
-
-
 
 const activeItem = ref(characters[0]);
 const lastItem = ref(activeItem);
@@ -59,8 +56,8 @@ const switchItem = (index) => {
 <template>
     <div class="bg"></div>
     <div class="info-container">
-        <div class="left-part"
-            :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }">
+        <!-- 左侧海报图 -->
+        <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }">
             <Transition name="wait" mode="out-in">
                 <img :key="activeItem.name" :src="getPostImage(activeItem.name)">
             </Transition>
@@ -69,8 +66,55 @@ const switchItem = (index) => {
             </transition>
         </div>
 
+        <!-- 右侧信息区 -->
+        <div class="right-part">
+            <div class="character-line" :style="{ '--highlight-color': activeItem.color }">
+                <p v-for="(e, index) in activeItem.line" :key="index">{{ e }}</p>
+            </div>
 
+            <div class="character-head">
+                <img :src="'/assets/images/大头_' + activeItem.name + '.webp'" />
+            </div>
 
+            <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">
+                {{ activeItem.instrument }}
+            </div>
+
+            <div class="line-container">
+                <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
+                    <div class="scroll-wrapper">
+                        <div class="scroll-romaji" v-for="i in 2" :key="i">
+                            <span v-for="i in 16">{{ activeItem.romaji }}</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span>
+            </div>
+            
+            <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
+                <div>
+                    <span class="cv-logo">CV</span>
+                    <span class="cv-name">{{ activeItem.cv }}</span>
+                </div>
+                <span class="cv-instrument">{{ activeItem.instrument }}</span>
+                <div class="cv-info">
+                    <div class="cv-romaji">{{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}</div>
+                </div>
+                <div class="desc-content">{{ activeItem.desc }}</div>
+            </div>
+
+            <transition name="fade" appear>
+                <div :key="activeItem.name" class="character-image">
+                    <img :src="getCharacterImage(activeItem.name)" />
+                </div>
+            </transition>
+
+            <div class="logo">
+                <img src="/assets/images/logo_movie.svg" />
+            </div>
+        </div>
+
+        <!-- 角色切换器 (从 right-part 移到这里，并修复定位) -->
         <div class="select-part">
             <ul>
                 <li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)"
@@ -80,66 +124,7 @@ const switchItem = (index) => {
                 </li>
             </ul>
         </div>
-
-
-        <div class="right-part">
-
-            <div class="character-line" :style="{ '--highlight-color': activeItem.color }">
-                <p v-for="(e, index) in activeItem.line" :key="index">{{ e }}</p>
-            </div>
-
-            <div class="character-head">
-                <img :src="'/assets/images/大头_' + activeItem.name + '.webp'" />
-            </div>
-
-
-            <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">
-                {{ activeItem.instrument }}
-            </div>
-            <div class="line-container">
-                <div class="romaji-line" :style="{ '--highlight-color': activeItem.color }">
-                <div class="scroll-wrapper">
-                    <div class="scroll-romaji" v-for="i in 2" :key="i">
-                        <span v-for="i in 16">{{ activeItem.romaji }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span>
-            </div>
-            
-
-            <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
-                <div>
-                    <span class="cv-logo">CV</span>
-                    <span class="cv-name">{{ activeItem.cv }}</span>
-                </div>
-
-                <span class="cv-instrument">{{ activeItem.instrument }}</span>
-                <div class="cv-info">
-                    <div class="cv-romaji">
-                        {{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}
-                    </div>
-
-
-                </div>
-                <div class="desc-content">
-                    {{ activeItem.desc }}
-                </div>
-            </div>
-            <transition name="fade" appear>
-                <div :key="activeItem.name" class="character-image">
-                    <img :src="getCharacterImage(activeItem.name)" />
-                </div>
-            </transition>
-
-
-            <div class="logo">
-                <img src="/assets/images/logo_movie.svg" />
-            </div>
-        </div>
     </div>
-
 </template>
 
 
@@ -176,15 +161,18 @@ const switchItem = (index) => {
     background-color: var(--highlight-color);
 }
 
+/* --- [关键修复] 切换器样式调整 --- */
 .select-part {
     position: absolute;
-    bottom: 0;
+    bottom: 20px; /* 向上移动，确保在可视区域内 */
+    left: 20px;   /* 从左侧开始 */
+    z-index: 20;  /* 设置一个非常高的 z-index，确保它在最顶层 */
 }
 
 .select-part ul {
     display: flex;
+    padding-left: 0; /* 移除 ul 的默认内边距 */
 }
-
 
 .select-part li {
     position: relative;
@@ -193,32 +181,24 @@ const switchItem = (index) => {
     height: 80px;
     align-self: flex-end;
     transition: all 0.3s;
+    cursor: pointer; /* 添加手型光标 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* 添加阴影增加立体感 */
 }
-
-
 
 .select-part li.selected,
 .select-part li:hover {
     width: 100px;
     height: 100px;
     transition: all 0.3s;
-
 }
 
-/* 角色选择框内图片样式 */
 .select-part img {
     height: 100%;
     width: 100%;
     object-fit: cover;
     object-position: top;
-    /* 从顶部开始裁剪 */
-
 }
 
-
-
-/* 使用伪元素方式来实现边框以及边框动画效果 */
-/* 伪元素放边框，防止被li标签内部的img覆盖内嵌边框效果 */
 .select-part li::before {
     content: '';
     position: absolute;
@@ -228,33 +208,20 @@ const switchItem = (index) => {
     height: 100%;
     transition: all 0.3s;
     pointer-events: none;
-    /* 防止伪元素拦截点击 */
 }
 
-
-/* 角色列表被选中时的样式 */
 .select-part li.selected::before,
 .select-part li:hover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
     box-shadow: inset 0 0 0 5px var(--highlight-color);
-    pointer-events: none;
-    /* 防止伪元素拦截点击事件 */
 }
+/* --- 修复结束 --- */
+
 
 .right-part {
     display: flex;
     flex: 1;
     position: relative;
 }
-
-
-
-
 
 .instrument-content {
     font-size: 20em;
@@ -282,14 +249,12 @@ const switchItem = (index) => {
     transition: color 1.5s;
 }
 
-
 .character-line::before,
 .character-line::after {
     content: "";
     position: absolute;
     width: 55px;
     height: 55px;
-
 }
 
 .character-line::before {
@@ -319,21 +284,13 @@ const switchItem = (index) => {
     overflow: hidden;
 }
 
-
 .romaji-line {
-    /* position: absolute;
-    top: 43.25%; */
     font-size: 1.4em;
-    /* overflow: hidden; */
     white-space: nowrap;
     color: var(--highlight-color);
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     transition: color 1.5s;
 }
-
-
-
-
 
 .romaji-line:hover .scroll-wrapper {
     animation-play-state: paused;
@@ -347,43 +304,29 @@ const switchItem = (index) => {
 .scroll-romaji {
     display: inline-block;
     padding-right: 2em;
-    /* 增加文字间距 */
 }
 
 @keyframes scrollRomaji {
-    0% {
-        transform: translateX(0%);
-    }
-
-    100% {
-        transform: translateX(-50%);
-        /* 移动文本总长度的一半 */
-    }
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
 }
 
 .name-line {
-    /* position: absolute; */
-    /* top: 50%; */
-    /* left: 0;
-    right: 0; */
     display: flex;
     justify-content: flex-start;
     background-color: var(--highlight-color);
     color: #000;
     font-size: 3rem;
-    /* transform: translate(0, -50%); */
     z-index: -1;
     text-indent: 2em;
     font-family: 'Aa幻梦空间像素体';
     transition: background-color 1.5s;
-
 }
 
 .character-head {
     justify-self: flex-start;
     align-self: flex-start;
     z-index: 0;
-
 }
 
 .character-head img {
@@ -402,7 +345,6 @@ const switchItem = (index) => {
 .character-image img {
     height: 90vh;
     transition: all 0.3s;
-
 }
 
 .character-image img:hover {
@@ -438,7 +380,6 @@ const switchItem = (index) => {
 .cv-instrument {
     color: var(--highlight-color);
     transition: color 1.5s;
-
 }
 
 .cv-info {
@@ -450,7 +391,6 @@ const switchItem = (index) => {
     text-align: left;
     font-weight: bold;
 }
-
 
 .desc-content {
     margin-top: 15px;
@@ -466,77 +406,93 @@ const switchItem = (index) => {
     z-index: 5;
 }
 
-.logo img {
-    width: 400px;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease, transform 0.5s ease; }
+.fade-enter-from { opacity: 0; transform: translateY(20px); }
+.fade-leave-to { opacity: 0; transform: translateY(-20px); }
 
+.slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; }
+.slip-leave-to { left: 0; }
+.slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); }
+.slip-enter-from { left: 0; background-color: var(--highlight-color); }
+.slip-enter-to { left: 100%; }
 
+.wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
 
-/* 定义进入和离开的动画 */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
+/* --- [新增] 针对手机端的响应式布局 --- */
+@media (max-width: 768px) {
+    /* 在手机上，隐藏左侧的装饰性海报图 */
+    .left-part {
+        display: none;
+    }
 
-.fade-enter-from {
-    opacity: 0;
-    transform: translateY(20px);
-}
+    /* 让右侧内容区占满全部宽度 */
+    .right-part {
+        width: 100%;
+    }
 
-.fade-leave-to {
-    opacity: 0;
-    transform: translateY(-20px);
-}
+    /* 调整立绘大图，使其适应屏幕 */
+    .character-image img {
+        height: 75vh; /* 缩小高度 */
+        object-fit: contain; /* 确保图片完整显示 */
+    }
 
+    /* 隐藏装饰性的台词框和背景乐器名 */
+    .character-line, .instrument-content {
+        display: none;
+    }
 
+    /* 调整名字和罗马音的容器 */
+    .line-container {
+        top: auto; /* 解除绝对定位 */
+        bottom: 120px; /* 定位在切换器的上方 */
+        transform: none;
+        height: auto;
+    }
+    .name-line {
+        font-size: 2rem;
+        text-indent: 1em;
+    }
+    .romaji-line {
+        font-size: 1em;
+    }
+    
+    /* 调整角色描述区域 */
+    .character-desc {
+        top: auto;
+        bottom: 200px; /* 定位在名字的上方 */
+        width: 90%;
+        left: 5%;
+        font-size: 0.9em;
+        background-color: rgba(0,0,0,0.5); /* 增加背景以提高可读性 */
+        padding: 10px;
+        border-radius: 8px;
+    }
 
+    /* 隐藏大头贴和logo */
+    .character-head, .logo {
+        display: none;
+    }
 
-.slip-enter-active,
-.slip-leave-active {
-    transition: left 0.5s ease, background-color 0.4s ease;
-}
-
-
-
-.slip-leave-to {
-    left: 0;
-}
-
-.slip-leave-from {
-    left: -100%;
-    background-color: var(--last-hightlight-color);
-}
-
-.slip-enter-from {
-    left: 0;
-    background-color: var(--highlight-color);
-}
-
-.slip-enter-to {
-    left: 100%;
-}
-
-.wait-enter-active,
-.wait-leave-active {
-    transition: all 0.5s ease;
-}
-
-
-@media (max-width: 1000px) {
-  .character-line {
-    transform: scale(0.8);
-  }
-}
-
-@media (max-height: 800px) {
-  .character-line {
-    transform: scale(0.8);
-    top: 15%;
-    left: 5%;
-  }
-
-  .character-desc {
-    transform: scale(0.8);
-  }
+    /* 重新设计底部的切换器 */
+    .select-part {
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 10px 0;
+    }
+    .select-part ul {
+        justify-content: center; /* 让缩略图居中 */
+        gap: 10px; /* 增加间距 */
+    }
+    .select-part li {
+        width: 60px;
+        height: 60px;
+    }
+    .select-part li.selected,
+    .select-part li:hover {
+        width: 75px;
+        height: 75px;
+    }
 }
 </style>
