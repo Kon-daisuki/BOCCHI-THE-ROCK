@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终完美版 - 修复桌面端音符泄露Bug]
+    [最终微调版 - 精确调整手机端布局比例]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -71,9 +71,7 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 <template>
     <div class="bg">
         <div class="player-container">
-            <!-- [最终修正] 音符现在是 player-container 的一部分 -->
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
-            
             <div class="player-select">
                 <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
             </div>
@@ -101,7 +99,6 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 
 <style scoped>
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
-/* [最终修正] player-container 现在是音符的定位父级 */
 .player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
 .note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
@@ -147,15 +144,44 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
+
+/* --- [最终微调] --- */
 @media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 40%; flex-shrink: 0; }
-    .player { width: 100%; height: 60%; padding: 15px; }
-    .now-playing { justify-content: space-around; }
-    .player-bg { width: 150px; height: 150px; }
-    .album-image { width: 100px; height: 100px; }
-    .music-info h2 { font-size: 18px; }
-    .music-info p { font-size: 14px; }
+    .player-container { 
+        flex-direction: column; 
+        width: 100%; 
+        height: 100%; 
+        min-width: unset; 
+        min-height: unset; 
+        border-radius: 0; 
+    }
+    .player-select { 
+        width: 100%; 
+        height: 30%; /* 1. 上方区域高度改为30% */
+        flex-shrink: 0; 
+    }
+    .player { 
+        width: 100%; 
+        height: 70%; /* 2. 下方区域高度改为70% */
+        padding: 15px; 
+    }
+    .now-playing { 
+        justify-content: space-around; 
+    }
+    .player-bg { 
+        width: 180px; /* 3. 微调专辑图大小以适应新空间 */
+        height: 180px; 
+    }
+    .album-image { 
+        width: 120px; 
+        height: 120px; 
+    }
+    .music-info h2 { 
+        font-size: 18px; 
+    }
+    .music-info p { 
+        font-size: 14px; 
+    }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
 }
 </style>
