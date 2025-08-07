@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终优化版 - 精确实现3:7布局]
+    [最终权威版 - 恢复您最满意的手机布局并修复所有问题]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -112,7 +112,14 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
 .player { width: 65%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
-.now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
+.now-playing { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%; /* <-- [最终权威修复] 确保此容器撑满宽度 */
+    height: 100%; 
+    justify-content: space-between; 
+}
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
@@ -142,10 +149,10 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 /* --- [最终权威版] --- 恢复您最喜欢的手机端布局并精确调整为3:7 */
 @media (max-width: 768px) {
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 30%; flex-shrink: 0; } /* 列表占30% */
-    .player { width: 100%; height: 70%; padding: 15px; } /* 播放器占70% */
+    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
+    .player { width: 100%; height: 70%; padding: 15px; }
     .now-playing { justify-content: space-around; }
-    .player-bg { width: 180px; height: 180px; } /* 稍微增大专辑图以适应新空间 */
+    .player-bg { width: 180px; height: 180px; }
     .album-image { width: 120px; height: 120px; }
     .music-info h2 { font-size: 18px; }
     .music-info p { font-size: 14px; }
