@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终功能版 - 实现自动连播]
+    [最终功能版 - 基于您的代码精准添加自动连播]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -33,9 +33,20 @@ player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
 const switchMusic = (newIndex) => {
-    if (newIndex >= musics.length) newIndex = 0;
-    else if (newIndex < 0) newIndex = musics.length - 1;
-    activeItem.value = musics[newIndex];
+    // 这里的 newIndex 是 1-based 的，所以我们用它来找数组中的下一首歌
+    let nextSongIndexInArray = newIndex;
+    if (nextSongIndexInArray >= musics.length) {
+        nextSongIndexInArray = 0; // 循环到第一首
+    }
+    
+    // 如果是上一首按钮触发的，newIndex 可能是 0 或负数
+    if (newIndex < 0) {
+        nextSongIndexInArray = musics.length - 1; // 循环到最后一首
+    } else if (newIndex === 0) { // 兼容上一首按钮从第一首跳到最后一首
+        nextSongIndexInArray = musics.length - 1;
+    }
+
+    activeItem.value = musics[nextSongIndexInArray];
     playStatu.value = 1;
     musicProgress.value = 0;
 };
@@ -52,6 +63,7 @@ watch(activeItem, (newItem) => {
 });
 
 // [移除] 移除了不够可靠的 watch(musicProgress, ...) 逻辑
+// watch(musicProgress, () => { if (musicProgress.value >= 100) switchMusic(activeItem.value.index); });
 
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); });
@@ -79,6 +91,7 @@ onMounted(() => {
     // [新增] 添加 'ended' 事件监听器，实现自动播放下一首
     player.value.addEventListener('ended', () => {
         // 调用我们现有的 switchMusic 函数，它已经包含了循环逻辑
+        // activeItem.value.index 是 1-based 的，正好是下一首歌的索引
         switchMusic(activeItem.value.index);
     });
 });
@@ -86,8 +99,8 @@ onMounted(() => {
 
 <template>
     <div class="bg">
-        <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
         <div class="player-container">
+            <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
                 <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
             </div>
@@ -114,9 +127,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
-.player-container { display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; }
+.bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
+.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
+.note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
+@keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
+.bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
+@keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
+.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
 .player-select::-webkit-scrollbar { width: 6px; }
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
@@ -127,8 +145,8 @@ onMounted(() => {
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
-.now-playing { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; justify-content: space-between; }
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; }
+.now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
