@@ -1,63 +1,35 @@
+
 <!doctype html>
-<html lang="zh-CN"> <!-- 推荐：将语言设置为中文 -->
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8" />
-  <!-- 设置网页小图标，建议将 vite.svg 放在 public 目录下 -->
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   
-  <!-- 响应式设计的核心：确保页面在移动设备上以正确的比例显示 -->
+  <!-- 网站小图标，指向 public 文件夹中的 bocchi.avif -->
+  <link rel="icon" type="image/avif" href="/bocchi.avif" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- 更改了页面标题，使其更有意义 -->
   <title>Bocchi the Rock! 摇滚！</title>
 
   <style>
-    /* 全局样式重置：确保在所有浏览器上表现一致 */
     * {
       padding: 0;
       margin: 0;
-      /*
-        盒模型设置为 border-box，让 width 和 height 的计算包含 padding 和 border，
-        这在布局时会更直观、更方便。
-      */
       box-sizing: border-box;
-
-      /* 
-        全局禁用文本选中。
-        注意：这通常用于界面元素，但输入框等会自动覆盖此样式，允许用户输入。
-        这是一个比较强的样式，但符合您项目的沉浸式设计。
-      */
       user-select: none;
-      
-      /* 全局禁用元素的默认拖拽行为，特别是图片。 */
       -webkit-user-drag: none;
     }
-
     html, body {
-      /* 
-        确保 body 和 html 占满整个屏幕，这是全屏应用的基础。
-        同时设置背景色，防止在组件加载时出现白色闪烁。
-      */
       width: 100%;
       height: 100%;
       background-color: #141414;
-      
-      /*
-        关键！隐藏 body 上的滚动条。
-        因为您的首页和登录页都是占满全屏的组件，由组件内部自己处理滚动（比如首页的整页滚动），
-        所以 body 本身不需要滚动条。这可以防止出现双重滚动条的问题。
-      */
       overflow: hidden;
     }
   </style>
 </head>
 
 <body>
-  <!-- 这是 Vue 应用挂载的根节点 -->
   <div id="app"></div>
-  
-  <!-- 引入主 JavasScript 文件，启动 Vue 应用 -->
   <script type="module" src="/src/main.js"></script>
 </body>
 
