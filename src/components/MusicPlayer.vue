@@ -1,6 +1,8 @@
 <!-- 
     @Author: Sudoria
     [最终功能版 - 基于您的代码精准添加自动连播]
+    [新功能 by Gemini: 添加 Media Session API 支持，优化媒体通知显示]
+    [新功能 by Gemini: 添加动态 Favicon，播放时显示专辑封面]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -28,21 +30,49 @@ const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
 const isMvVisible = ref(false);
+const defaultFavicon = '/favicon.ico'; // [新增] 默认的网站图标路径
 
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
+// [新增] 动态更新网站图标 (Favicon) 的功能
+const updateFavicon = (iconUrl) => {
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }
+    link.href = iconUrl;
+};
+
+const updateMediaSession = (song) => {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.name,
+            artist: song.singer,
+            album: '結束バンド',
+            artwork: [
+                { src: song.image, sizes: '96x96',   type: 'image/jpeg' },
+                { src: song.image, sizes: '128x128', type: 'image/jpeg' },
+                { src: song.image, sizes: '192x192', type: 'image/jpeg' },
+                { src: song.image, sizes: '256x256', type: 'image/jpeg' },
+                { src: song.image, sizes: '384x384', type: 'image/jpeg' },
+                { src: song.image, sizes: '512x512', type: 'image/jpeg' },
+            ]
+        });
+    }
+};
+
 const switchMusic = (newIndex) => {
-    // 这里的 newIndex 是 1-based 的，所以我们用它来找数组中的下一首歌
     let nextSongIndexInArray = newIndex;
     if (nextSongIndexInArray >= musics.length) {
-        nextSongIndexInArray = 0; // 循环到第一首
+        nextSongIndexInArray = 0; 
     }
     
-    // 如果是上一首按钮触发的，newIndex 可能是 0 或负数
     if (newIndex < 0) {
-        nextSongIndexInArray = musics.length - 1; // 循环到最后一首
-    } else if (newIndex === 0) { // 兼容上一首按钮从第一首跳到最后一首
+        nextSongIndexInArray = musics.length - 1; 
+    } else if (newIndex === 0) { 
         nextSongIndexInArray = musics.length - 1;
     }
 
@@ -59,18 +89,40 @@ const updateProgress = () => {
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     player.value.currentTime = 0;
-    if (playStatu.value === 1) { player.value.play(); requestAnimationFrame(updateProgress); }
+    updateMediaSession(newItem);
+    if (playStatu.value === 1) { 
+        player.value.play(); 
+        requestAnimationFrame(updateProgress); 
+        updateFavicon(newItem.image); // [修改] 切换歌曲时，如果正在播放，立刻更新图标
+    }
 });
 
-// [移除] 移除了不够可靠的 watch(musicProgress, ...) 逻辑
-// watch(musicProgress, () => { if (musicProgress.value >= 100) switchMusic(activeItem.value.index); });
-
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
-watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); });
+
+watch(playStatu, (newVal) => { 
+    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); 
+    
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
+    }
+
+    // [新增] 根据播放状态更新网站图标
+    if (newVal === 1) {
+        updateFavicon(activeItem.value.image); // 播放时，设置为当前专辑图
+    } else {
+        updateFavicon(defaultFavicon); // 暂停时，恢复为默认图标
+    }
+});
 
 const switchStatu = () => {
-    if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; requestAnimationFrame(updateProgress); } 
-    else { player.value.pause(); playStatu.value = 0; }
+    if (playStatu.value === 0) { 
+        player.value.play(); 
+        playStatu.value = 1; 
+        requestAnimationFrame(updateProgress); 
+    } else { 
+        player.value.pause(); 
+        playStatu.value = 0; 
+    }
 };
 
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
@@ -88,12 +140,18 @@ onMounted(() => {
         });
     }
 
-    // [新增] 添加 'ended' 事件监听器，实现自动播放下一首
     player.value.addEventListener('ended', () => {
-        // 调用我们现有的 switchMusic 函数，它已经包含了循环逻辑
-        // activeItem.value.index 是 1-based 的，正好是下一首歌的索引
         switchMusic(activeItem.value.index);
     });
+
+    updateMediaSession(activeItem.value);
+
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
+        navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(activeItem.value.index - 2); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(activeItem.value.index); });
+    }
 });
 </script>
 
