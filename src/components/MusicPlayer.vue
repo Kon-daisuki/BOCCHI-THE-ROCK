@@ -3,23 +3,26 @@
     [最终功能版 - 基于您的代码精准添加自动连播]
     [新功能 by Gemini: 添加 Media Session API 支持，优化媒体通知显示]
     [新功能 by Gemini: 添加动态 Favicon，播放时显示专辑封面]
+    [新功能 by Gemini: 实现动态MV链接，并为无MV的歌曲禁用按钮]
+    [最终更新 by Gemini: 补全所有歌曲的MV链接]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 
+// [最终修改] 补全所有歌曲的 bvid
 const musics = [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
-    { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 3, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 4, name: 'なにが悪い', duration: '03:47', image: '/assets/albums/なにが悪い.jpg', src: '/assets/musics/なにが悪い.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 5, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 6, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'' },
-    { index: 8, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 9, name: '小さな海', duration: '03:43', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/小さな海.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 10, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/忘れてやらない.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド', bvid:'' },
-    { index: 11, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'' },
-    { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'' },
+    { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1xY411D7e1' },
+    { index: 3, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1d14y1M7D1' },
+    { index: 4, name: 'なにが悪い', duration: '03:47', image: '/assets/albums/なにが悪い.jpg', src: '/assets/musics/なにが悪い.mp3', singer: '结束バンド' , bvid:'BV1vG4y1974x' },
+    { index: 5, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'BV1s84y1C72E' },
+    { index: 6, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' , bvid:'BV1eP411g7r7' },
+    { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'BV1jW4y1g7q1' },
+    { index: 8, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'BV15k4y1475x' },
+    { index: 9, name: '小さな海', duration: '03:43', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/小さな海.mp3', singer: '结束バンド' , bvid:'BV16G4y1o7sE' },
+    { index: 10, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/忘れてやらない.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド', bvid:'BV1fV4y1A71u' },
+    { index: 11, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'BV13d4y1e7s5' },
+    { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1Y84y117j2' },
     { index: 13, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
 ];
 
@@ -30,12 +33,11 @@ const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
 const isMvVisible = ref(false);
-const defaultFavicon = '/favicon.ico'; // [新增] 默认的网站图标路径
+const defaultFavicon = '/favicon.ico';
 
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// [新增] 动态更新网站图标 (Favicon) 的功能
 const updateFavicon = (iconUrl) => {
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -86,6 +88,12 @@ const updateProgress = () => {
     if (playStatu.value === 1) requestAnimationFrame(updateProgress);
 };
 
+const showMv = () => {
+    if (activeItem.value.bvid) {
+        isMvVisible.value = true;
+    }
+};
+
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     player.value.currentTime = 0;
@@ -93,7 +101,7 @@ watch(activeItem, (newItem) => {
     if (playStatu.value === 1) { 
         player.value.play(); 
         requestAnimationFrame(updateProgress); 
-        updateFavicon(newItem.image); // [修改] 切换歌曲时，如果正在播放，立刻更新图标
+        updateFavicon(newItem.image);
     }
 });
 
@@ -106,11 +114,10 @@ watch(playStatu, (newVal) => {
         navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
     }
 
-    // [新增] 根据播放状态更新网站图标
     if (newVal === 1) {
-        updateFavicon(activeItem.value.image); // 播放时，设置为当前专辑图
+        updateFavicon(activeItem.value.image);
     } else {
-        updateFavicon(defaultFavicon); // 暂停时，恢复为默认图标
+        updateFavicon(defaultFavicon);
     }
 });
 
@@ -168,7 +175,13 @@ onMounted(() => {
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
-                        <div class="control-panel"><span><img src="/assets/images/icon_like.png" /></span><span><img src="/assets/images/icon_mode.png" /></span><span class="mv-icon" @click="isMvVisible = true"><img src="/assets/images/icon_mv.png" /></span></div>
+                        <div class="control-panel">
+                            <span><img src="/assets/images/icon_like.png" /></span>
+                            <span><img src="/assets/images/icon_mode.png" /></span>
+                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv">
+                                <img src="/assets/images/icon_mv.png" />
+                            </span>
+                        </div>
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
                         <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
@@ -178,7 +191,7 @@ onMounted(() => {
         <div v-if="isMvVisible" class="mv-modal-overlay" @click="isMvVisible = false">
             <div class="mv-modal-content" @click.stop>
                 <button class="close-mv-btn" @click="isMvVisible = false">&times;</button>
-                <iframe :src="'//player.bilibili.com/player.html?isOutside=true&aid=516452760&bvid='+activeItem.bvid+'&cid=858089909&p=1&autoplay=1'" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+                <iframe :src="'//player.bilibili.com/player.html?isOutside=true&bvid='+activeItem.bvid+'&page=1&autoplay=1'" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
             </div>
         </div>
     </div>
@@ -217,6 +230,13 @@ onMounted(() => {
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
 .control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
+.control-panel .mv-icon.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.control-panel .mv-icon.disabled:hover img {
+    transform: none;
+}
 .music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
 .current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
 .music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
