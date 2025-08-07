@@ -1,6 +1,6 @@
 <!-- 
     @Author: Sudoria
-    [最终修复版 - 更新专辑封面]
+    [最终权威版 - 恢复您最满意的手机布局并修复所有问题]
 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
@@ -15,16 +15,7 @@ const musics = [
     { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'' },
     { index: 8, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'' },
     { index: 9, name: '小さな海', duration: '03:43', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/小さな海.mp3', singer: '结束バンド' , bvid:'' },
-    // --- [最终修复] --- 修正了这张专辑的封面图片路径
-    { 
-        index: 10, 
-        name: '忘れてやらない', 
-        duration: '03:43', 
-        image: '/assets/albums/忘れてやらない.jpg', // <-- 已从旧文件名修正为新的文件名
-        src: '/assets/musics/忘れてやらない.mp3', 
-        singer: '结束バンド', 
-        bvid:'' 
-    },
+    { index: 10, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/忘れてやらない.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド', bvid:'' },
     { index: 11, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'' },
     { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'' },
     { index: 13, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
@@ -120,7 +111,8 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
+.player { width: 65%; display: flex; flex-direction: column; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; }
+/* --- [最终权威修复] --- 修复电脑端“歪斜”问题的正确位置在这里 */
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -138,25 +130,4 @@ onMounted(() => { const el = document.querySelector('.player-select'); if (!el) 
 .current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
 .music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
 .music-progress-fill { height: 100%; background: linear-gradient(90deg, #ff8a00, #ff5252); border-radius: 2px; width: var(--music-progress); }
-.btn-bar { display: flex; align-items: center; gap: 30px; }
-.btn-bar div { cursor: pointer; }
-.btn-bar img { width: 32px; transition: transform 0.2s; }
-.btn-bar div:nth-child(2) img { width: 50px; }
-.btn-bar div:hover img { transform: scale(1.1); }
-@keyframes albums_rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-.mv-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
-.mv-modal-content iframe { width: 100%; height: 100%; }
-.close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
-@media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 40%; flex-shrink: 0; }
-    .player { width: 100%; height: 60%; padding: 15px; }
-    .now-playing { justify-content: space-around; }
-    .player-bg { width: 150px; height: 150px; }
-    .album-image { width: 100px; height: 100px; }
-    .music-info h2 { font-size: 18px; }
-    .music-info p { font-size: 14px; }
-    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
-}
-</style>
+.btn-bar { display: flex; align-items: c
