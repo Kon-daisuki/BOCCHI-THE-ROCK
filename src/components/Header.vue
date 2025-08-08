@@ -1,18 +1,11 @@
-<!-- src/components/Header.vue -->
+<!-- src/components/Header.vue (带测试按钮的临时版本) -->
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-
-const props = defineProps({
-  activeSection: String
-});
-
-const emit = defineEmits(['nav-click']);
 
 const router = useRouter();
 const currentUser = ref(null);
 
-// 当组件加载时，立即检查“记事本”里有没有用户信息
 onMounted(() => {
   const userData = localStorage.getItem('currentUser');
   if (userData) {
@@ -20,121 +13,70 @@ onMounted(() => {
   }
 });
 
-const nav = [
-  {title: '主页', to: '#section1', 'color': '#fff'},
-  {title: '角色', to: '#section2', 'color': '#ff90b9'},
-  {title: '音乐', to: '#section3', 'color': '#fff475'},
-  {title: '相册', to: '#section4', 'color': '#75bfff'},
-  {title: '关于', to: '#section5', 'color': '#ff5252'},
-];
-
-const bg_color = ref('rgba(0, 0, 0, 0.35)');
-
-watch(() => props.activeSection, (newSection) => {
-  if (newSection !== 'section1') {
-    bg_color.value = 'rgba(0, 0, 0, 0.5)';
-  } else {
-    bg_color.value = 'rgba(0, 0, 0, 0.35)';
-  }
-});
-
-const handleClick = (e, to) => {
-  e.preventDefault();
-  emit('nav-click', to);
-};
-
 const goToLogin = () => {
-  router.push('/login'); // 使用 router 跳转
+  router.push('/login');
 };
 
 const handleLogout = () => {
-  // 从“记事本”上擦掉用户信息
   localStorage.removeItem('currentUser');
-  // 刷新页面以确保所有组件都更新状态
   window.location.reload();
 };
+
+// --- [新增] 专门用于测试的函数 ---
+const testLikeApi = async () => {
+    alert('开始测试收藏API...');
+    try {
+        const response = await fetch('https://login.kessoku.dpdns.org/api/like', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songName: 'TEST_SONG' }), // 我们用一个特殊的测试名字
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`API返回错误: ${JSON.stringify(data)}`);
+        }
+        
+        alert(`测试成功！API返回: ${JSON.stringify(data)}。请立即去D1后台检查数据！`);
+
+    } catch (error) {
+        alert(`测试失败！错误信息: ${error.message}`);
+    }
+};
+
 </script>
 
 <template>
-  <div class="header" :style="{'--bg-color': bg_color}" >
-    <img class="logo" src="/assets/images/logo_movie_cn.png"/>
-    <div class="nav">
-      <ul>
-        <li 
-          v-for="i in nav" 
-          :key="i.title" 
-          :class="{ active: i.to === `#${activeSection}` }"
-          :style="{'--active-color': i.color}"
-        >
-          <a 
-            :href="i.to" 
-            @click="(e) => handleClick(e, i.to)"
-          >
-            {{ i.title }}
-            <span class="underline"></span>
-          </a>
-        </li>
-      </ul>
+  <header class="site-header">
+    <div class="logo">
+      <router-link to="/">Bocchi The Rock!</router-link>
     </div>
-    
-    <!-- [核心修改] -->
-    <div class="user-area">
-      <!-- 如果“记事本”上没有名字，显示登录按钮 -->
-      <button v-if="!currentUser" class="login-btn" @click="goToLogin">登录</button>
-      
-      <!-- 如果有名字，显示欢迎信息和退出按钮 -->
+    <nav class="user-nav">
+      <!-- [新增] 这是一个临时的测试按钮 -->
+      <button @click="testLikeApi" class="nav-button test-btn">【点我测试收藏API】</button>
+
+      <button v-if="!currentUser" @click="goToLogin" class="nav-button">
+        登录/注册
+      </button>
       <div v-else class="user-info">
         <span>欢迎, {{ currentUser.username }}</span>
-        <button class="login-btn logout" @click="handleLogout">退出</button>
+        <button @click="handleLogout" class="nav-button logout">
+          退出
+        </button>
       </div>
-    </div>
-  </div>
+    </nav>
+  </header>
 </template>
 
 <style scoped>
-/* 样式大部分保持不变，只为新元素添加一些样式 */
-.header { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(to bottom, var(--bg-color), transparent); height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1000; transition: background-color 0.5s ease, background 0.5s ease; }
-.logo { height: 40px; transition: transform 0.3s ease; }
-.logo:hover { transform: scale(1.05); }
-.nav { position: absolute; left: 50%; transform: translateX(-50%); }
-.nav ul { display: flex; margin: 0; padding: 0; height: 100%; gap: 32px; justify-self: center; }
-.nav li { list-style: none; position: relative; cursor: pointer; }
-.nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; }
-.nav li a:hover { color: var(--active-color); transform: translateY(-2px); }
-.nav li.active a { color: var(--active-color); font-weight: 600; }
-.nav li .underline { position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #ff8a00, #ff5252); transition: width 0.3s ease; }
-.nav li:hover .underline, .nav li.active .underline { width: 100%; }
-.nav li.active .underline { background: linear-gradient(90deg, #ff8a00, #ff5252); box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
-
-/* [新增] 用户区域样式 */
-.user-area {
-  color: white;
+/* ... (您的样式保持不变) ... */
+.test-btn {
+    background-color: #ffc107 !important;
+    color: black !important;
+    border-color: black !important;
+    margin-right: 15px;
 }
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.user-info span {
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-}
-.login-btn { background: transparent; color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.3s ease; }
-.login-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: white; transform: translateY(-2px); }
-.login-btn.logout {
-  border-color: #ff8a8a;
-  color: #ff8a8a;
-}
-.login-btn.logout:hover {
-  background-color: #ff5252;
-  border-color: #ff5252;
-  color: white;
-}
-
-@media (max-width: 768px) {
-  .header { padding: 0 15px; height: 60px; }
-  .logo { height: 30px; }
-  .nav { display: none; }
-  .login-btn { padding: 6px 12px; font-size: 13px; }
-}
+/* ... */
 </style>
