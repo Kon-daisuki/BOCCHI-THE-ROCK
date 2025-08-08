@@ -230,6 +230,7 @@ onMounted(async () => {
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
+                <!-- [最终修复] 恢复了主列表的 ul 标签 -->
                 <ul>
                     <li v-for="(music, index) in musics.slice(1)" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
                         <div class="music-item">
@@ -245,7 +246,7 @@ onMounted(async () => {
             <div class="player">
                 <div class="easter-egg-trigger-corner" @click="isEasterEggMenuVisible = !isEasterEggMenuVisible">
                     <div v-if="isEasterEggMenuVisible" class="easter-egg-menu" @click.stop>
-                        <!-- [核心修复] 在li外层添加ul标签 -->
+                        <!-- [最终修复] 确保彩蛋菜单也有自己的 ul 标签 -->
                         <ul>
                             <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]; isEasterEggMenuVisible = false">
                                 <div class="music-item">
@@ -312,7 +313,6 @@ onMounted(async () => {
     padding: 5px;
     z-index: 11;
 }
-/* [核心修复] 为ul添加样式重置 */
 .easter-egg-menu ul {
     list-style: none;
     padding: 0;
@@ -360,5 +360,4 @@ onMounted(async () => {
 .volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
-.control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
-.control-panel .mv-icon.d
+.control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s
