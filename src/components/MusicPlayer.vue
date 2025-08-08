@@ -148,11 +148,7 @@ const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
-// [核心修改] 创建一个函数来处理彩蛋菜单中歌曲的点击
-const playEasterEggSong = (song) => {
-    activeItem.value = song;
-    isEasterEggMenuVisible.value = false; // 点击后关闭菜单
-}
+// [核心修改] 不再需要独立的 playEasterEggSong 函数
 
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
@@ -249,10 +245,10 @@ onMounted(async () => {
                 </ul>
             </div>
             <div class="player">
-                 <!-- [核心修改] 将 @mouseenter 和 @mouseleave 改为 @click 来切换菜单显示 -->
                 <div class="easter-egg-trigger-corner" @click="isEasterEggMenuVisible = !isEasterEggMenuVisible">
                     <div v-if="isEasterEggMenuVisible" class="easter-egg-menu" @click.stop>
-                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="playEasterEggSong(musics[0])">
+                        <!-- [核心修改] 将点击事件的逻辑直接写在模板里 -->
+                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]; isEasterEggMenuVisible = false">
                             <div class="music-item">
                                 <img :src="musics[0].image" :alt="musics[0].name" />
                                 <div class="music-info">
@@ -363,4 +359,5 @@ onMounted(async () => {
 .volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
-.control-panel img { width: 24
+.control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
+.control-panel .mv-icon.disabled { opacity: 0.4
