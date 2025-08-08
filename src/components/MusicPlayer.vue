@@ -2,6 +2,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
+// [核心修复] 将后端API的完整地址定义成一个常量
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const currentUser = ref(null);
@@ -42,6 +43,7 @@ const fetchLikedSongs = async () => {
     if (!token) return;
 
     try {
+        // [核心修复] 使用完整的API地址
         const response = await fetch(`${API_BASE_URL}/api/likes`, {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -77,6 +79,7 @@ const toggleLike = async () => {
     likedSongs.value = newLikedSongs;
     
     try {
+        // [核心修复] 使用完整的API地址
         await fetch(`${API_BASE_URL}/api/like`, {
             method: 'POST',
             headers: {
@@ -311,25 +314,4 @@ onUnmounted(() => {
 }
 .music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
 .current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
-.music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
-.music-progress-fill { height: 100%; background: linear-gradient(90deg, #ff8a00, #ff5252); border-radius: 2px; width: var(--music-progress); }
-.btn-bar { display: flex; align-items: center; gap: 30px; }
-.btn-bar div { cursor: pointer; }
-.btn-bar img { width: 32px; transition: transform 0.2s; }
-.btn-bar div:nth-child(2) img { width: 50px; }
-.btn-bar div:hover img { transform: scale(1.1); }
-@keyframes albums_rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-.mv-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
-.mv-modal-content iframe { width: 100%; height: 100%; }
-.close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
-@media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
-    .player { width: 100%; height: 70%; padding: 15px; }
-    .now-playing { justify-content: space-around; }
-    .player-bg { width: 180px; height: 180px; }
-    .album-image { width: 120px; height: 120px; }
-    .music-info h2 { font-size: 18px; }
-    .music-info p { font-size: 14px; }
-    .close-mv-btn { top: 0; right: 5px; transform: 
+.music-pr
