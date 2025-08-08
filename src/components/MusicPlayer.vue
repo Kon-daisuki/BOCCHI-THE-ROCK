@@ -148,8 +148,6 @@ const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
-// [核心修改] 不再需要独立的 playEasterEggSong 函数
-
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     player.value.currentTime = 0;
@@ -247,16 +245,18 @@ onMounted(async () => {
             <div class="player">
                 <div class="easter-egg-trigger-corner" @click="isEasterEggMenuVisible = !isEasterEggMenuVisible">
                     <div v-if="isEasterEggMenuVisible" class="easter-egg-menu" @click.stop>
-                        <!-- [核心修改] 将点击事件的逻辑直接写在模板里 -->
-                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]; isEasterEggMenuVisible = false">
-                            <div class="music-item">
-                                <img :src="musics[0].image" :alt="musics[0].name" />
-                                <div class="music-info">
-                                    <span class="music-title">{{ musics[0].name }}</span>
-                                    <span class="music-singer">{{ musics[0].singer }}</span>
+                        <!-- [核心修复] 在li外层添加ul标签 -->
+                        <ul>
+                            <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]; isEasterEggMenuVisible = false">
+                                <div class="music-item">
+                                    <img :src="musics[0].image" :alt="musics[0].name" />
+                                    <div class="music-info">
+                                        <span class="music-title">{{ musics[0].name }}</span>
+                                        <span class="music-singer">{{ musics[0].singer }}</span>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
+                            </li>
+                        </ul>
                     </div>
                 </div>
                 <div class="now-playing">
@@ -278,11 +278,7 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar">
-                            <div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div>
-                            <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
-                            <div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div>
-                        </div>
+                        <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
                 </div>
             </div>
@@ -314,8 +310,13 @@ onMounted(async () => {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     padding: 5px;
-    list-style: none;
     z-index: 11;
+}
+/* [核心修复] 为ul添加样式重置 */
+.easter-egg-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 .easter-egg-menu li {
     padding: 5px 10px;
@@ -360,4 +361,4 @@ onMounted(async () => {
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
 .control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
-.control-panel .mv-icon.disabled { opacity: 0.4
+.control-panel .mv-icon.d
