@@ -164,7 +164,6 @@ const goHome = () => {
         <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
         <div class="box">
             <div class="target">
-                <!-- [核心修复] 添加 mode="out-in" 来修复残影问题 -->
                 <Transition name="fade" mode="out-in">
                     <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="i">
                         <img class="slide-image" :src="extendedImages[i].url" :key="i">
@@ -180,34 +179,38 @@ const goHome = () => {
             <div class="targetbox"></div>
 
             <div class="loginbox">
-
                 <form @submit.prevent="submitForm">
                     <Transition name="fade" mode="out-in">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
-                    <label class="input-name">Username:</label>
-                    <input v-model="FormModel.username"></input>
-                    <label class="input-name">Password:</label>
-                    <input type="password" v-model="FormModel.password"></input>
-                    <Transition name="fade">
-                        <label v-if="isRegister" class="input-name">RePassword:</label>
+                    <div class="input-group">
+                        <label class="input-name">Username:</label>
+                        <input v-model="FormModel.username">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-name">Password:</label>
+                        <input type="password" v-model="FormModel.password">
+                    </div>
+                    
+                    <!-- [核心修复] 使用专门的 transition 来平滑显示/隐藏 -->
+                    <Transition name="repass-trans">
+                        <div v-if="isRegister" class="input-group">
+                            <label class="input-name">RePassword:</label>
+                            <input type="password" v-model="FormModel.RePassword">
+                        </div>
                     </Transition>
-                    <Transition name="fade">
-                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword"></input>
-                    </Transition>
+
                     <Transition name="fade" mode="out-in">
                         <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
 
-            </div>
-            
-            <!-- [核心修改] 将吉他图标和文字提示组合在一起 -->
-            <div class="switch-container" @click="Switch(isLogin)">
-                <Transition name="fade" mode="out-in">
-                    <span class="switch-tip" :key="isLogin">{{ isLogin ? '切换到注册' : '返回登录' }}</span>
-                </Transition>
-                <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式"></img>
+                <div class="switch-container" @click="Switch(isLogin)">
+                    <Transition name="fade" mode="out-in">
+                        <span class="switch-tip" :key="isLogin">{{ isLogin ? '切换到注册' : '返回登录' }}</span>
+                    </Transition>
+                    <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式">
+                </div>
             </div>
             
             <div class="ribbons"></div>
@@ -217,7 +220,6 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* CSS 保持不变，只在末尾添加新样式 */
 .main {
     display: flex;
     align-items: center;
@@ -357,6 +359,7 @@ const goHome = () => {
     flex-direction: column;
     justify-content: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+    position: relative; /* [新增] 为内部绝对定位的元素提供基准 */
 }
 
 
@@ -378,23 +381,28 @@ form {
     align-items: center;
     gap: 10px;
     width: 100%;
-    min-height: 220px;
 }
 
 h2 {
     font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
-    position: absolute;
-    top: 10%;
+    margin-bottom: 20px; /* [修改] 调整间距 */
+}
+
+.input-group {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
 }
 
 input {
-    width: 60%;
+    width: 100%; /* [修改] 宽度继承父级 */
     border: none;
     border-bottom: 1px solid black;
     font-size: 1.2em;
     background: transparent;
+    padding: 5px 0;
 }
 
 input:focus {
@@ -409,22 +417,18 @@ button:focus {
 
 .input-name {
     font-family: 'Note-Script-SemiBold-2';
-    width: 60%;
+    width: 100%; /* [修改] 宽度继承父级 */
     text-align: left;
     font-size: 20px;
-    position: relative;
 }
 
 button {
     background: none;
     border: none;
     font-size: 1.4em;
-    width: auto;
-    height: auto;
     font-family: 'Note-Script-SemiBold-2';
-    position: absolute;
-    top: 70%;
     cursor: pointer;
+    margin-top: 30px; /* [修改] 调整间距 */
 }
 
 .switch-login {
@@ -452,7 +456,7 @@ button {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity 0.5s ease;
 }
 
 .fade-enter-from,
@@ -460,7 +464,24 @@ button {
     opacity: 0;
 }
 
-/* --- [新增] UI优化样式 --- */
+/* [核心修复] 新增的平滑过渡动画 */
+.repass-trans-enter-active,
+.repass-trans-leave-active {
+    transition: all 0.4s ease-out;
+    overflow: hidden;
+}
+.repass-trans-enter-from,
+.repass-trans-leave-to {
+    opacity: 0;
+    max-height: 0;
+    margin-top: 0 !important;
+}
+.repass-trans-enter-to,
+.repass-trans-leave-from {
+    opacity: 1;
+    max-height: 100px; /* 一个足够大的值 */
+}
+
 .switch-container {
     position: absolute;
     top: 5%;
@@ -481,19 +502,19 @@ button {
 }
 
 @media (max-width: 768px) {
-    .left, .right {
+    .left, .right, .target, .targetbox, .ribbons {
         display: none;
     }
     .box {
         width: 90vw;
-        height: 70vh;
+        height: auto; /* [修改] 高度自适应 */
+        min-height: 70vh;
+        padding: 20px 0;
         flex-direction: column;
         outline: none;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         border-radius: 10px;
-    }
-    .target, .targetbox {
-        display: none;
+        background-color: white; /* [新增] 手机端直接给白色背景 */
     }
     .loginbox {
         width: 100%;
@@ -502,26 +523,27 @@ button {
         border-radius: 10px;
     }
     form {
-        gap: 15px;
+        gap: 20px; /* [修改] 增大间距 */
         justify-content: center;
         height: 100%;
     }
-    input, .input-name {
+    .input-group, .input-name {
         width: 80%;
     }
     h2 {
-        font-size: 2.5em;
         position: static;
         margin-bottom: 20px;
+        font-size: 2.8em;
     }
     button {
         position: static;
         margin-top: 20px;
         padding: 12px 30px;
-        background-color: #ff3aa0bc;
+        background-color: #ff86be;
         color: white;
-        border-radius: 8px;
+        border-radius: 25px;
         font-size: 1.2em;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
     .switch-container {
         top: 15px;
@@ -531,6 +553,7 @@ button {
         width: 10%;
         top: 10px;
         right: 10px;
+        color: #333; /* [修改] 在白色背景上更清晰 */
     }
 }
 </style>
