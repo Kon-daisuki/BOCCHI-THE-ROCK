@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
@@ -9,7 +9,6 @@ const likedSongs = ref(new Set());
 const isEasterEggMenuVisible = ref(false);
 
 const musics = [
-    // [新增彩蛋]
     { index: 0, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
     { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
@@ -90,7 +89,7 @@ const toggleLike = async () => {
 const playWeightedRandom = () => {
     const weightedPool = [];
     const likedWeight = 5;
-    musics.slice(1).forEach(song => { // [核心修改] 确保随机播放不包含彩蛋歌曲
+    musics.slice(1).forEach(song => {
         if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
         for (let i = 0; i < weight; i++) {
@@ -133,8 +132,8 @@ const updateMediaSession = (song) => {
 
 const switchMusic = (newIndex) => {
     let nextSongIndexInArray = newIndex;
-    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 1; // [核心修改] 跳过彩蛋歌曲
-    if (newIndex < 1) nextSongIndexInArray = musics.length - 1; // [核心修改] 跳过彩蛋歌曲
+    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 1;
+    if (newIndex < 1) nextSongIndexInArray = musics.length - 1;
     activeItem.value = musics[nextSongIndexInArray];
     playStatu.value = 1;
     musicProgress.value = 0;
@@ -148,6 +147,12 @@ const updateProgress = () => {
 const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
+
+// [核心修改] 创建一个函数来处理彩蛋菜单中歌曲的点击
+const playEasterEggSong = (song) => {
+    activeItem.value = song;
+    isEasterEggMenuVisible.value = false; // 点击后关闭菜单
+}
 
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
@@ -195,7 +200,7 @@ onMounted(async () => {
     }
 
     player.value.addEventListener('ended', () => {
-        if (activeItem.value.index === 0) { // [核心修改] 如果彩蛋歌曲播放结束，则停止
+        if (activeItem.value.index === 0) {
             playStatu.value = 0;
             return;
         }
@@ -232,7 +237,6 @@ onMounted(async () => {
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
                 <ul>
-                    <!-- [核心修改] v-for从musics.slice(1)开始，隐藏彩蛋歌曲 -->
                     <li v-for="(music, index) in musics.slice(1)" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
                         <div class="music-item">
                             <img :src="music.image" :alt="music.name" />
@@ -245,10 +249,10 @@ onMounted(async () => {
                 </ul>
             </div>
             <div class="player">
-                 <!-- [新增彩蛋触发机制] -->
-                <div class="easter-egg-trigger-corner" @mouseenter="isEasterEggMenuVisible = true" @mouseleave="isEasterEggMenuVisible = false">
-                    <div v-if="isEasterEggMenuVisible" class="easter-egg-menu">
-                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]">
+                 <!-- [核心修改] 将 @mouseenter 和 @mouseleave 改为 @click 来切换菜单显示 -->
+                <div class="easter-egg-trigger-corner" @click="isEasterEggMenuVisible = !isEasterEggMenuVisible">
+                    <div v-if="isEasterEggMenuVisible" class="easter-egg-menu" @click.stop>
+                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="playEasterEggSong(musics[0])">
                             <div class="music-item">
                                 <img :src="musics[0].image" :alt="musics[0].name" />
                                 <div class="music-info">
@@ -279,7 +283,6 @@ onMounted(async () => {
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
                         <div class="btn-bar">
-                            <!-- [核心修改] 调整切歌逻辑 -->
                             <div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div>
                             <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
                             <div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div>
@@ -298,7 +301,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* [新增彩蛋样式] */
 .easter-egg-trigger-corner {
     position: absolute;
     top: 0;
@@ -330,7 +332,6 @@ onMounted(async () => {
 .easter-egg-menu li.active {
     background-color: #e8e8e8;
 }
-/* 其他样式保持不变 */
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
 .player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
@@ -349,7 +350,7 @@ onMounted(async () => {
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; position:relative; /*[核心修改]*/ }
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; position:relative; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -361,4 +362,5 @@ onMounted(async () => {
 .volume-control img { width: 20px; opacity: 0.7; transition: opacity 0.2s; }
 .volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
-.control-    .close-mv-btn { top: 0; right: 5px; tran
+.control-panel { display: flex; align-items: center; gap: 30px; }
+.control-panel img { width: 24
