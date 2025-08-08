@@ -61,7 +61,7 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '登录失败');
             
-            // [新增] 登录成功后，把用户信息写入浏览器的“记事本”
+            // [关键] 登录成功后，把用户信息写入浏览器的“记事本”
             if (data.user) {
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
             }
