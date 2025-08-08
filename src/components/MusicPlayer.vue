@@ -1,15 +1,14 @@
-<!-- 
-    @Author: Sudoria
-    [最终功能版 - 基于您的代码精准添加自动连播]
-    [新功能 by Gemini: 添加 Media Session API 支持，优化媒体通知显示]
-    [新功能 by Gemini: 添加动态 Favicon，播放时显示专辑封面]
-    [新功能 by Gemini: 实现动态MV链接，并为无MV的歌曲禁用按钮]
-    [最终更新 by Gemini: 补全所有歌曲的MV链接]
--->
+<!-- src/components/MusicPlayer.vue -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 
-// [最终修改] 补全所有歌曲的 bvid
+// 您的后端API地址
+const API_BASE_URL = 'https://login.kessoku.dpdns.org';
+
+// [新增] 获取当前登录的用户信息
+const currentUser = ref(null);
+const likedSongs = ref(new Set()); // 使用Set来存储收藏的歌曲，效率更高
+
 const musics = [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
     { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
@@ -37,6 +36,60 @@ const defaultFavicon = '/favicon.ico';
 
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
+
+// --- [新增] 功能1：收藏/取消收藏歌曲 ---
+const toggleLike = async () => {
+    if (!currentUser.value) {
+        alert('请先登录才能收藏歌曲哦！');
+        return;
+    }
+    const songName = activeItem.value.name;
+    
+    // 乐观更新UI，立即反馈
+    const newLikedSongs = new Set(likedSongs.value);
+    if (newLikedSongs.has(songName)) {
+        newLikedSongs.delete(songName);
+    } else {
+        newLikedSongs.add(songName);
+    }
+    likedSongs.value = newLikedSongs;
+
+    // 通知后端更新数据库
+    try {
+        await fetch(`${API_BASE_URL}/api/like`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songName })
+        });
+    } catch (error) {
+        console.error('收藏操作失败:', error);
+        // 如果失败，可以考虑回滚UI状态
+    }
+};
+
+// --- [新增] 功能2：权重随机播放 ---
+const playWeightedRandom = () => {
+    const weightedPool = [];
+    const likedWeight = 5; // 已收藏歌曲的权重
+
+    musics.forEach(song => {
+        if (song.name === activeItem.value.name) return; // 避免随机到当前歌曲
+
+        const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
+        for (let i = 0; i < weight; i++) {
+            weightedPool.push(song);
+        }
+    });
+
+    if (weightedPool.length === 0) {
+        switchMusic(activeItem.value.index); // 如果没得选，就顺序播放
+        return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * weightedPool.length);
+    activeItem.value = weightedPool[randomIndex];
+};
+
 
 const updateFavicon = (iconUrl) => {
     let link = document.querySelector("link[rel~='icon']");
@@ -137,7 +190,26 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
-onMounted(() => { 
+onMounted(async () => { 
+    // 检查登录状态
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+        currentUser.value = JSON.parse(userData);
+        // 如果已登录，获取收藏列表
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/likes`, {
+                // [重要] 确保请求携带了Cookie
+                credentials: 'include' 
+            });
+            if (response.ok) {
+                const songs = await response.json();
+                likedSongs.value = new Set(songs);
+            }
+        } catch (error) {
+            console.error('获取收藏列表失败:', error);
+        }
+    }
+
     const el = document.querySelector('.player-select'); 
     if (el) {
         el.addEventListener('wheel', (e) => { 
@@ -175,13 +247,19 @@ onMounted(() => {
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
+                        
                         <div class="control-panel">
-                            <span><img src="/assets/images/icon_like.png" /></span>
-                            <span><img src="/assets/images/icon_mode.png" /></span>
+                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
+                                <img src="/assets/images/icon_like.png" />
+                            </span>
+                            <span @click="playWeightedRandom">
+                                <img src="/assets/images/icon_mode.png" />
+                            </span>
                             <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv">
                                 <img src="/assets/images/icon_mv.png" />
                             </span>
                         </div>
+
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
                         <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
@@ -262,4 +340,7 @@ onMounted(() => {
     .music-info p { font-size: 14px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
 }
-</style>
+
+/* [新增] 收藏按钮激活后的样式 */
+.control-panel .like-btn.liked img {
+    /* 使用滤镜将图标变为红色 */
