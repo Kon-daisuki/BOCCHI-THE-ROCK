@@ -1,6 +1,6 @@
 <!-- 
     @Author: Alola
-    [全量修改版]
+    [全量修改版 - 已集成后端API]
 -->
 
 <script setup>
@@ -8,9 +8,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-// --- 所有 <script> 部分的逻辑都保持不变 ---
-
-// 原始背景图片集
 const originalImages = [
     { url: '/assets/images/LoginImage1.jpg' },
     { url: '/assets/images/LoginImage2.jpg' },
@@ -28,7 +25,6 @@ const containerRef = ref(null)
 const i = ref(1)
 const j = ref(0)
 
-// 登录 and 注册
 const isRegister = ref(false)
 const isLogin = ref(true)
 const FormModel = ref({
@@ -37,11 +33,58 @@ const FormModel = ref({
     RePassword: ''
 })
 
-const submitForm = () => {
+// --- [核心修改] ---
+const router = useRouter()
 
+const submitForm = async () => {
+    // --- 注册逻辑 ---
+    if (isRegister.value) {
+        if (FormModel.value.password !== FormModel.value.RePassword) {
+            alert('两次输入的密码不一致！');
+            return;
+        }
+        try {
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: FormModel.value.username,
+                    password: FormModel.value.password
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '注册失败');
+            }
+            alert('注册成功！请登录。');
+            Switch(false); // 注册成功后，自动切换回登录界面
+        } catch (error) {
+            alert(error.message);
+        }
+    } 
+    // --- 登录逻辑 ---
+    else {
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: FormModel.value.username,
+                    password: FormModel.value.password
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '登录失败');
+            }
+            // 登录成功，跳转到主播放器页面
+            goHome();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
 }
 
-// target图片换位 + 动画
 const targetImage = [
     { url: '/assets/images/target-image1.png' },
     { url: '/assets/images/target-image2.png' },
@@ -52,7 +95,6 @@ const targetImage = [
 ]
 
 const target_i = ref(0);
-
 const isAnimating = ref(false);
 
 const Switch = (value) => {
@@ -68,8 +110,7 @@ const Switch = (value) => {
 const RightImage = () => {
     if (isAnimating.value) return;
     isAnimating.value = true;
-
-    i.value++, j.value++;
+    i.value++;
     if (i.value === extendedImages.value.length - 1) {
         setTimeout(() => {
             containerRef.value.classList.add('no-transition');
@@ -81,17 +122,14 @@ const RightImage = () => {
         }, 500)
     }
     else {
-        setTimeout(() => {
-            isAnimating.value = false;
-        }, 500);
+        setTimeout(() => { isAnimating.value = false; }, 500);
     }
 }
 
 const LeftImage = () => {
     if (isAnimating.value) return;
     isAnimating.value = true;
-
-    i.value--, j.value++;
+    i.value--;
     if (i.value === 0) {
         setTimeout(() => {
             containerRef.value.classList.add('no-transition');
@@ -103,13 +141,10 @@ const LeftImage = () => {
         }, 500)
     }
     else {
-        setTimeout(() => {
-            isAnimating.value = false;
-        }, 500);
+        setTimeout(() => { isAnimating.value = false; }, 500);
     }
 }
 
-const router = useRouter()
 const mainRef = ref(null)
 
 onMounted(() => {
@@ -128,7 +163,7 @@ const goHome = () => {
 </script>
 
 <template>
-    <!-- Template 结构保持不变，所有适配都在 CSS 中完成 -->
+    <!-- Template 结构保持不变 -->
     <div class="main" ref="mainRef">
         <div class="background-container"
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
@@ -158,22 +193,22 @@ const goHome = () => {
 
             <div class="loginbox">
 
-                <form :model="FormModel" @submit.prevent="submitForm">
+                <form @submit.prevent="submitForm">
                     <Transition name="fade">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
                     <label class="input-name">Username:</label>
                     <input v-model="FormModel.username"></input>
                     <label class="input-name">Password:</label>
-                    <input v-model="FormModel.password"></input>
+                    <input type="password" v-model="FormModel.password"></input>
                     <Transition name="fade">
                         <label v-if="isRegister" class="input-name">RePassword:</label>
                     </Transition>
                     <Transition name="fade">
-                        <input v-if="isRegister" v-model="FormModel.RePassword"></input>
+                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword"></input>
                     </Transition>
                     <Transition name="fade">
-                        <button :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
+                        <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
 
@@ -186,9 +221,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* [全量修改版 CSS] */
-
-/* --- 原始桌面端样式 (保持不变) --- */
+/* CSS 保持不变 */
 .main {
     display: flex;
     align-items: center;
@@ -365,6 +398,7 @@ input {
     border: none;
     border-bottom: 1px solid black;
     font-size: 1.2em;
+    background: transparent;
 }
 
 input:focus {
@@ -394,6 +428,7 @@ button {
     font-family: 'Note-Script-SemiBold-2';
     position: absolute;
     top: 70%;
+    cursor: pointer;
 }
 
 .switch-login {
@@ -432,68 +467,53 @@ button {
 .fade-enter-from { opacity: 0; }
 .fade-leave-to { opacity: 0; }
 
-/* --- [新增] 手机端响应式样式 --- */
 @media (max-width: 768px) {
-    /* 移动端，隐藏左右切换背景的箭头，因为滑动切换更常用 */
     .left, .right {
         display: none;
     }
-
-    /* 主容器适配 */
     .box {
-        width: 90vw; /* 占屏幕宽度的 90% */
-        height: 70vh; /* 占屏幕高度的 70% */
-        flex-direction: column; /* 关键：改为垂直布局 */
-        outline: none; /* 移除虚线框 */
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* 添加更柔和的阴影 */
-        border-radius: 10px; /* 添加圆角 */
+        width: 90vw;
+        height: 70vh;
+        flex-direction: column;
+        outline: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 10px;
     }
-
-    /* 在手机上隐藏左侧的装饰性图片元素 */
     .target, .targetbox {
         display: none;
     }
-
-    /* 登录表单区域占满整个容器 */
     .loginbox {
         width: 100%;
         height: 100%;
-        box-shadow: none; /* 移除内部阴影，因为父级已经有了 */
-        border-radius: 10px; /* 继承父级的圆角 */
+        box-shadow: none;
+        border-radius: 10px;
     }
-
-    /* 表单适配 */
     form {
-        gap: 15px; /* 增大元素间距 */
-        justify-content: center; /* 垂直居中 */
+        gap: 15px;
+        justify-content: center;
         height: 100%;
     }
-
     input, .input-name {
-        width: 80%; /* 输入框和标签加宽 */
+        width: 80%;
     }
-    
     h2 {
-        font-size: 2.5em; /* 标题稍微缩小 */
-        position: static; /* 关键：解除绝对定位，让其进入正常文档流 */
+        font-size: 2.5em;
+        position: static;
         margin-bottom: 20px;
     }
-
     button {
-        position: static; /* 关键：解除绝对定位 */
+        position: static;
         margin-top: 20px;
-        padding: 12px 30px; /* 增大点击区域 */
+        padding: 12px 30px;
         background-color: #ff3aa0bc;
         color: white;
-        border-radius: 8px; /* 添加圆角 */
+        border-radius: 8px;
         font-size: 1.2em;
     }
-
     .switch-login {
         top: 15px;
         right: 15px;
     }
-
     .close-login {
         width: 10%;
         top: 10px;
