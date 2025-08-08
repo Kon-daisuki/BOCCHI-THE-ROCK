@@ -84,20 +84,15 @@ const targetImage = [
 const target_i = ref(0);
 const isAnimating = ref(false);
 
-// --- [核心修改] ---
-// 我们将复用这个已有的 Switch 函数
 const Switch = (value) => {
-    // 如果当前是登录(value=true)，则切换到注册
     if (value) {
         isRegister.value = true;
         isLogin.value = false;
     } 
-    // 否则，切换回登录
     else {
         isLogin.value = true;
         isRegister.value = false;
     }
-    // 切换时附带一个小的动画效果
     target_i.value = (target_i.value + 2) % (targetImage.length - 1)
 }
 
@@ -169,15 +164,16 @@ const goHome = () => {
         <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
         <div class="box">
             <div class="target">
-                <Transition name="fade">
+                <!-- [核心修复] 添加 mode="out-in" 来修复残影问题 -->
+                <Transition name="fade" mode="out-in">
                     <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="i">
                         <img class="slide-image" :src="extendedImages[i].url" :key="i">
                     </div>
                 </Transition>
-                <Transition name="fade">
+                <Transition name="fade" mode="out-in">
                     <img class="target-image-1" :src="targetImage[target_i].url" alt="">
                 </Transition>
-                <Transition name="fade">
+                <Transition name="fade" mode="out-in">
                     <img class="target-image-2" :src="targetImage[target_i + 1].url" alt="">
                 </Transition>
             </div>
@@ -186,7 +182,7 @@ const goHome = () => {
             <div class="loginbox">
 
                 <form @submit.prevent="submitForm">
-                    <Transition name="fade">
+                    <Transition name="fade" mode="out-in">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
                     <label class="input-name">Username:</label>
@@ -199,17 +195,20 @@ const goHome = () => {
                     <Transition name="fade">
                         <input v-if="isRegister" type="password" v-model="FormModel.RePassword"></input>
                     </Transition>
-                    <Transition name="fade">
+                    <Transition name="fade" mode="out-in">
                         <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
 
             </div>
             
-            <!-- [核心修改] -->
-            <!-- 我们给这个电吉他图标绑定了点击事件 -->
-            <!-- 它会调用 Switch 函数，并把当前是否是登录模式 (isLogin) 传进去 -->
-            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch(isLogin)"></img>
+            <!-- [核心修改] 将吉他图标和文字提示组合在一起 -->
+            <div class="switch-container" @click="Switch(isLogin)">
+                <Transition name="fade" mode="out-in">
+                    <span class="switch-tip" :key="isLogin">{{ isLogin ? '切换到注册' : '返回登录' }}</span>
+                </Transition>
+                <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式"></img>
+            </div>
             
             <div class="ribbons"></div>
         </div>
@@ -218,7 +217,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* CSS 保持不变 */
+/* CSS 保持不变，只在末尾添加新样式 */
 .main {
     display: flex;
     align-items: center;
@@ -429,13 +428,8 @@ button {
 }
 
 .switch-login {
-    position: absolute;
-    top: 5%;
-    right: 25px;
     width: 60px;
     height: auto;
-    z-index: 2;
-    cursor: pointer;
     transform: scale(1);
     transition: transform 0.5s ease;
 }
@@ -461,8 +455,30 @@ button {
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.fade-enter-from { opacity: 0; }
-.fade-leave-to { opacity: 0; }
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* --- [新增] UI优化样式 --- */
+.switch-container {
+    position: absolute;
+    top: 5%;
+    right: 25px;
+    z-index: 2;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.switch-tip {
+    font-family: 'Note-Script-SemiBold-2';
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 5px;
+    transition: opacity 0.5s ease;
+}
 
 @media (max-width: 768px) {
     .left, .right {
@@ -507,7 +523,7 @@ button {
         border-radius: 8px;
         font-size: 1.2em;
     }
-    .switch-login {
+    .switch-container {
         top: 15px;
         right: 15px;
     }
