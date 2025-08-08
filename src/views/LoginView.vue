@@ -1,33 +1,26 @@
-<!-- 
-    @Author: Alola
-    [全量修改版 - 已适配生产环境]
--->
-
+<!-- src/views/LoginView.vue -->
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-// --- [核心修改] 把后端API的地址定义成一个常量 ---
+// 您的后端API地址
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
+
+const router = useRouter()
 
 const originalImages = [
     { url: '/assets/images/LoginImage1.jpg' },
     { url: '/assets/images/LoginImage2.jpg' },
     { url: '/assets/images/LoginImage3.jpg' },
 ]
-
 const extendedImages = ref([
     originalImages[originalImages.length - 1],
     ...originalImages,
     originalImages[0]
 ])
-
 const containerRef = ref(null)
-
 const i = ref(1)
-const j = ref(0)
-
 const isRegister = ref(false)
 const isLogin = ref(true)
 const FormModel = ref({
@@ -36,17 +29,14 @@ const FormModel = ref({
     RePassword: ''
 })
 
-const router = useRouter()
-
+// --- [核心修改] ---
 const submitForm = async () => {
-    // --- 注册逻辑 ---
-    if (isRegister.value) {
-        if (FormModel.value.password !== FormModel.value.RePassword) {
-            alert('两次输入的密码不一致！');
-            return;
-        }
-        try {
-            // [修改] 使用完整的API地址
+    try {
+        if (isRegister.value) {
+            if (FormModel.value.password !== FormModel.value.RePassword) {
+                alert('两次输入的密码不一致！');
+                return;
+            }
             const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -56,19 +46,10 @@ const submitForm = async () => {
                 })
             });
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || '注册失败');
-            }
+            if (!response.ok) throw new Error(data.error || '注册失败');
             alert('注册成功！请登录。');
             Switch(false);
-        } catch (error) {
-            alert(error.message);
-        }
-    } 
-    // --- 登录逻辑 ---
-    else {
-        try {
-            // [修改] 使用完整的API地址
+        } else {
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -78,13 +59,18 @@ const submitForm = async () => {
                 })
             });
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || '登录失败');
+            if (!response.ok) throw new Error(data.error || '登录失败');
+            
+            // [新增] 登录成功后，把用户信息写入浏览器的“记事本”
+            if (data.user) {
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
             }
+            
+            // 跳转到主页
             goHome();
-        } catch (error) {
-            alert(error.message);
         }
+    } catch (error) {
+        alert(error.message);
     }
 }
 
@@ -96,7 +82,6 @@ const targetImage = [
     { url: '/assets/images/target-image5.png' },
     { url: '/assets/images/target-image6.png' },
 ]
-
 const target_i = ref(0);
 const isAnimating = ref(false);
 
@@ -149,7 +134,6 @@ const LeftImage = () => {
 }
 
 const mainRef = ref(null)
-
 onMounted(() => {
     requestAnimationFrame(() => {
         mainRef.value.style.transition = 'opacity 1s ease'
