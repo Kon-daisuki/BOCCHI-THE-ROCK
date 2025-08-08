@@ -1,8 +1,7 @@
 <!-- src/components/MusicPlayer.vue -->
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
-// 您的后端API地址
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const currentUser = ref(null);
@@ -36,6 +35,20 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
+// --- [新增] 将获取收藏列表的逻辑封装成一个函数 ---
+const fetchLikedSongs = async () => {
+    if (!currentUser.value) return; // 如果未登录，则不执行
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/likes`, { credentials: 'include' });
+        if (response.ok) {
+            const songs = await response.json();
+            likedSongs.value = new Set(songs);
+        }
+    } catch (error) {
+        console.error('获取收藏列表失败:', error);
+    }
+};
+
 const toggleLike = async () => {
     if (!currentUser.value) {
         alert('请先登录才能收藏歌曲哦！');
@@ -54,7 +67,7 @@ const toggleLike = async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ songName }),
-            credentials: 'include' // [核心修复] 出示“护照”
+            credentials: 'include'
         });
     } catch (error) {
         console.error('收藏操作失败:', error);
@@ -153,22 +166,22 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
+// --- [核心修复] 当标签页重新可见时，刷新收藏列表 ---
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    fetchLikedSongs();
+  }
+};
+
 onMounted(async () => {
     const userData = localStorage.getItem('currentUser');
     if (userData) {
         currentUser.value = JSON.parse(userData);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/likes`, {
-                credentials: 'include' // [核心修复] 出示“护照”
-            });
-            if (response.ok) {
-                const songs = await response.json();
-                likedSongs.value = new Set(songs);
-            }
-        } catch (error) {
-            console.error('获取收藏列表失败:', error);
-        }
+        await fetchLikedSongs(); // 页面加载时获取一次
     }
+
+    // 添加可见性变化监听器
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     const el = document.querySelector('.player-select');
     if (el) {
@@ -200,6 +213,11 @@ onMounted(async () => {
         }
     }, { immediate: true });
 });
+
+// [新增] 当组件卸载时，移除监听器，避免内存泄漏
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+});
 </script>
 
 <template>
@@ -217,8 +235,9 @@ onMounted(async () => {
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
                         
                         <div class="control-panel">
-                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
-                                <img src="/assets/images/icon_like.png" />
+                            <span class="like-btn" @click="toggleLike">
+                                <!-- [核心修复] 使用动态 :src 切换图标 -->
+                                <img :src="likedSongs.has(activeItem.name) ? '/assets/images/icon_like_filled.png' : '/assets/images/icon_like.png'" />
                             </span>
                             <span @click="playWeightedRandom">
                                 <img src="/assets/images/icon_mode.png" />
@@ -244,6 +263,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* ... (您原有的所有样式保持不变) ... */
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
 .player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
@@ -306,12 +326,4 @@ onMounted(async () => {
     .album-image { width: 120px; height: 120px; }
     .music-info h2 { font-size: 18px; }
     .music-info p { font-size: 14px; }
-    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
-}
-
-/* [新增] 收藏按钮激活后的样式 */
-.control-panel .like-btn.liked img {
-    /* 使用滤镜将图标变为红色 */
-    filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%);
-}
-</style>
+    .close-mv-btn { top: 0; r
