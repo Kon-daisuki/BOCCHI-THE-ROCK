@@ -1,16 +1,24 @@
-<!-- 
-    @Author: Sudoria
-    [最终修复版 - 确保事件正确发出]
--->
+<!-- src/components/Header.vue -->
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps({
   activeSection: String
 });
 
-// [关键] 确保 'nav-click' 事件被正式声明
 const emit = defineEmits(['nav-click']);
+
+const router = useRouter();
+const currentUser = ref(null);
+
+// 当组件加载时，立即检查“记事本”里有没有用户信息
+onMounted(() => {
+  const userData = localStorage.getItem('currentUser');
+  if (userData) {
+    currentUser.value = JSON.parse(userData);
+  }
+});
 
 const nav = [
   {title: '主页', to: '#section1', 'color': '#fff'},
@@ -22,7 +30,6 @@ const nav = [
 
 const bg_color = ref('rgba(0, 0, 0, 0.35)');
 
-// 监听 activeSection 的变化来改变背景色
 watch(() => props.activeSection, (newSection) => {
   if (newSection !== 'section1') {
     bg_color.value = 'rgba(0, 0, 0, 0.5)';
@@ -33,12 +40,18 @@ watch(() => props.activeSection, (newSection) => {
 
 const handleClick = (e, to) => {
   e.preventDefault();
-  // [关键] 发出 nav-click 事件，并把目标ID (如 '#section2') 作为参数传递出去
   emit('nav-click', to);
 };
 
 const goToLogin = () => {
-  window.location.href = '/login';
+  router.push('/login'); // 使用 router 跳转
+};
+
+const handleLogout = () => {
+  // 从“记事本”上擦掉用户信息
+  localStorage.removeItem('currentUser');
+  // 刷新页面以确保所有组件都更新状态
+  window.location.reload();
 };
 </script>
 
@@ -63,11 +76,23 @@ const goToLogin = () => {
         </li>
       </ul>
     </div>
-    <button class="login-btn" @click="goToLogin">登录</button>
+    
+    <!-- [核心修改] -->
+    <div class="user-area">
+      <!-- 如果“记事本”上没有名字，显示登录按钮 -->
+      <button v-if="!currentUser" class="login-btn" @click="goToLogin">登录</button>
+      
+      <!-- 如果有名字，显示欢迎信息和退出按钮 -->
+      <div v-else class="user-info">
+        <span>欢迎, {{ currentUser.username }}</span>
+        <button class="login-btn logout" @click="handleLogout">退出</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* 样式大部分保持不变，只为新元素添加一些样式 */
 .header { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(to bottom, var(--bg-color), transparent); height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1000; transition: background-color 0.5s ease, background 0.5s ease; }
 .logo { height: 40px; transition: transform 0.3s ease; }
 .logo:hover { transform: scale(1.05); }
@@ -80,8 +105,32 @@ const goToLogin = () => {
 .nav li .underline { position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #ff8a00, #ff5252); transition: width 0.3s ease; }
 .nav li:hover .underline, .nav li.active .underline { width: 100%; }
 .nav li.active .underline { background: linear-gradient(90deg, #ff8a00, #ff5252); box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+
+/* [新增] 用户区域样式 */
+.user-area {
+  color: white;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.user-info span {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
 .login-btn { background: transparent; color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.3s ease; }
 .login-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: white; transform: translateY(-2px); }
+.login-btn.logout {
+  border-color: #ff8a8a;
+  color: #ff8a8a;
+}
+.login-btn.logout:hover {
+  background-color: #ff5252;
+  border-color: #ff5252;
+  color: white;
+}
+
 @media (max-width: 768px) {
   .header { padding: 0 15px; height: 60px; }
   .logo { height: 30px; }
