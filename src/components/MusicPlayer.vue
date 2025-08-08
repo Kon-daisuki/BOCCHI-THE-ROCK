@@ -1,4 +1,3 @@
-<!-- src/components/MusicPlayer.vue -->
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -6,10 +5,12 @@ const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
-// [核心修改] 我们不再需要定时器了
-// let refreshInterval = null; 
+
+const isEasterEggMenuVisible = ref(false);
 
 const musics = [
+    // [新增彩蛋]
+    { index: 0, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
     { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
     { index: 3, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1v24y1C735' },
@@ -27,7 +28,7 @@ const musics = [
 
 const playerIcons = ["/assets/images/icon_play.png","/assets/images/icon_pause.png"];
 const playStatu = ref(0);
-const activeItem = ref(musics[0]);
+const activeItem = ref(musics[1]);
 const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
@@ -66,10 +67,6 @@ const toggleLike = async () => {
     }
 
     const songName = activeItem.value.name;
-    
-    // [核心修改] 我们不再需要乐观更新，因为后端会返回最新的状态
-    // const newLikedSongs = new Set(likedSongs.value);
-    // ...
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/like`, {
@@ -81,7 +78,6 @@ const toggleLike = async () => {
             body: JSON.stringify({ songName })
         });
         
-        // [核心修改] 点击后，立即用服务器返回的最新数据刷新整个收藏列表
         if (response.ok) {
             await fetchLikedSongs();
         }
@@ -94,7 +90,7 @@ const toggleLike = async () => {
 const playWeightedRandom = () => {
     const weightedPool = [];
     const likedWeight = 5;
-    musics.forEach(song => {
+    musics.slice(1).forEach(song => { // [核心修改] 确保随机播放不包含彩蛋歌曲
         if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
         for (let i = 0; i < weight; i++) {
@@ -137,9 +133,8 @@ const updateMediaSession = (song) => {
 
 const switchMusic = (newIndex) => {
     let nextSongIndexInArray = newIndex;
-    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
-    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
-    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
+    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 1; // [核心修改] 跳过彩蛋歌曲
+    if (newIndex < 1) nextSongIndexInArray = musics.length - 1; // [核心修改] 跳过彩蛋歌曲
     activeItem.value = musics[nextSongIndexInArray];
     playStatu.value = 1;
     musicProgress.value = 0;
@@ -199,7 +194,13 @@ onMounted(async () => {
         });
     }
 
-    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
+    player.value.addEventListener('ended', () => {
+        if (activeItem.value.index === 0) { // [核心修改] 如果彩蛋歌曲播放结束，则停止
+            playStatu.value = 0;
+            return;
+        }
+        switchMusic(activeItem.value.index);
+    });
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
@@ -223,8 +224,6 @@ onMounted(async () => {
     }, { immediate: true });
 });
 
-// [核心修改] 我们不再需要定时器，所以 onUnmounted 也可以移除了
-// onUnmounted(() => { ... });
 </script>
 
 <template>
@@ -232,9 +231,34 @@ onMounted(async () => {
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
-                <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
+                <ul>
+                    <!-- [核心修改] v-for从musics.slice(1)开始，隐藏彩蛋歌曲 -->
+                    <li v-for="(music, index) in musics.slice(1)" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                        <div class="music-item">
+                            <img :src="music.image" :alt="music.name" />
+                            <div class="music-info">
+                                <span class="music-title">{{ music.name }}</span>
+                                <span class="music-singer">{{ music.singer }}</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
             </div>
             <div class="player">
+                 <!-- [新增彩蛋触发机制] -->
+                <div class="easter-egg-trigger-corner" @mouseenter="isEasterEggMenuVisible = true" @mouseleave="isEasterEggMenuVisible = false">
+                    <div v-if="isEasterEggMenuVisible" class="easter-egg-menu">
+                        <li :class="{ 'active': activeItem.name === musics[0].name }" @click="activeItem = musics[0]">
+                            <div class="music-item">
+                                <img :src="musics[0].image" :alt="musics[0].name" />
+                                <div class="music-info">
+                                    <span class="music-title">{{ musics[0].name }}</span>
+                                    <span class="music-singer">{{ musics[0].singer }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </div>
+                </div>
                 <div class="now-playing">
                     <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }"><img :src="activeItem.image" :alt="activeItem.name" class="album-image" /></div>
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
@@ -254,7 +278,12 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
+                        <div class="btn-bar">
+                            <!-- [核心修改] 调整切歌逻辑 -->
+                            <div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div>
+                            <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
+                            <div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -269,6 +298,39 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* [新增彩蛋样式] */
+.easter-egg-trigger-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px;
+    height: 50px;
+    z-index: 10;
+    cursor: pointer;
+}
+.easter-egg-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 5px;
+    list-style: none;
+    z-index: 11;
+}
+.easter-egg-menu li {
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
+.easter-egg-menu li:hover {
+    background-color: #f0f0f0;
+}
+.easter-egg-menu li.active {
+    background-color: #e8e8e8;
+}
+/* 其他样式保持不变 */
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
 .player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
@@ -287,7 +349,7 @@ onMounted(async () => {
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; }
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; position:relative; /*[核心修改]*/ }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -299,36 +361,4 @@ onMounted(async () => {
 .volume-control img { width: 20px; opacity: 0.7; transition: opacity 0.2s; }
 .volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
-.control-panel { display: flex; align-items: center; gap: 30px; }
-.control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
-.control-panel .mv-icon.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-.control-panel .mv-icon.disabled:hover img {
-    transform: none;
-}
-.music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
-.current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
-.music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
-.music-progress-fill { height: 100%; background: linear-gradient(90deg, #ff8a00, #ff5252); border-radius: 2px; width: var(--music-progress); }
-.btn-bar { display: flex; align-items: center; gap: 30px; }
-.btn-bar div { cursor: pointer; }
-.btn-bar img { width: 32px; transition: transform 0.2s; }
-.btn-bar div:nth-child(2) img { width: 50px; }
-.btn-bar div:hover img { transform: scale(1.1); }
-@keyframes albums_rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-.mv-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-.mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
-.mv-modal-content iframe { width: 100%; height: 100%; }
-.close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
-@media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
-    .player { width: 100%; height: 70%; padding: 15px; }
-    .now-playing { justify-content: space-around; }
-    .player-bg { width: 180px; height: 180px; }
-    .album-image { width: 120px; height: 120px; }
-    .music-info h2 { font-size: 18px; }
-    .music-info p { font-size: 14px; }
-    .close-mv-btn { top: 0; right: 5px; tran
+.control-    .close-mv-btn { top: 0; right: 5px; tran
