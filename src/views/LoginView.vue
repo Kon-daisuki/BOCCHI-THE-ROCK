@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
+// [核心修复] 将后端API的完整地址定义成一个常量
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const router = useRouter()
@@ -35,6 +36,7 @@ const submitForm = async () => {
                 alert('两次输入的密码不一致！');
                 return;
             }
+            // [核心修复] 使用完整的API地址
             const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -48,6 +50,7 @@ const submitForm = async () => {
             alert('注册成功！请登录。');
             Switch(false);
         } else {
+            // [核心修复] 使用完整的API地址
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -192,7 +195,6 @@ const goHome = () => {
                         <input type="password" v-model="FormModel.password">
                     </div>
                     
-                    <!-- [核心修复] 使用专门的 transition 来平滑显示/隐藏 -->
                     <Transition name="repass-trans">
                         <div v-if="isRegister" class="input-group">
                             <label class="input-name">RePassword:</label>
@@ -359,7 +361,7 @@ const goHome = () => {
     flex-direction: column;
     justify-content: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
-    position: relative; /* [新增] 为内部绝对定位的元素提供基准 */
+    position: relative;
 }
 
 
@@ -387,7 +389,7 @@ h2 {
     font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
-    margin-bottom: 20px; /* [修改] 调整间距 */
+    margin-bottom: 20px;
 }
 
 .input-group {
@@ -397,7 +399,7 @@ h2 {
 }
 
 input {
-    width: 100%; /* [修改] 宽度继承父级 */
+    width: 100%;
     border: none;
     border-bottom: 1px solid black;
     font-size: 1.2em;
@@ -417,7 +419,7 @@ button:focus {
 
 .input-name {
     font-family: 'Note-Script-SemiBold-2';
-    width: 100%; /* [修改] 宽度继承父级 */
+    width: 100%;
     text-align: left;
     font-size: 20px;
 }
@@ -428,7 +430,7 @@ button {
     font-size: 1.4em;
     font-family: 'Note-Script-SemiBold-2';
     cursor: pointer;
-    margin-top: 30px; /* [修改] 调整间距 */
+    margin-top: 30px;
 }
 
 .switch-login {
@@ -464,7 +466,6 @@ button {
     opacity: 0;
 }
 
-/* [核心修复] 新增的平滑过渡动画 */
 .repass-trans-enter-active,
 .repass-trans-leave-active {
     transition: all 0.4s ease-out;
@@ -479,7 +480,7 @@ button {
 .repass-trans-enter-to,
 .repass-trans-leave-from {
     opacity: 1;
-    max-height: 100px; /* 一个足够大的值 */
+    max-height: 100px;
 }
 
 .switch-container {
@@ -507,14 +508,14 @@ button {
     }
     .box {
         width: 90vw;
-        height: auto; /* [修改] 高度自适应 */
+        height: auto;
         min-height: 70vh;
         padding: 20px 0;
         flex-direction: column;
         outline: none;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         border-radius: 10px;
-        background-color: white; /* [新增] 手机端直接给白色背景 */
+        background-color: white;
     }
     .loginbox {
         width: 100%;
@@ -523,7 +524,7 @@ button {
         border-radius: 10px;
     }
     form {
-        gap: 20px; /* [修改] 增大间距 */
+        gap: 20px;
         justify-content: center;
         height: 100%;
     }
@@ -553,7 +554,7 @@ button {
         width: 10%;
         top: 10px;
         right: 10px;
-        color: #333; /* [修改] 在白色背景上更清晰 */
+        color: #333;
     }
 }
 </style>
