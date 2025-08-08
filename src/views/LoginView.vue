@@ -1,12 +1,15 @@
 <!-- 
     @Author: Alola
-    [全量修改版 - 已集成后端API]
+    [全量修改版 - 已适配生产环境]
 -->
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+
+// --- [核心修改] 把后端API的地址定义成一个常量 ---
+const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const originalImages = [
     { url: '/assets/images/LoginImage1.jpg' },
@@ -33,7 +36,6 @@ const FormModel = ref({
     RePassword: ''
 })
 
-// --- [核心修改] ---
 const router = useRouter()
 
 const submitForm = async () => {
@@ -44,7 +46,8 @@ const submitForm = async () => {
             return;
         }
         try {
-            const response = await fetch('/api/register', {
+            // [修改] 使用完整的API地址
+            const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -57,7 +60,7 @@ const submitForm = async () => {
                 throw new Error(data.error || '注册失败');
             }
             alert('注册成功！请登录。');
-            Switch(false); // 注册成功后，自动切换回登录界面
+            Switch(false);
         } catch (error) {
             alert(error.message);
         }
@@ -65,7 +68,8 @@ const submitForm = async () => {
     // --- 登录逻辑 ---
     else {
         try {
-            const response = await fetch('/api/login', {
+            // [修改] 使用完整的API地址
+            const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -77,7 +81,6 @@ const submitForm = async () => {
             if (!response.ok) {
                 throw new Error(data.error || '登录失败');
             }
-            // 登录成功，跳转到主播放器页面
             goHome();
         } catch (error) {
             alert(error.message);
