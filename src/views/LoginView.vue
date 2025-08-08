@@ -4,7 +4,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-// 您的后端API地址
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const router = useRouter()
@@ -29,7 +28,6 @@ const FormModel = ref({
     RePassword: ''
 })
 
-// --- [核心修改] ---
 const submitForm = async () => {
     try {
         if (isRegister.value) {
@@ -61,12 +59,13 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '登录失败');
             
-            // [关键] 登录成功后，把用户信息写入浏览器的“记事本”
+            if (data.token) {
+                localStorage.setItem('authToken', data.token);
+            }
             if (data.user) {
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
             }
             
-            // 跳转到主页
             goHome();
         }
     } catch (error) {
@@ -85,13 +84,20 @@ const targetImage = [
 const target_i = ref(0);
 const isAnimating = ref(false);
 
+// --- [核心修改] ---
+// 我们将复用这个已有的 Switch 函数
 const Switch = (value) => {
+    // 如果当前是登录(value=true)，则切换到注册
     if (value) {
-        isRegister.value = true, isLogin.value = false;
-    }
+        isRegister.value = true;
+        isLogin.value = false;
+    } 
+    // 否则，切换回登录
     else {
-        isLogin.value = true, isRegister.value = false;
+        isLogin.value = true;
+        isRegister.value = false;
     }
+    // 切换时附带一个小的动画效果
     target_i.value = (target_i.value + 2) % (targetImage.length - 1)
 }
 
@@ -150,7 +156,6 @@ const goHome = () => {
 </script>
 
 <template>
-    <!-- Template 结构保持不变 -->
     <div class="main" ref="mainRef">
         <div class="background-container"
             :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
@@ -200,7 +205,12 @@ const goHome = () => {
                 </form>
 
             </div>
-            <img class="switch-login" src="/assets/images/电吉他.svg" alt="" @click="Switch(isLogin)"></img>
+            
+            <!-- [核心修改] -->
+            <!-- 我们给这个电吉他图标绑定了点击事件 -->
+            <!-- 它会调用 Switch 函数，并把当前是否是登录模式 (isLogin) 传进去 -->
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch(isLogin)"></img>
+            
             <div class="ribbons"></div>
         </div>
         <Icon class="close-login" icon="material-symbols:close-rounded" @click="goHome" />
