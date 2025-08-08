@@ -5,9 +5,8 @@ import { onMounted, ref, watch } from 'vue';
 // 您的后端API地址
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
-// [新增] 获取当前登录的用户信息
 const currentUser = ref(null);
-const likedSongs = ref(new Set()); // 使用Set来存储收藏的歌曲，效率更高
+const likedSongs = ref(new Set());
 
 const musics = [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
@@ -37,15 +36,12 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// --- [新增] 功能1：收藏/取消收藏歌曲 ---
 const toggleLike = async () => {
     if (!currentUser.value) {
         alert('请先登录才能收藏歌曲哦！');
         return;
     }
     const songName = activeItem.value.name;
-    
-    // 乐观更新UI，立即反馈
     const newLikedSongs = new Set(likedSongs.value);
     if (newLikedSongs.has(songName)) {
         newLikedSongs.delete(songName);
@@ -53,43 +49,35 @@ const toggleLike = async () => {
         newLikedSongs.add(songName);
     }
     likedSongs.value = newLikedSongs;
-
-    // 通知后端更新数据库
     try {
         await fetch(`${API_BASE_URL}/api/like`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ songName })
+            body: JSON.stringify({ songName }),
+            credentials: 'include' // [核心修复] 出示“护照”
         });
     } catch (error) {
         console.error('收藏操作失败:', error);
-        // 如果失败，可以考虑回滚UI状态
     }
 };
 
-// --- [新增] 功能2：权重随机播放 ---
 const playWeightedRandom = () => {
     const weightedPool = [];
-    const likedWeight = 5; // 已收藏歌曲的权重
-
+    const likedWeight = 5;
     musics.forEach(song => {
-        if (song.name === activeItem.value.name) return; // 避免随机到当前歌曲
-
+        if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
         for (let i = 0; i < weight; i++) {
             weightedPool.push(song);
         }
     });
-
     if (weightedPool.length === 0) {
-        switchMusic(activeItem.value.index); // 如果没得选，就顺序播放
+        switchMusic(activeItem.value.index);
         return;
     }
-
     const randomIndex = Math.floor(Math.random() * weightedPool.length);
     activeItem.value = weightedPool[randomIndex];
 };
-
 
 const updateFavicon = (iconUrl) => {
     let link = document.querySelector("link[rel~='icon']");
@@ -104,11 +92,9 @@ const updateFavicon = (iconUrl) => {
 const updateMediaSession = (song) => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.name,
-            artist: song.singer,
-            album: '結束バンド',
+            title: song.name, artist: song.singer, album: '結束バンド',
             artwork: [
-                { src: song.image, sizes: '96x96',   type: 'image/jpeg' },
+                { src: song.image, sizes: '96x96', type: 'image/jpeg' },
                 { src: song.image, sizes: '128x128', type: 'image/jpeg' },
                 { src: song.image, sizes: '192x192', type: 'image/jpeg' },
                 { src: song.image, sizes: '256x256', type: 'image/jpeg' },
@@ -121,16 +107,9 @@ const updateMediaSession = (song) => {
 
 const switchMusic = (newIndex) => {
     let nextSongIndexInArray = newIndex;
-    if (nextSongIndexInArray >= musics.length) {
-        nextSongIndexInArray = 0; 
-    }
-    
-    if (newIndex < 0) {
-        nextSongIndexInArray = musics.length - 1; 
-    } else if (newIndex === 0) { 
-        nextSongIndexInArray = musics.length - 1;
-    }
-
+    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
+    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
+    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
     activeItem.value = musics[nextSongIndexInArray];
     playStatu.value = 1;
     musicProgress.value = 0;
@@ -142,46 +121,30 @@ const updateProgress = () => {
 };
 
 const showMv = () => {
-    if (activeItem.value.bvid) {
-        isMvVisible.value = true;
-    }
+    if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     player.value.currentTime = 0;
     updateMediaSession(newItem);
-    if (playStatu.value === 1) { 
-        player.value.play(); 
-        requestAnimationFrame(updateProgress); 
+    if (playStatu.value === 1) {
+        player.value.play();
+        requestAnimationFrame(updateProgress);
         updateFavicon(newItem.image);
     }
 });
 
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 
-watch(playStatu, (newVal) => { 
-    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); 
-    
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
-    }
-
-    if (newVal === 1) {
-        updateFavicon(activeItem.value.image);
-    } else {
-        updateFavicon(defaultFavicon);
-    }
-});
-
 const switchStatu = () => {
-    if (playStatu.value === 0) { 
-        player.value.play(); 
-        playStatu.value = 1; 
-        requestAnimationFrame(updateProgress); 
-    } else { 
-        player.value.pause(); 
-        playStatu.value = 0; 
+    if (playStatu.value === 0) {
+        player.value.play();
+        playStatu.value = 1;
+        requestAnimationFrame(updateProgress);
+    } else {
+        player.value.pause();
+        playStatu.value = 0;
     }
 };
 
@@ -190,16 +153,13 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
-onMounted(async () => { 
-    // 检查登录状态
+onMounted(async () => {
     const userData = localStorage.getItem('currentUser');
     if (userData) {
         currentUser.value = JSON.parse(userData);
-        // 如果已登录，获取收藏列表
         try {
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
-                // [重要] 确保请求携带了Cookie
-                credentials: 'include' 
+                credentials: 'include' // [核心修复] 出示“护照”
             });
             if (response.ok) {
                 const songs = await response.json();
@@ -210,27 +170,35 @@ onMounted(async () => {
         }
     }
 
-    const el = document.querySelector('.player-select'); 
+    const el = document.querySelector('.player-select');
     if (el) {
-        el.addEventListener('wheel', (e) => { 
-            e.preventDefault(); 
-            e.stopPropagation(); 
-            el.scrollTop += e.deltaY * 0.5; 
+        el.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            el.scrollTop += e.deltaY * 0.5;
         });
     }
 
-    player.value.addEventListener('ended', () => {
-        switchMusic(activeItem.value.index);
-    });
-
+    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
     updateMediaSession(activeItem.value);
-
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(activeItem.value.index - 2); });
         navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(activeItem.value.index); });
     }
+
+    watch(playStatu, (newVal) => {
+        document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
+        }
+        if (newVal === 1) {
+            updateFavicon(activeItem.value.image);
+        } else {
+            updateFavicon(defaultFavicon);
+        }
+    }, { immediate: true });
 });
 </script>
 
@@ -344,3 +312,6 @@ onMounted(async () => {
 /* [新增] 收藏按钮激活后的样式 */
 .control-panel .like-btn.liked img {
     /* 使用滤镜将图标变为红色 */
+    filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%);
+}
+</style>
