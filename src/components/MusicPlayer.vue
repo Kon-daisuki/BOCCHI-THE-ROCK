@@ -1,13 +1,13 @@
 <!-- src/components/MusicPlayer.vue -->
 <script setup>
-// [关键] 确保 onMounted, onUnmounted, ref, watch 都被正确导入
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
-let refreshInterval = null;
+// [核心修改] 我们不再需要定时器了
+// let refreshInterval = null; 
 
 const musics = [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
@@ -64,16 +64,15 @@ const toggleLike = async () => {
         alert('登录凭证丢失，请重新登录');
         return;
     }
+
     const songName = activeItem.value.name;
-    const newLikedSongs = new Set(likedSongs.value);
-    if (newLikedSongs.has(songName)) {
-        newLikedSongs.delete(songName);
-    } else {
-        newLikedSongs.add(songName);
-    }
-    likedSongs.value = newLikedSongs;
+    
+    // [核心修改] 我们不再需要乐观更新，因为后端会返回最新的状态
+    // const newLikedSongs = new Set(likedSongs.value);
+    // ...
+
     try {
-        await fetch(`${API_BASE_URL}/api/like`, {
+        const response = await fetch(`${API_BASE_URL}/api/like`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -81,6 +80,12 @@ const toggleLike = async () => {
             },
             body: JSON.stringify({ songName })
         });
+        
+        // [核心修改] 点击后，立即用服务器返回的最新数据刷新整个收藏列表
+        if (response.ok) {
+            await fetchLikedSongs();
+        }
+
     } catch (error) {
         console.error('收藏操作失败:', error);
     }
@@ -183,7 +188,6 @@ onMounted(async () => {
     if (userData) {
         currentUser.value = JSON.parse(userData);
         await fetchLikedSongs();
-        refreshInterval = setInterval(fetchLikedSongs, 10000); 
     }
 
     const el = document.querySelector('.player-select');
@@ -219,11 +223,8 @@ onMounted(async () => {
     }, { immediate: true });
 });
 
-onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval);
-  }
-});
+// [核心修改] 我们不再需要定时器，所以 onUnmounted 也可以移除了
+// onUnmounted(() => { ... });
 </script>
 
 <template>
@@ -329,4 +330,5 @@ onUnmounted(() => {
     .player-bg { width: 180px; height: 180px; }
     .album-image { width: 120px; height: 120px; }
     .music-info h2 { font-size: 18px; }
-    .m
+    .music-info p { font-size: 14px; }
+    .close-mv-btn { top: 0; right: 5px; tran
