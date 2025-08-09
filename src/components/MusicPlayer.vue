@@ -60,7 +60,7 @@ const toggleLike = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ songName }),
         });
@@ -123,9 +123,22 @@ const switchMusic = (newIndex) => {
     musicProgress.value = 0;
 };
 
+// [核心修复] 在这里添加对系统播放器UI的进度更新
 const updateProgress = () => {
-    if (player.value.duration) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; }
-    if (playStatu.value === 1) requestAnimationFrame(updateProgress);
+    if (player.value.duration) { 
+        musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
+
+        // [BUG FIX] 同步系统播放器的进度条
+        if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+            navigator.mediaSession.setPositionState({
+                duration: player.value.duration,
+                position: player.value.currentTime,
+            });
+        }
+    }
+    if (playStatu.value === 1) {
+        requestAnimationFrame(updateProgress);
+    }
 };
 
 const showMv = () => {
@@ -165,19 +178,18 @@ onMounted(async () => {
     const userData = localStorage.getItem('currentUser');
     const token = localStorage.getItem('authToken');
 
-    if (userData && token) { // [核心修复] 同时检查用户数据和Token
+    if (userData && token) {
         currentUser.value = JSON.parse(userData);
         try {
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: {
-                    'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (response.ok) {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
-                // Token可能过期了
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
@@ -221,6 +233,7 @@ onMounted(async () => {
 </script>
 
 <template>
+    <!-- Template部分没有改动 -->
     <div class="bg">
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
