@@ -123,12 +123,10 @@ const switchMusic = (newIndex) => {
     musicProgress.value = 0;
 };
 
-// [核心修复] 在这里添加对系统播放器UI的进度更新
 const updateProgress = () => {
-    if (player.value.duration) { 
+    if (player.value.duration && !isNaN(player.value.duration)) { 
         musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
 
-        // [BUG FIX] 同步系统播放器的进度条
         if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
             navigator.mediaSession.setPositionState({
                 duration: player.value.duration,
@@ -170,7 +168,22 @@ const switchStatu = () => {
 };
 
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
-const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
+
+// [核心修复] 在这里添加对音频文件是否准备好的安全检查
+const onProgressClicked = (e) => { 
+    // [BUG FIX] 如果duration无效或不是数字，则不执行任何操作
+    if (!player.value.duration || isNaN(player.value.duration)) {
+        return;
+    }
+
+    const p=e.currentTarget; 
+    const c=e.offsetX; 
+    const w=p.clientWidth; 
+    const pct=(c/w)*100; 
+    musicProgress.value=pct; 
+    player.value.currentTime=(pct/100)*player.value.duration; 
+}
+
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
