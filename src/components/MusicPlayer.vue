@@ -1,12 +1,13 @@
+<!-- src/components/MusicPlayer.vue -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 
+// 您的后端API地址
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
 
-// [核心修改] 歌曲列表已更新，Connected Sky 已作为最后一首歌加入
 const musics = [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
     { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
@@ -26,7 +27,7 @@ const musics = [
 
 const playerIcons = ["/assets/images/icon_play.png","/assets/images/icon_pause.png"];
 const playStatu = ref(0);
-const activeItem = ref(musics[0]); // 默认播放第一首歌
+const activeItem = ref(musics[0]);
 const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
@@ -36,23 +37,6 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-const fetchLikedSongs = async () => {
-    if (!currentUser.value) return;
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/likes`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            const songs = await response.json();
-            likedSongs.value = new Set(songs);
-        }
-    } catch (error) {
-        console.error('获取收藏列表失败:', error);
-    }
-};
-
 const toggleLike = async () => {
     if (!currentUser.value) {
         alert('请先登录才能收藏歌曲哦！');
@@ -60,26 +44,26 @@ const toggleLike = async () => {
     }
     const token = localStorage.getItem('authToken');
     if (!token) {
-        alert('登录凭证丢失，请重新登录');
+        alert('登录状态失效，请重新登录！');
         return;
     }
-
     const songName = activeItem.value.name;
-
+    const newLikedSongs = new Set(likedSongs.value);
+    if (newLikedSongs.has(songName)) {
+        newLikedSongs.delete(songName);
+    } else {
+        newLikedSongs.add(songName);
+    }
+    likedSongs.value = newLikedSongs;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/like`, {
+        await fetch(`${API_BASE_URL}/api/like`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
             },
-            body: JSON.stringify({ songName })
+            body: JSON.stringify({ songName }),
         });
-        
-        if (response.ok) {
-            await fetchLikedSongs();
-        }
-
     } catch (error) {
         console.error('收藏操作失败:', error);
     }
@@ -88,7 +72,6 @@ const toggleLike = async () => {
 const playWeightedRandom = () => {
     const weightedPool = [];
     const likedWeight = 5;
-    // [核心修改] 随机播放现在包含所有歌曲
     musics.forEach(song => {
         if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
@@ -96,10 +79,8 @@ const playWeightedRandom = () => {
             weightedPool.push(song);
         }
     });
-    // 如果只有一首歌，或者随机池为空，则重新播放当前歌曲
     if (weightedPool.length === 0) {
-        player.value.currentTime = 0;
-        player.value.play();
+        switchMusic(activeItem.value.index);
         return;
     }
     const randomIndex = Math.floor(Math.random() * weightedPool.length);
@@ -119,7 +100,7 @@ const updateFavicon = (iconUrl) => {
 const updateMediaSession = (song) => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.name, artist: song.singer, album: '结束バンド',
+            title: song.name, artist: song.singer, album: '結束バンド',
             artwork: [
                 { src: song.image, sizes: '96x96', type: 'image/jpeg' },
                 { src: song.image, sizes: '128x128', type: 'image/jpeg' },
@@ -132,22 +113,15 @@ const updateMediaSession = (song) => {
     }
 };
 
-// [核心修改] 重写为更健壮的切歌逻辑
-const switchMusic = (offset) => {
-    const currentIndex = musics.findIndex(song => song.name === activeItem.value.name);
-    if (currentIndex === -1) return; // 如果找不到当前歌曲，则不执行任何操作
-
-    let nextIndex = currentIndex + offset;
-
-    if (nextIndex >= musics.length) {
-        nextIndex = 0; // 从最后一首切换到第一首
-    } else if (nextIndex < 0) {
-        nextIndex = musics.length - 1; // 从第一首切换到最后一首
-    }
-
-    activeItem.value = musics[nextIndex];
+const switchMusic = (newIndex) => {
+    let nextSongIndexInArray = newIndex;
+    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
+    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
+    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
+    activeItem.value = musics[nextSongIndexInArray];
+    playStatu.value = 1;
+    musicProgress.value = 0;
 };
-
 
 const updateProgress = () => {
     if (player.value.duration) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; }
@@ -166,9 +140,6 @@ watch(activeItem, (newItem) => {
         player.value.play();
         requestAnimationFrame(updateProgress);
         updateFavicon(newItem.image);
-    } else {
-        // 如果播放器是暂停状态，切换歌曲后也保持暂停，只加载不播放
-        playStatu.value = 0;
     }
 });
 
@@ -192,9 +163,29 @@ const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol =
 
 onMounted(async () => {
     const userData = localStorage.getItem('currentUser');
-    if (userData) {
+    const token = localStorage.getItem('authToken');
+
+    if (userData && token) { // [核心修复] 同时检查用户数据和Token
         currentUser.value = JSON.parse(userData);
-        await fetchLikedSongs();
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/likes`, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
+                }
+            });
+            if (response.ok) {
+                const songs = await response.json();
+                likedSongs.value = new Set(songs);
+            } else if (response.status === 401) {
+                // Token可能过期了
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                currentUser.value = null;
+                console.warn('Token validation failed. User logged out.');
+            }
+        } catch (error) {
+            console.error('获取收藏列表失败:', error);
+        }
     }
 
     const el = document.querySelector('.player-select');
@@ -206,23 +197,17 @@ onMounted(async () => {
         });
     }
 
-    // [核心修改] 播放结束后自动切到下一首
-    player.value.addEventListener('ended', () => {
-        switchMusic(1);
-    });
-
+    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(-1); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(1); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(activeItem.value.index - 2); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(activeItem.value.index); });
     }
 
     watch(playStatu, (newVal) => {
-        if (document && document.documentElement) {
-            document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
-        }
+        document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
         if ('mediaSession' in navigator) {
             navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
         }
@@ -233,7 +218,6 @@ onMounted(async () => {
         }
     }, { immediate: true });
 });
-
 </script>
 
 <template>
@@ -241,21 +225,9 @@ onMounted(async () => {
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
-                <ul>
-                    <!-- [核心修改] 循环现在遍历所有歌曲 -->
-                    <li v-for="music in musics" :key="music.index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
-                        <div class="music-item">
-                            <img :src="music.image" :alt="music.name" />
-                            <div class="music-info">
-                                <span class="music-title">{{ music.name }}</span>
-                                <span class="music-singer">{{ music.singer }}</span>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
+                <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
             </div>
             <div class="player">
-                <!-- [核心修改] 移除彩蛋触发区域 -->
                 <div class="now-playing">
                     <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }"><img :src="activeItem.image" :alt="activeItem.name" class="album-image" /></div>
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
@@ -263,8 +235,8 @@ onMounted(async () => {
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
                         
                         <div class="control-panel">
-                            <span class="like-btn" @click="toggleLike">
-                                <img :src="likedSongs.has(activeItem.name) ? '/assets/images/icon_like_filled.png' : '/assets/images/icon_like.png'" />
+                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
+                                <img src="/assets/images/icon_like.png" />
                             </span>
                             <span @click="playWeightedRandom">
                                 <img src="/assets/images/icon_mode.png" />
@@ -275,12 +247,7 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <!-- [核心修改] 更新按钮以使用新的切歌逻辑 -->
-                        <div class="btn-bar">
-                            <div @click="switchMusic(-1)"><img src="/assets/images/icon_last.png" /></div>
-                            <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
-                            <div @click="switchMusic(1)"><img src="/assets/images/icon_next.png" /></div>
-                        </div>
+                        <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
                 </div>
             </div>
@@ -295,7 +262,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* [核心修改] 移除所有 .easter-egg-* 相关的样式 */
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
 .player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
@@ -314,7 +280,7 @@ onMounted(async () => {
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; position:relative; }
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
@@ -328,8 +294,13 @@ onMounted(async () => {
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
 .control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
-.control-panel .mv-icon.disabled { opacity: 0.4; cursor: not-allowed; }
-.control-panel .mv-icon.disabled:hover img { transform: none; }
+.control-panel .mv-icon.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.control-panel .mv-icon.disabled:hover img {
+    transform: none;
+}
 .music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
 .current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
 .music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
@@ -343,4 +314,9 @@ onMounted(async () => {
 .mv-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
 .mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
 .mv-modal-content iframe { width: 100%; height: 100%; }
-.close-mv-btn { position: absolute; top: -30px; right: -10px; b
+.close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
+@media (max-width: 768px) {
+    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
+    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
+    .player { width: 100%; height: 70%; padding: 15px; }
+    .now
