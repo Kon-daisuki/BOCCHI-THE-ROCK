@@ -119,13 +119,16 @@ const switchMusic = (newIndex) => {
     if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
     else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
     
-    // 如果已经是当前歌曲，则从头播放
-    if (activeItem.value.index === musics[nextSongIndexInArray].index) {
-        player.value.currentTime = 0;
-        playStatu.value = 1;
-        player.value.play();
-    } else {
-        activeItem.value = musics[nextSongIndexInArray];
+    activeItem.value = musics[nextSongIndexInArray];
+};
+
+// [核心修复] 恢复到第一版稳定、简单的UI更新逻辑
+const updateProgress = () => {
+    if (player.value.duration) {
+        musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
+    }
+    if (playStatu.value === 1) {
+        requestAnimationFrame(updateProgress);
     }
 };
 
@@ -136,7 +139,7 @@ const showMv = () => {
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     player.value.currentTime = 0;
-    musicProgress.value = 0; // 立即重置UI进度
+    musicProgress.value = 0;
     updateMediaSession(newItem);
     if (playStatu.value === 1) {
         player.value.play();
@@ -150,9 +153,11 @@ const switchStatu = () => {
     if (playStatu.value === 0) {
         player.value.play();
         playStatu.value = 1;
+        requestAnimationFrame(updateProgress); // [核心修复] 在播放时启动循环
     } else {
         player.value.pause();
         playStatu.value = 0;
+        // 暂停时，循环会自动在下一帧停止
     }
 };
 
@@ -174,35 +179,15 @@ const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, 
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
 onMounted(async () => {
-    // --- [现代方法-核心] 1. 使用事件监听器来驱动更新 ---
-
-    // 当音频元数据加载完毕时 (获取到总时长)
-    player.value.addEventListener('loadedmetadata', () => {
-        // 更新系统播放器UI的元数据
-        if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+    // --- [核心修复] 分离系统UI更新逻辑 ---
+    player.value.addEventListener('timeupdate', () => {
+        if ('mediaSession' in navigator && player.value.duration && !isNaN(player.value.duration)) {
             navigator.mediaSession.setPositionState({
                 duration: player.value.duration,
                 position: player.value.currentTime,
             });
         }
     });
-
-    // 当播放时间更新时 (由浏览器自动、高效地触发)
-    player.value.addEventListener('timeupdate', () => {
-        if (player.value.duration && !isNaN(player.value.duration)) {
-            // 更新本地UI进度条
-            musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-            // 更新系统播放器UI的进度
-            if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
-                 navigator.mediaSession.setPositionState({
-                    duration: player.value.duration,
-                    position: player.value.currentTime,
-                });
-            }
-        }
-    });
-
-    // --- 其他原有逻辑 ---
 
     const userData = localStorage.getItem('currentUser');
     const token = localStorage.getItem('authToken');
