@@ -123,17 +123,26 @@ const switchMusic = (newIndex) => {
     musicProgress.value = 0;
 };
 
+// [核心修复] 对进度更新函数进行逻辑强化
 const updateProgress = () => {
-    if (player.value.duration && !isNaN(player.value.duration)) { 
+    // 检查音频duration是否有效
+    if (player.value.duration && !isNaN(player.value.duration)) {
+        // 如果有效，正常计算进度
         musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-
+        
+        // 同步系统播放器UI
         if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
             navigator.mediaSession.setPositionState({
                 duration: player.value.duration,
                 position: player.value.currentTime,
             });
         }
+    } else {
+        // [BUG FIX] 如果无效 (即正在加载)，强制将进度条保持在0，防止显示上一首歌的旧进度
+        musicProgress.value = 0;
     }
+
+    // 如果在播放状态，则持续循环
     if (playStatu.value === 1) {
         requestAnimationFrame(updateProgress);
     }
@@ -169,13 +178,10 @@ const switchStatu = () => {
 
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 
-// [核心修复] 在这里添加对音频文件是否准备好的安全检查
 const onProgressClicked = (e) => { 
-    // [BUG FIX] 如果duration无效或不是数字，则不执行任何操作
     if (!player.value.duration || isNaN(player.value.duration)) {
         return;
     }
-
     const p=e.currentTarget; 
     const c=e.offsetX; 
     const w=p.clientWidth; 
