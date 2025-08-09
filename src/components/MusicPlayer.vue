@@ -1,4 +1,3 @@
-<!-- src/components/MusicPlayer.vue -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 
@@ -60,7 +59,7 @@ const toggleLike = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ songName }),
         });
@@ -120,12 +119,6 @@ const switchMusic = (newIndex) => {
     else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
     activeItem.value = musics[nextSongIndexInArray];
     playStatu.value = 1;
-    musicProgress.value = 0;
-};
-
-const updateProgress = () => {
-    if (player.value.duration) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; }
-    if (playStatu.value === 1) requestAnimationFrame(updateProgress);
 };
 
 const showMv = () => {
@@ -134,11 +127,12 @@ const showMv = () => {
 
 watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
+    // Reset progress when song changes
+    musicProgress.value = 0;
     player.value.currentTime = 0;
     updateMediaSession(newItem);
     if (playStatu.value === 1) {
         player.value.play();
-        requestAnimationFrame(updateProgress);
         updateFavicon(newItem.image);
     }
 });
@@ -149,7 +143,6 @@ const switchStatu = () => {
     if (playStatu.value === 0) {
         player.value.play();
         playStatu.value = 1;
-        requestAnimationFrame(updateProgress);
     } else {
         player.value.pause();
         playStatu.value = 0;
@@ -165,19 +158,18 @@ onMounted(async () => {
     const userData = localStorage.getItem('currentUser');
     const token = localStorage.getItem('authToken');
 
-    if (userData && token) { // [核心修复] 同时检查用户数据和Token
+    if (userData && token) {
         currentUser.value = JSON.parse(userData);
         try {
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: {
-                    'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (response.ok) {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
-                // Token可能过期了
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
@@ -197,7 +189,18 @@ onMounted(async () => {
         });
     }
 
-    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
+    // [核心修复] 使用 'timeupdate' 事件监听器替代 requestAnimationFrame
+    player.value.addEventListener('timeupdate', () => {
+        if (player.value.duration) {
+            musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
+        }
+    });
+
+    // [核心修复] 监听 'ended' 事件来自动播放下一首
+    player.value.addEventListener('ended', () => {
+        switchMusic(activeItem.value.index);
+    });
+
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
@@ -247,7 +250,7 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
+                        <div class="btn-bar"><div @click="switchMusic(activeItem.value.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.value.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
                 </div>
             </div>
