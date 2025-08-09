@@ -36,6 +36,78 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
+// [核心修复] 将启动播放和进度条更新的逻辑封装起来
+const playAudioAndStartProgress = () => {
+    const startPlayback = () => {
+        player.value.play();
+        playStatu.value = 1;
+        requestAnimationFrame(updateProgress);
+    };
+
+    // 检查元数据是否已加载 (readyState >= 1 意味着HAVE_METADATA)
+    if (player.value.readyState >= 1) {
+        startPlayback();
+    } else {
+        // 如果没有，就等待 loadedmetadata 事件触发后再播放
+        player.value.addEventListener('loadedmetadata', startPlayback, { once: true });
+    }
+};
+
+const updateProgress = () => {
+    // 此时 duration 肯定是有效的
+    if (player.value.duration) {
+        musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
+    }
+    // 只要在播放状态就持续循环
+    if (playStatu.value === 1) {
+        requestAnimationFrame(updateProgress);
+    }
+};
+
+const switchStatu = () => {
+    if (playStatu.value === 0) {
+        playAudioAndStartProgress(); // 使用修复后的播放函数
+    } else {
+        player.value.pause();
+        playStatu.value = 0;
+    }
+};
+
+watch(activeItem, (newItem) => {
+    // 切换歌曲时，先暂停并重置所有状态
+    player.value.pause();
+    musicProgress.value = 0;
+    player.value.currentTime = 0;
+
+    player.value.src = newItem.src;
+    updateMediaSession(newItem);
+    updateFavicon(newItem.image);
+
+    // 如果之前是播放状态，则自动播放新歌曲
+    if (playStatu.value === 1) {
+        playAudioAndStartProgress(); // 使用修复后的播放函数
+    }
+});
+
+const switchMusic = (newIndex) => {
+    let nextSongIndexInArray = newIndex;
+    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
+    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
+    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
+    
+    // 关键：在切换 activeItem 之前，确保播放状态是 1
+    // 这样 watch 监听器才能正确判断是否要自动播放
+    playStatu.value = 1; 
+    activeItem.value = musics[nextSongIndexInArray];
+};
+
+player.value.addEventListener('ended', () => {
+    switchMusic(activeItem.value.index);
+});
+
+
+// --- 其他未修改的函数 ---
+
 const toggleLike = async () => {
     if (!currentUser.value) {
         alert('请先登录才能收藏歌曲哦！');
@@ -112,42 +184,11 @@ const updateMediaSession = (song) => {
     }
 };
 
-const switchMusic = (newIndex) => {
-    let nextSongIndexInArray = newIndex;
-    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
-    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
-    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
-    activeItem.value = musics[nextSongIndexInArray];
-    playStatu.value = 1;
-};
-
 const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
-watch(activeItem, (newItem) => {
-    player.value.src = newItem.src;
-    // Reset progress when song changes
-    musicProgress.value = 0;
-    player.value.currentTime = 0;
-    updateMediaSession(newItem);
-    if (playStatu.value === 1) {
-        player.value.play();
-        updateFavicon(newItem.image);
-    }
-});
-
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
-
-const switchStatu = () => {
-    if (playStatu.value === 0) {
-        player.value.play();
-        playStatu.value = 1;
-    } else {
-        player.value.pause();
-        playStatu.value = 0;
-    }
-};
 
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
@@ -189,18 +230,6 @@ onMounted(async () => {
         });
     }
 
-    // [核心修复] 使用 'timeupdate' 事件监听器替代 requestAnimationFrame
-    player.value.addEventListener('timeupdate', () => {
-        if (player.value.duration) {
-            musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-        }
-    });
-
-    // [核心修复] 监听 'ended' 事件来自动播放下一首
-    player.value.addEventListener('ended', () => {
-        switchMusic(activeItem.value.index);
-    });
-
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
@@ -221,6 +250,7 @@ onMounted(async () => {
         }
     }, { immediate: true });
 });
+
 </script>
 
 <template>
