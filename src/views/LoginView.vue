@@ -4,7 +4,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-// [核心修复] 将后端API的完整地址定义成一个常量
 const API_BASE_URL = 'https://login.kessoku.dpdns.org';
 
 const router = useRouter()
@@ -36,7 +35,6 @@ const submitForm = async () => {
                 alert('两次输入的密码不一致！');
                 return;
             }
-            // [核心修复] 使用完整的API地址
             const response = await fetch(`${API_BASE_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -50,7 +48,6 @@ const submitForm = async () => {
             alert('注册成功！请登录。');
             Switch(false);
         } else {
-            // [核心修复] 使用完整的API地址
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -87,15 +84,20 @@ const targetImage = [
 const target_i = ref(0);
 const isAnimating = ref(false);
 
+// --- [核心修改] ---
+// 我们将复用这个已有的 Switch 函数
 const Switch = (value) => {
+    // 如果当前是登录(value=true)，则切换到注册
     if (value) {
         isRegister.value = true;
         isLogin.value = false;
     } 
+    // 否则，切换回登录
     else {
         isLogin.value = true;
         isRegister.value = false;
     }
+    // 切换时附带一个小的动画效果
     target_i.value = (target_i.value + 2) % (targetImage.length - 1)
 }
 
@@ -167,53 +169,47 @@ const goHome = () => {
         <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
         <div class="box">
             <div class="target">
-                <Transition name="fade" mode="out-in">
+                <Transition name="fade">
                     <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="i">
                         <img class="slide-image" :src="extendedImages[i].url" :key="i">
                     </div>
                 </Transition>
-                <Transition name="fade" mode="out-in">
+                <Transition name="fade">
                     <img class="target-image-1" :src="targetImage[target_i].url" alt="">
                 </Transition>
-                <Transition name="fade" mode="out-in">
+                <Transition name="fade">
                     <img class="target-image-2" :src="targetImage[target_i + 1].url" alt="">
                 </Transition>
             </div>
             <div class="targetbox"></div>
 
             <div class="loginbox">
+
                 <form @submit.prevent="submitForm">
-                    <Transition name="fade" mode="out-in">
+                    <Transition name="fade">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
-                    <div class="input-group">
-                        <label class="input-name">Username:</label>
-                        <input v-model="FormModel.username">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-name">Password:</label>
-                        <input type="password" v-model="FormModel.password">
-                    </div>
-                    
-                    <Transition name="repass-trans">
-                        <div v-if="isRegister" class="input-group">
-                            <label class="input-name">RePassword:</label>
-                            <input type="password" v-model="FormModel.RePassword">
-                        </div>
+                    <label class="input-name">Username:</label>
+                    <input v-model="FormModel.username"></input>
+                    <label class="input-name">Password:</label>
+                    <input type="password" v-model="FormModel.password"></input>
+                    <Transition name="fade">
+                        <label v-if="isRegister" class="input-name">RePassword:</label>
                     </Transition>
-
-                    <Transition name="fade" mode="out-in">
+                    <Transition name="fade">
+                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword"></input>
+                    </Transition>
+                    <Transition name="fade">
                         <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
 
-                <div class="switch-container" @click="Switch(isLogin)">
-                    <Transition name="fade" mode="out-in">
-                        <span class="switch-tip" :key="isLogin">{{ isLogin ? '切换到注册' : '返回登录' }}</span>
-                    </Transition>
-                    <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式">
-                </div>
             </div>
+            
+            <!-- [核心修改] -->
+            <!-- 我们给这个电吉他图标绑定了点击事件 -->
+            <!-- 它会调用 Switch 函数，并把当前是否是登录模式 (isLogin) 传进去 -->
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch(isLogin)"></img>
             
             <div class="ribbons"></div>
         </div>
@@ -222,6 +218,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
+/* CSS 保持不变 */
 .main {
     display: flex;
     align-items: center;
@@ -361,7 +358,6 @@ const goHome = () => {
     flex-direction: column;
     justify-content: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
-    position: relative;
 }
 
 
@@ -383,28 +379,23 @@ form {
     align-items: center;
     gap: 10px;
     width: 100%;
+    min-height: 220px;
 }
 
 h2 {
     font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
-    margin-bottom: 20px;
-}
-
-.input-group {
-    width: 60%;
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    top: 10%;
 }
 
 input {
-    width: 100%;
+    width: 60%;
     border: none;
     border-bottom: 1px solid black;
     font-size: 1.2em;
     background: transparent;
-    padding: 5px 0;
 }
 
 input:focus {
@@ -419,23 +410,32 @@ button:focus {
 
 .input-name {
     font-family: 'Note-Script-SemiBold-2';
-    width: 100%;
+    width: 60%;
     text-align: left;
     font-size: 20px;
+    position: relative;
 }
 
 button {
     background: none;
     border: none;
     font-size: 1.4em;
+    width: auto;
+    height: auto;
     font-family: 'Note-Script-SemiBold-2';
+    position: absolute;
+    top: 70%;
     cursor: pointer;
-    margin-top: 30px;
 }
 
 .switch-login {
+    position: absolute;
+    top: 5%;
+    right: 25px;
     width: 60px;
     height: auto;
+    z-index: 2;
+    cursor: pointer;
     transform: scale(1);
     transition: transform 0.5s ease;
 }
@@ -458,64 +458,26 @@ button {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-.repass-trans-enter-active,
-.repass-trans-leave-active {
-    transition: all 0.4s ease-out;
-    overflow: hidden;
-}
-.repass-trans-enter-from,
-.repass-trans-leave-to {
-    opacity: 0;
-    max-height: 0;
-    margin-top: 0 !important;
-}
-.repass-trans-enter-to,
-.repass-trans-leave-from {
-    opacity: 1;
-    max-height: 100px;
-}
-
-.switch-container {
-    position: absolute;
-    top: 5%;
-    right: 25px;
-    z-index: 2;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.switch-tip {
-    font-family: 'Note-Script-SemiBold-2';
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 5px;
-    transition: opacity 0.5s ease;
-}
+.fade-enter-from { opacity: 0; }
+.fade-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
-    .left, .right, .target, .targetbox, .ribbons {
+    .left, .right {
         display: none;
     }
     .box {
         width: 90vw;
-        height: auto;
-        min-height: 70vh;
-        padding: 20px 0;
+        height: 70vh;
         flex-direction: column;
         outline: none;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         border-radius: 10px;
-        background-color: white;
+    }
+    .target, .targetbox {
+        display: none;
     }
     .loginbox {
         width: 100%;
@@ -524,29 +486,28 @@ button {
         border-radius: 10px;
     }
     form {
-        gap: 20px;
+        gap: 15px;
         justify-content: center;
         height: 100%;
     }
-    .input-group, .input-name {
+    input, .input-name {
         width: 80%;
     }
     h2 {
+        font-size: 2.5em;
         position: static;
         margin-bottom: 20px;
-        font-size: 2.8em;
     }
     button {
         position: static;
         margin-top: 20px;
         padding: 12px 30px;
-        background-color: #ff86be;
+        background-color: #ff3aa0bc;
         color: white;
-        border-radius: 25px;
+        border-radius: 8px;
         font-size: 1.2em;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    .switch-container {
+    .switch-login {
         top: 15px;
         right: 15px;
     }
@@ -554,7 +515,6 @@ button {
         width: 10%;
         top: 10px;
         right: 10px;
-        color: #333;
     }
 }
 </style>
