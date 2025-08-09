@@ -319,4 +319,17 @@ onMounted(async () => {
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
     .player-select { width: 100%; height: 30%; flex-shrink: 0; }
     .player { width: 100%; height: 70%; padding: 15px; }
-    .now
+    .now-playing { justify-content: space-around; }
+    .player-bg { width: 180px; height: 180px; }
+    .album-image { width: 120px; height: 120px; }
+    .music-info h2 { font-size: 18px; }
+    .music-info p { font-size: 14px; }
+    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
+}
+
+/* [新增] 收藏按钮激活后的样式 */
+.control-panel .like-btn.liked img {
+    /* 使用滤镜将图标变为红色 */
+    filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%);
+}
+</style>
