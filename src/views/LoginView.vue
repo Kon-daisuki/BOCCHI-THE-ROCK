@@ -4,7 +4,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
-const API_BASE_URL = 'https://login.kessoku.dpdns.org';
+const API_BASE_URL = 'https://login.bocchi.us.kg';
 
 const router = useRouter()
 
