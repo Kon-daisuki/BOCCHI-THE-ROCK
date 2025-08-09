@@ -84,20 +84,15 @@ const targetImage = [
 const target_i = ref(0);
 const isAnimating = ref(false);
 
-// --- [核心修改] ---
-// 我们将复用这个已有的 Switch 函数
 const Switch = (value) => {
-    // 如果当前是登录(value=true)，则切换到注册
     if (value) {
         isRegister.value = true;
         isLogin.value = false;
     } 
-    // 否则，切换回登录
     else {
         isLogin.value = true;
         isRegister.value = false;
     }
-    // 切换时附带一个小的动画效果
     target_i.value = (target_i.value + 2) % (targetImage.length - 1)
 }
 
@@ -184,31 +179,40 @@ const goHome = () => {
             <div class="targetbox"></div>
 
             <div class="loginbox">
-
                 <form @submit.prevent="submitForm">
-                    <Transition name="fade">
+                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
+                    <Transition name="fade" mode="out-in">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
+
                     <label class="input-name">Username:</label>
-                    <input v-model="FormModel.username"></input>
+                    <input v-model="FormModel.username" required></input>
                     <label class="input-name">Password:</label>
-                    <input type="password" v-model="FormModel.password"></input>
-                    <Transition name="fade">
+                    <input type="password" v-model="FormModel.password" required></input>
+                    
+                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
+                    <Transition name="fade" mode="out-in">
                         <label v-if="isRegister" class="input-name">RePassword:</label>
                     </Transition>
-                    <Transition name="fade">
-                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword"></input>
+                    <Transition name="fade" mode="out-in">
+                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword" required></input>
                     </Transition>
-                    <Transition name="fade">
+                    
+                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
+                    <Transition name="fade" mode="out-in">
                         <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
-
             </div>
             
-            <!-- [核心修改] -->
-            <!-- 我们给这个电吉他图标绑定了点击事件 -->
-            <!-- 它会调用 Switch 函数，并把当前是否是登录模式 (isLogin) 传进去 -->
+            <!-- [新增] 切换提示文字 -->
+            <div class="switch-prompt">
+                <Transition name="fade" mode="out-in">
+                    <p v-if="isLogin" key="login-prompt">点击旁边的吉他，前往注册</p>
+                    <p v-else key="register-prompt">点击旁边的吉他，返回登录</p>
+                </Transition>
+            </div>
+            
             <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch(isLogin)"></img>
             
             <div class="ribbons"></div>
@@ -218,7 +222,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* CSS 保持不变 */
+/* CSS 保持不变... */
 .main {
     display: flex;
     align-items: center;
@@ -428,6 +432,23 @@ button {
     cursor: pointer;
 }
 
+/* [新增] 切换提示文字样式 */
+.switch-prompt {
+    position: absolute;
+    top: 15%;
+    right: 5px;
+    width: 90px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    z-index: 2;
+    pointer-events: none; /* 让鼠标可以穿透文字，不会影响点击 */
+}
+.switch-prompt p {
+    margin: 0;
+}
+
+
 .switch-login {
     position: absolute;
     top: 5%;
@@ -458,11 +479,13 @@ button {
 
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity 0.5s ease; /* 动画优化：只对opacity进行过渡，移除transform */
 }
 
-.fade-enter-from { opacity: 0; }
-.fade-leave-to { opacity: 0; }
+.fade-enter-from,
+.fade-leave-to { 
+    opacity: 0;
+}
 
 @media (max-width: 768px) {
     .left, .right {
@@ -476,7 +499,7 @@ button {
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         border-radius: 10px;
     }
-    .target, .targetbox {
+    .target, .targetbox, .switch-prompt { /* [新增] 在移动端隐藏提示文字 */
         display: none;
     }
     .loginbox {
