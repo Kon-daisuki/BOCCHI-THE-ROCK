@@ -118,48 +118,33 @@ const switchMusic = (newIndex) => {
     if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
     if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
     else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
-    
     activeItem.value = musics[nextSongIndexInArray];
-};
-
-// [核心修复] 恢复到第一版稳定、简单的UI更新逻辑
-const updateProgress = () => {
-    if (player.value.duration) {
-        musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-    }
-    if (playStatu.value === 1) {
-        requestAnimationFrame(updateProgress);
-    }
 };
 
 const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
+// [现代方法] 切换播放/暂停状态
+const switchStatu = () => {
+    if (player.value.paused) {
+        player.value.play();
+    } else {
+        player.value.pause();
+    }
+};
+
 watch(activeItem, (newItem) => {
+    const wasPlaying = !player.value.paused;
     player.value.src = newItem.src;
-    player.value.currentTime = 0;
     musicProgress.value = 0;
     updateMediaSession(newItem);
-    if (playStatu.value === 1) {
+    if (wasPlaying) {
         player.value.play();
-        updateFavicon(newItem.image);
     }
 });
 
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
-
-const switchStatu = () => {
-    if (playStatu.value === 0) {
-        player.value.play();
-        playStatu.value = 1;
-        requestAnimationFrame(updateProgress); // [核心修复] 在播放时启动循环
-    } else {
-        player.value.pause();
-        playStatu.value = 0;
-        // 暂停时，循环会自动在下一帧停止
-    }
-};
 
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 
@@ -171,7 +156,6 @@ const onProgressClicked = (e) => {
     const c=e.offsetX; 
     const w=p.clientWidth; 
     const pct=(c/w)*100; 
-    musicProgress.value=pct; 
     player.value.currentTime=(pct/100)*player.value.duration; 
 }
 
@@ -179,13 +163,21 @@ const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, 
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
 onMounted(async () => {
-    // --- [核心修复] 分离系统UI更新逻辑 ---
+    // [现代方法-核心] 使用事件监听器作为唯一的真理之源
+    player.value.addEventListener('play', () => { playStatu.value = 1; });
+    player.value.addEventListener('pause', () => { playStatu.value = 0; });
+    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
+
+    // 唯一的进度更新器，同时更新网页UI和系统UI
     player.value.addEventListener('timeupdate', () => {
-        if ('mediaSession' in navigator && player.value.duration && !isNaN(player.value.duration)) {
-            navigator.mediaSession.setPositionState({
-                duration: player.value.duration,
-                position: player.value.currentTime,
-            });
+        if (player.value.duration && !isNaN(player.value.duration)) {
+            musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setPositionState({
+                    duration: player.value.duration,
+                    position: player.value.currentTime,
+                });
+            }
         }
     });
 
@@ -223,7 +215,6 @@ onMounted(async () => {
         });
     }
 
-    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
