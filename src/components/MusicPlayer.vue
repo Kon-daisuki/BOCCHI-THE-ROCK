@@ -36,13 +36,10 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// [核心修复] updateProgress 函数增加了对 duration 的有效性检查
 const updateProgress = () => {
-    // 只有在 duration 是一个有效的、有限的数字时才更新进度
     if (player.value && player.value.duration && isFinite(player.value.duration)) {
         musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
     }
-    // 只要处于播放状态，就持续请求下一帧
     if (playStatu.value === 1) {
         requestAnimationFrame(updateProgress);
     }
@@ -51,46 +48,55 @@ const updateProgress = () => {
 const switchStatu = () => {
     if (playStatu.value === 0) {
         player.value.play();
-        playStatu.value = 1; // 触发 watch(playStatu) 来启动循环
+        playStatu.value = 1;
     } else {
         player.value.pause();
-        playStatu.value = 0; // 触发 watch(playStatu) 来停止循环
+        playStatu.value = 0;
     }
 };
 
-const switchMusic = (newIndex) => {
-    let nextSongIndexInArray = newIndex;
-    if (nextSongIndexInArray >= musics.length) nextSongIndexInArray = 0;
-    if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
-    else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
+// [最终修复] 重构 switchMusic 函数，使其逻辑更清晰、更健壮
+const switchMusic = (direction) => {
+    if (!activeItem.value) return;
+
+    const currentIndex = musics.findIndex(music => music.name === activeItem.value.name);
     
-    activeItem.value = musics[nextSongIndexInArray];
+    if (currentIndex === -1) {
+        activeItem.value = musics[0];
+        return;
+    }
+
+    let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1;
+
+    if (nextIndex >= musics.length) {
+        nextIndex = 0;
+    }
+    if (nextIndex < 0) {
+        nextIndex = musics.length - 1;
+    }
+
+    activeItem.value = musics[nextIndex];
 };
 
-// [核心修复] watch(activeItem) 负责在切换歌曲时立即重置状态
 watch(activeItem, (newItem) => {
     player.value.pause();
-    // 关键！立即将进度条数据重置为0，防止UI停留在上一首歌的100%
     musicProgress.value = 0; 
     player.value.currentTime = 0;
     
     player.value.src = newItem.src;
     updateMediaSession(newItem);
     
-    // 如果之前是播放状态，则自动播放新歌
     if (playStatu.value === 1) {
         player.value.play();
     }
 });
 
-// [核心修复] watch(playStatu) 现在是唯一控制 requestAnimationFrame 启动和停止的地方
 watch(playStatu, (newVal) => {
     document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
     }
     if (newVal === 1) {
-        // 从暂停状态恢复播放时，或者新歌曲开始播放时，启动动画循环
         requestAnimationFrame(updateProgress);
         updateFavicon(activeItem.value.image);
     } else {
@@ -98,15 +104,11 @@ watch(playStatu, (newVal) => {
     }
 }, { immediate: true });
 
-
-// --- 其他未修改的函数 ---
-
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 
 player.value.addEventListener('ended', () => {
-    // 播放结束后，保持播放状态并切换到下一首歌
     playStatu.value = 1;
-    switchMusic(activeItem.value.index);
+    switchMusic('next'); // 使用新的调用方式
 });
 
 const toggleLike = async () => {
@@ -152,7 +154,7 @@ const playWeightedRandom = () => {
         }
     });
     if (weightedPool.length === 0) {
-        switchMusic(activeItem.value.index);
+        switchMusic('next');
         return;
     }
     const randomIndex = Math.floor(Math.random() * weightedPool.length);
@@ -233,8 +235,9 @@ onMounted(async () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(activeItem.value.index - 2); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(activeItem.value.index); });
+        // [最终修复] 更新这里的调用方式
+        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); });
     }
 });
 </script>
@@ -266,7 +269,14 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar"><div @click="switchMusic(activeItem.value.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.value.index)"><img src="/assets/images/icon_next.png" /></div></div>
+                        
+                        <!-- [最终修复] 更新这里的 @click 事件 -->
+                        <div class="btn-bar">
+                            <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
+                            <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
+                            <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
