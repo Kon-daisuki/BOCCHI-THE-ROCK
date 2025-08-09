@@ -24,7 +24,7 @@ export default defineConfig({
     proxy: {
       // 将所有以 /api 开头的请求，都代理到您的 Worker 地址
       '/api': {
-        target: 'https://login.kessoku.dpdns.org', // 这里写您的 Worker 地址
+        target: 'https://login.bocchi.us.kg', // 这里写您的 Worker 地址
         changeOrigin: true, // 必须设置为 true，否则可能因为跨域问题失败
         // 我们不需要 rewrite，因为您的 Worker 路由本身就包含了 /api
       }
