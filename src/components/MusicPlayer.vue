@@ -60,7 +60,7 @@ const toggleLike = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
             },
             body: JSON.stringify({ songName }),
         });
@@ -119,83 +119,65 @@ const switchMusic = (newIndex) => {
     if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
     else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
     activeItem.value = musics[nextSongIndexInArray];
+    playStatu.value = 1;
+    musicProgress.value = 0;
+};
+
+const updateProgress = () => {
+    if (player.value.duration) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; }
+    if (playStatu.value === 1) requestAnimationFrame(updateProgress);
 };
 
 const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
-// [现代方法] 切换播放/暂停状态
-const switchStatu = () => {
-    if (player.value.paused) {
-        player.value.play();
-    } else {
-        player.value.pause();
-    }
-};
-
 watch(activeItem, (newItem) => {
-    const wasPlaying = !player.value.paused;
     player.value.src = newItem.src;
-    musicProgress.value = 0;
+    player.value.currentTime = 0;
     updateMediaSession(newItem);
-    if (wasPlaying) {
+    if (playStatu.value === 1) {
         player.value.play();
+        requestAnimationFrame(updateProgress);
+        updateFavicon(newItem.image);
     }
 });
 
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 
-const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
-
-const onProgressClicked = (e) => { 
-    if (!player.value.duration || isNaN(player.value.duration)) {
-        return;
+const switchStatu = () => {
+    if (playStatu.value === 0) {
+        player.value.play();
+        playStatu.value = 1;
+        requestAnimationFrame(updateProgress);
+    } else {
+        player.value.pause();
+        playStatu.value = 0;
     }
-    const p=e.currentTarget; 
-    const c=e.offsetX; 
-    const w=p.clientWidth; 
-    const pct=(c/w)*100; 
-    player.value.currentTime=(pct/100)*player.value.duration; 
-}
+};
 
+const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
+const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
 onMounted(async () => {
-    // [现代方法-核心] 使用事件监听器作为唯一的真理之源
-    player.value.addEventListener('play', () => { playStatu.value = 1; });
-    player.value.addEventListener('pause', () => { playStatu.value = 0; });
-    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
-
-    // 唯一的进度更新器，同时更新网页UI和系统UI
-    player.value.addEventListener('timeupdate', () => {
-        if (player.value.duration && !isNaN(player.value.duration)) {
-            musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.setPositionState({
-                    duration: player.value.duration,
-                    position: player.value.currentTime,
-                });
-            }
-        }
-    });
-
     const userData = localStorage.getItem('currentUser');
     const token = localStorage.getItem('authToken');
 
-    if (userData && token) {
+    if (userData && token) { // [核心修复] 同时检查用户数据和Token
         currentUser.value = JSON.parse(userData);
         try {
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}` // [核心修复] 使用Token认证
                 }
             });
             if (response.ok) {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
+                // Token可能过期了
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
@@ -215,6 +197,7 @@ onMounted(async () => {
         });
     }
 
+    player.value.addEventListener('ended', () => { switchMusic(activeItem.value.index); });
     updateMediaSession(activeItem.value);
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
@@ -238,7 +221,6 @@ onMounted(async () => {
 </script>
 
 <template>
-    <!-- Template部分没有改动 -->
     <div class="bg">
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
@@ -265,14 +247,14 @@ onMounted(async () => {
                         </div>
 
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar"><div @click="switchMusic(activeItem.value.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.value.index)"><img src="/assets/images/icon_next.png" /></div></div>
+                        <div class="btn-bar"><div @click="switchMusic(activeItem.index - 2)"><img src="/assets/images/icon_last.png" /></div><div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div><div @click="switchMusic(activeItem.index)"><img src="/assets/images/icon_next.png" /></div></div>
                     </div>
                 </div>
             </div>
         </div>
         <div v-if="isMvVisible" class="mv-modal-overlay" @click="isMvVisible = false">
             <div class="mv-modal-content" @click.stop>
-                <button class="close-mv-btn" @click="isMvVisible = false">&times;</button>
+                <button class="close-mv-btn" @click="isMvVisible = false">×</button>
                 <iframe :src="'//player.bilibili.com/player.html?isOutside=true&bvid='+activeItem.bvid+'&page=1&autoplay=1'" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
             </div>
         </div>
