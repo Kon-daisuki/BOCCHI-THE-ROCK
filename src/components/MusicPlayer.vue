@@ -36,29 +36,13 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// [核心修复] 将启动播放和进度条更新的逻辑封装起来
-const playAudioAndStartProgress = () => {
-    const startPlayback = () => {
-        player.value.play();
-        playStatu.value = 1;
-        requestAnimationFrame(updateProgress);
-    };
-
-    // 检查元数据是否已加载 (readyState >= 1 意味着HAVE_METADATA)
-    if (player.value.readyState >= 1) {
-        startPlayback();
-    } else {
-        // 如果没有，就等待 loadedmetadata 事件触发后再播放
-        player.value.addEventListener('loadedmetadata', startPlayback, { once: true });
-    }
-};
-
+// [核心修复] updateProgress 函数增加了对 duration 的有效性检查
 const updateProgress = () => {
-    // 此时 duration 肯定是有效的
-    if (player.value.duration) {
+    // 只有在 duration 是一个有效的、有限的数字时才更新进度
+    if (player.value && player.value.duration && isFinite(player.value.duration)) {
         musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
     }
-    // 只要在播放状态就持续循环
+    // 只要处于播放状态，就持续请求下一帧
     if (playStatu.value === 1) {
         requestAnimationFrame(updateProgress);
     }
@@ -66,28 +50,13 @@ const updateProgress = () => {
 
 const switchStatu = () => {
     if (playStatu.value === 0) {
-        playAudioAndStartProgress(); // 使用修复后的播放函数
+        player.value.play();
+        playStatu.value = 1; // 触发 watch(playStatu) 来启动循环
     } else {
         player.value.pause();
-        playStatu.value = 0;
+        playStatu.value = 0; // 触发 watch(playStatu) 来停止循环
     }
 };
-
-watch(activeItem, (newItem) => {
-    // 切换歌曲时，先暂停并重置所有状态
-    player.value.pause();
-    musicProgress.value = 0;
-    player.value.currentTime = 0;
-
-    player.value.src = newItem.src;
-    updateMediaSession(newItem);
-    updateFavicon(newItem.image);
-
-    // 如果之前是播放状态，则自动播放新歌曲
-    if (playStatu.value === 1) {
-        playAudioAndStartProgress(); // 使用修复后的播放函数
-    }
-});
 
 const switchMusic = (newIndex) => {
     let nextSongIndexInArray = newIndex;
@@ -95,18 +64,50 @@ const switchMusic = (newIndex) => {
     if (newIndex < 0) nextSongIndexInArray = musics.length - 1;
     else if (newIndex === 0) nextSongIndexInArray = musics.length - 1;
     
-    // 关键：在切换 activeItem 之前，确保播放状态是 1
-    // 这样 watch 监听器才能正确判断是否要自动播放
-    playStatu.value = 1; 
     activeItem.value = musics[nextSongIndexInArray];
 };
 
-player.value.addEventListener('ended', () => {
-    switchMusic(activeItem.value.index);
+// [核心修复] watch(activeItem) 负责在切换歌曲时立即重置状态
+watch(activeItem, (newItem) => {
+    player.value.pause();
+    // 关键！立即将进度条数据重置为0，防止UI停留在上一首歌的100%
+    musicProgress.value = 0; 
+    player.value.currentTime = 0;
+    
+    player.value.src = newItem.src;
+    updateMediaSession(newItem);
+    
+    // 如果之前是播放状态，则自动播放新歌
+    if (playStatu.value === 1) {
+        player.value.play();
+    }
 });
+
+// [核心修复] watch(playStatu) 现在是唯一控制 requestAnimationFrame 启动和停止的地方
+watch(playStatu, (newVal) => {
+    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
+    }
+    if (newVal === 1) {
+        // 从暂停状态恢复播放时，或者新歌曲开始播放时，启动动画循环
+        requestAnimationFrame(updateProgress);
+        updateFavicon(activeItem.value.image);
+    } else {
+        updateFavicon(defaultFavicon);
+    }
+}, { immediate: true });
 
 
 // --- 其他未修改的函数 ---
+
+watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
+
+player.value.addEventListener('ended', () => {
+    // 播放结束后，保持播放状态并切换到下一首歌
+    playStatu.value = 1;
+    switchMusic(activeItem.value.index);
+});
 
 const toggleLike = async () => {
     if (!currentUser.value) {
@@ -188,8 +189,6 @@ const showMv = () => {
     if (activeItem.value.bvid) isMvVisible.value = true;
 };
 
-watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
-
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
@@ -237,20 +236,7 @@ onMounted(async () => {
         navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic(activeItem.value.index - 2); });
         navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic(activeItem.value.index); });
     }
-
-    watch(playStatu, (newVal) => {
-        document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
-        }
-        if (newVal === 1) {
-            updateFavicon(activeItem.value.image);
-        } else {
-            updateFavicon(defaultFavicon);
-        }
-    }, { immediate: true });
 });
-
 </script>
 
 <template>
