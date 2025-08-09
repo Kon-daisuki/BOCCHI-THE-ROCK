@@ -46,7 +46,7 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '注册失败');
             alert('注册成功！请登录。');
-            Switch(false);
+            Switch(); // 切换回登录界面
         } else {
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
@@ -84,16 +84,14 @@ const targetImage = [
 const target_i = ref(0);
 const isAnimating = ref(false);
 
-const Switch = (value) => {
-    if (value) {
-        isRegister.value = true;
-        isLogin.value = false;
-    } 
-    else {
-        isLogin.value = true;
-        isRegister.value = false;
-    }
-    target_i.value = (target_i.value + 2) % (targetImage.length - 1)
+const Switch = () => {
+    isLogin.value = !isLogin.value;
+    isRegister.value = !isRegister.value;
+    target_i.value = (target_i.value + 2) % (targetImage.length - 1);
+    // 清空表单数据
+    FormModel.value.username = '';
+    FormModel.value.password = '';
+    FormModel.value.RePassword = '';
 }
 
 const RightImage = () => {
@@ -180,8 +178,7 @@ const goHome = () => {
 
             <div class="loginbox">
                 <form @submit.prevent="submitForm">
-                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
-                    <Transition name="fade" mode="out-in">
+                    <Transition name="form-fade" mode="out-in">
                         <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
 
@@ -190,30 +187,30 @@ const goHome = () => {
                     <label class="input-name">Password:</label>
                     <input type="password" v-model="FormModel.password" required></input>
                     
-                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
-                    <Transition name="fade" mode="out-in">
-                        <label v-if="isRegister" class="input-name">RePassword:</label>
-                    </Transition>
-                    <Transition name="fade" mode="out-in">
-                        <input v-if="isRegister" type="password" v-model="FormModel.RePassword" required></input>
-                    </Transition>
+                    <div class="repassword-container">
+                        <Transition name="form-fade" mode="out-in">
+                            <div v-if="isRegister" class="repassword-content">
+                                <label class="input-name">RePassword:</label>
+                                <input type="password" v-model="FormModel.RePassword" required></input>
+                            </div>
+                        </Transition>
+                    </div>
                     
-                    <!-- [优化] 添加 mode="out-in" 解决动画残影 -->
-                    <Transition name="fade" mode="out-in">
+                    <Transition name="form-fade" mode="out-in">
                         <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
+
+                <!-- [UI优化] 切换提示文字，在移动端变为可点击按钮 -->
+                <div class="switch-prompt" @click="Switch">
+                    <Transition name="form-fade" mode="out-in">
+                        <p v-if="isLogin" key="to-register">还没有账户？<span class="link">立即注册</span></p>
+                        <p v-else key="to-login">已有账户？<span class="link">立即登录</span></p>
+                    </Transition>
+                </div>
             </div>
             
-            <!-- [新增] 切换提示文字 -->
-            <div class="switch-prompt">
-                <Transition name="fade" mode="out-in">
-                    <p v-if="isLogin" key="login-prompt">点击旁边的吉他，前往注册</p>
-                    <p v-else key="register-prompt">点击旁边的吉他，返回登录</p>
-                </Transition>
-            </div>
-            
-            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch(isLogin)"></img>
+            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch"></img>
             
             <div class="ribbons"></div>
         </div>
@@ -222,7 +219,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* CSS 保持不变... */
+/* CSS 保持不变...除了下面的优化部分 */
 .main {
     display: flex;
     align-items: center;
@@ -361,7 +358,9 @@ const goHome = () => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center; /* [UI优化] 居中对齐所有子元素 */
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
+    position: relative; /* [UI优化] 为了定位子元素 */
 }
 
 
@@ -381,17 +380,14 @@ form {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
     width: 100%;
-    min-height: 220px;
 }
 
 h2 {
     font-family: 'Brush-Script-MT';
     font-size: 3em;
     font-weight: bolder;
-    position: absolute;
-    top: 10%;
+    margin-bottom: 20px; /* [UI优化] 统一边距 */
 }
 
 input {
@@ -400,6 +396,7 @@ input {
     border-bottom: 1px solid black;
     font-size: 1.2em;
     background: transparent;
+    margin-bottom: 10px; /* [UI优化] 统一边距 */
 }
 
 input:focus {
@@ -417,7 +414,22 @@ button:focus {
     width: 60%;
     text-align: left;
     font-size: 20px;
-    position: relative;
+}
+
+/* [动画优化] 固定高度，防止跳动 */
+.repassword-container {
+    height: 70px; 
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+.repassword-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 button {
@@ -427,27 +439,23 @@ button {
     width: auto;
     height: auto;
     font-family: 'Note-Script-SemiBold-2';
-    position: absolute;
-    top: 70%;
     cursor: pointer;
+    margin-top: 20px; /* [UI优化] 统一边距 */
 }
 
-/* [新增] 切换提示文字样式 */
+/* [UI优化] 切换提示文字样式 */
 .switch-prompt {
-    position: absolute;
-    top: 15%;
-    right: 5px;
-    width: 90px;
+    font-size: 14px;
+    color: #888;
+    margin-top: 15px;
+    cursor: pointer;
     text-align: center;
-    font-size: 12px;
-    color: #666;
-    z-index: 2;
-    pointer-events: none; /* 让鼠标可以穿透文字，不会影响点击 */
 }
-.switch-prompt p {
-    margin: 0;
+.switch-prompt .link {
+    color: #ec407a;
+    text-decoration: underline;
+    font-weight: bold;
 }
-
 
 .switch-login {
     position: absolute;
@@ -476,19 +484,21 @@ button {
     color: #ff3aa0bc;
 }
 
-
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.5s ease; /* 动画优化：只对opacity进行过渡，移除transform */
+/* [动画优化] 使用更平滑的过渡效果 */
+.form-fade-enter-active,
+.form-fade-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
-
-.fade-enter-from,
-.fade-leave-to { 
+.form-fade-enter-from,
+.form-fade-leave-to {
     opacity: 0;
+    transform: translateY(10px);
 }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
-    .left, .right {
+    .left, .right, .target, .targetbox, .switch-login, .ribbons {
         display: none;
     }
     .box {
@@ -499,9 +509,6 @@ button {
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         border-radius: 10px;
     }
-    .target, .targetbox, .switch-prompt { /* [新增] 在移动端隐藏提示文字 */
-        display: none;
-    }
     .loginbox {
         width: 100%;
         height: 100%;
@@ -509,9 +516,8 @@ button {
         border-radius: 10px;
     }
     form {
-        gap: 15px;
         justify-content: center;
-        height: 100%;
+        height: auto;
     }
     input, .input-name {
         width: 80%;
@@ -530,9 +536,9 @@ button {
         border-radius: 8px;
         font-size: 1.2em;
     }
-    .switch-login {
-        top: 15px;
-        right: 15px;
+    .switch-prompt { /* [UI优化] 确保在移动端显示并有足够间距 */
+        display: block;
+        margin-top: 30px;
     }
     .close-login {
         width: 10%;
