@@ -39,7 +39,12 @@ onMounted(() => { const boxesContainers = document.querySelectorAll('.boxes'); b
     .scroll-container { height: 150px; margin-top: 10px; }
     .boxes { margin-top: 15px; gap: 10px; }
     .box { width: 120px; height: 120px; }
-    .box:hover { width: 120px; transform: scale(1.05) rotateY(0); }
-    .boxes-backward .box:hover { transform: scale(1.05) rotateY(0); }
+    .box:hover {
+        width: 200px; /* <<< 修改在这里：将 120px 改为 200px */
+        transform: scale(1.05) rotateY(0);
+    }
+    .boxes-backward .box:hover {
+        transform: scale(1.05) rotateY(0);
+    }
 }
 </style>
