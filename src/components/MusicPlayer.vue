@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from 'vue';
 
 // 您的后端API地址
-const API_BASE_URL = 'https://login.bocchi.us.kg';
+const API_BASE_URL = 'https://login.kessoku.us.kg';
 
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
