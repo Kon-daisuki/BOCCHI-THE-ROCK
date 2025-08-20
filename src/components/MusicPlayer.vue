@@ -55,26 +55,20 @@ const switchStatu = () => {
     }
 };
 
-// [最终修复] 重构 switchMusic 函数，使其逻辑更清晰、更健壮
 const switchMusic = (direction) => {
     if (!activeItem.value) return;
-
     const currentIndex = musics.findIndex(music => music.name === activeItem.value.name);
-    
     if (currentIndex === -1) {
         activeItem.value = musics[0];
         return;
     }
-
     let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1;
-
     if (nextIndex >= musics.length) {
         nextIndex = 0;
     }
     if (nextIndex < 0) {
         nextIndex = musics.length - 1;
     }
-
     activeItem.value = musics[nextIndex];
 };
 
@@ -82,10 +76,8 @@ watch(activeItem, (newItem) => {
     player.value.pause();
     musicProgress.value = 0; 
     player.value.currentTime = 0;
-    
     player.value.src = newItem.src;
     updateMediaSession(newItem);
-    
     if (playStatu.value === 1) {
         player.value.play();
     }
@@ -108,7 +100,7 @@ watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; })
 
 player.value.addEventListener('ended', () => {
     playStatu.value = 1;
-    switchMusic('next'); // 使用新的调用方式
+    switchMusic('next');
 });
 
 const toggleLike = async () => {
@@ -215,7 +207,6 @@ onMounted(async () => {
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
-                console.warn('Token validation failed. User logged out.');
             }
         } catch (error) {
             console.error('获取收藏列表失败:', error);
@@ -235,7 +226,6 @@ onMounted(async () => {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
-        // [最终修复] 更新这里的调用方式
         navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); });
         navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); });
     }
@@ -255,28 +245,17 @@ onMounted(async () => {
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
-                        
                         <div class="control-panel">
-                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
-                                <img src="/assets/images/icon_like.png" />
-                            </span>
-                            <span @click="playWeightedRandom">
-                                <img src="/assets/images/icon_mode.png" />
-                            </span>
-                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv">
-                                <img src="/assets/images/icon_mv.png" />
-                            </span>
+                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
+                            <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
+                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
                         </div>
-
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        
-                        <!-- [最终修复] 更新这里的 @click 事件 -->
                         <div class="btn-bar">
                             <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
                             <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
                             <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -323,13 +302,8 @@ onMounted(async () => {
 .volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
 .control-panel { display: flex; align-items: center; gap: 30px; }
 .control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
-.control-panel .mv-icon.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-.control-panel .mv-icon.disabled:hover img {
-    transform: none;
-}
+.control-panel .mv-icon.disabled { opacity: 0.4; cursor: not-allowed; }
+.control-panel .mv-icon.disabled:hover img { transform: none; }
 .music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
 .current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
 .music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
@@ -344,6 +318,26 @@ onMounted(async () => {
 .mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
+
+/* --- 新增平板样式 --- */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .player-container {
+        /* [关键修复] 移除最小宽度限制，使其能适应平板尺寸 */
+        min-width: 95%;
+        width: 95%;
+        height: 85vh;
+        min-height: 550px;
+    }
+    .player-select { width: 40%; }
+    .player { width: 60%; padding: 20px; }
+    .player-bg { width: 220px; height: 220px; }
+    .album-image { width: 160px; height: 160px; }
+    .music-info h2 { font-size: 20px; }
+    .music-info p { font-size: 14px; }
+    .btn-bar div:nth-child(2) img { width: 45px; }
+}
+/* --- 平板样式结束 --- */
+
 @media (max-width: 768px) {
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
     .player-select { width: 100%; height: 30%; flex-shrink: 0; }
@@ -356,9 +350,7 @@ onMounted(async () => {
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
 }
 
-/* [新增] 收藏按钮激活后的样式 */
 .control-panel .like-btn.liked img {
-    /* 使用滤镜将图标变为红色 */
     filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%);
 }
 </style>
