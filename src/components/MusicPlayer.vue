@@ -289,28 +289,42 @@ onMounted(async () => {
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
 
-/* --- [核心修改] --- */
+/* --- [最终美学修复方案] --- */
 .player {
   width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box;
-  /* 1. 这是为不支持 backdrop-filter 的浏览器准备的后备方案 */
-  background-color: rgba(255, 255, 255, 0.6); 
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
   box-shadow: 2px 2px 5px #666; z-index: 1;
 }
 .player-bg {
   width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%;
-  /* 2. 这是为不支持 backdrop-filter 的浏览器准备的后备方案 */
-  background-color: rgba(255, 255, 255, 0.8);
-  position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused);
+  /* [修改] 移除背景色，因为它会被伪元素完全替代 */
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  animation: albums_rotate 15s infinite linear;
+  animation-play-state: var(--animation-state, paused);
 }
-/* 3. 使用 @supports 规则，如果浏览器支持，就覆盖上面的后备方案 */
+/* [新增] “垫片”伪元素，用于创建完美圆形光晕 */
+.player-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  /* 优雅降级的、更美观的径向渐变背景 */
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
+  z-index: 1; /* 确保它在最底层 */
+}
 @supports (backdrop-filter: blur(1rem)) or (-webkit-backdrop-filter: blur(1rem)) {
   .player {
-    background-color: transparent; /* 背景设为透明，让 backdrop-filter 生效 */
+    background-color: transparent;
     backdrop-filter: blur(2rem);
     -webkit-backdrop-filter: blur(2rem);
   }
-  .player-bg {
-    background-color: rgba(255, 255, 255, 0.3); /* 使用一个更透明的白色来配合模糊效果 */
+  .player-bg::before {
+    /* [修改] 在支持的浏览器上，让垫片更透明以配合毛玻璃效果 */
+    background-color: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
   }
@@ -318,7 +332,12 @@ onMounted(async () => {
 /* --- [修改结束] --- */
 
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
-.album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
+.album-image { 
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); 
+  transition: all 0.4s ease;
+  z-index: 2; /* [新增] 确保专辑图在“垫片”伪元素之上 */
+}
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
 .music-info h2 { margin: 0 0 8px 0; font-size: 24px; color: #333; font-weight: 600; }
 .music-info p { margin: 0; font-size: 16px; color: #777; }
@@ -346,7 +365,6 @@ onMounted(async () => {
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 
-/* (这些是我们之前添加的响应式代码，保持不变) */
 @media (min-width: 769px) and (max-width: 1024px) { .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } .player-select { width: 40%; } .player { width: 60%; padding: 20px; } .player-bg { width: 220px; height: 220px; } .album-image { width: 160px; height: 160px; } .music-info h2 { font-size: 20px; } .music-info p { font-size: 14px; } .btn-bar div:nth-child(2) img { width: 45px; } }
 @media (max-width: 768px) { .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } .player-select { width: 100%; height: 30%; flex-shrink: 0; } .player { width: 100%; height: 70%; padding: 15px; } .now-playing { justify-content: space-around; } .player-bg { width: 180px; height: 180px; } .album-image { width: 120px; height: 120px; } .music-info h2 { font-size: 18px; } .music-info p { font-size: 14px; } .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } }
 
