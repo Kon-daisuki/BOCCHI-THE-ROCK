@@ -46,6 +46,55 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 .producer-scale:hover { transform: scale(1.2); }
 .producer-name { position: absolute; top: 0; left: 70%; font-family: 'Note-Script-SemiBold-2'; font-size: 1.5em; }
 .producer-drc { position: absolute; text-align: left; width: 800%; height: auto; top: 27%; left: 130%; font-size: 1.2em; font-family: '宋体'; }
+
+/* --- 新增平板样式 --- */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .head { height: 25vh; }
+    .label1 { font-size: 3em; }
+    .label2 { font-size: 1.2em; }
+    .container-producer {
+        position: relative;
+        top: -10%;
+        width: 85%;
+        display: grid; /* 使用Grid布局 */
+        grid-template-columns: repeat(2, 1fr); /* 创建两列 */
+        gap: 50px 20px; /* 定义行和列的间距 */
+    }
+    .producer-label {
+        position: relative;
+        text-align: center;
+        grid-column: 1 / -1; /* 让标题横跨两列 */
+        margin-bottom: 20px;
+    }
+    .producer-item {
+        position: relative; /* 移除绝对定位 */
+        width: 100%;
+        left: auto; top: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .producer-item:nth-child(n) { top: auto; } /* 重置所有 item 的 top 属性 */
+    .producer-scale {
+        width: 100px;
+        height: 100px;
+    }
+    .producer-name {
+        position: static; /* 移除绝对定位 */
+        margin-top: 10px;
+        font-size: 1.3em;
+    }
+    .producer-drc {
+        position: static; /* 移除绝对定位 */
+        width: 100%;
+        font-size: 1em;
+        text-align: center;
+        margin-top: 8px;
+        padding: 0 15px;
+    }
+}
+/* --- 平板样式结束 --- */
+
 @media (max-width: 768px) {
     .head { height: 20vh; min-height: 180px; }
     .label1 { font-size: 2.2em; top: 30%; }
