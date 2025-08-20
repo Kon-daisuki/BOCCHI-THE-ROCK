@@ -1,4 +1,7 @@
 站在巨人的肩膀上，完成了对移动端的适配，对交互做了改动！
-#一键部署
-
-[![Deploy to Cloudflare Pages](https://github.com/cloudflare/pages-action/blob/main/deploy-to-pages-button.svg)](https://dash.cloudflare.com/pages/new?repository=https://github.com/agtypec/BOCCHI-THE-ROCK)
+一键部署
+<p align="center">
+  <a href="https://dash.cloudflare.com/pages/new?repository=https://github.com/agtype/BOCCHI-THE-ROCK">
+    <img src="https://raw.githubusercontent.com/agtype/agtype.github.io/main/img/cf_pages_icon.png" alt="Deploy to Cloudflare Pages" width="150px">
+  </a>
+</p>
