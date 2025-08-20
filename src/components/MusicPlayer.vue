@@ -241,21 +241,38 @@ onMounted(async () => {
             </div>
             <div class="player">
                 <div class="now-playing">
-                    <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }"><img :src="activeItem.image" :alt="activeItem.name" class="album-image" /></div>
+                    <!-- [核心修改] 添加了一个包裹层来隔离Flexbox的渲染Bug -->
+                    <div class="player-bg-wrapper">
+                        <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
+                            <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
+                        </div>
+                    </div>
+                    
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
+                    
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
+                        
                         <div class="control-panel">
-                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
-                            <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
-                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
+                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
+                                <img src="/assets/images/icon_like.png" />
+                            </span>
+                            <span @click="playWeightedRandom">
+                                <img src="/assets/images/icon_mode.png" />
+                            </span>
+                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv">
+                                <img src="/assets/images/icon_mv.png" />
+                            </span>
                         </div>
+
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
+                        
                         <div class="btn-bar">
                             <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
                             <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
                             <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -271,7 +288,7 @@ onMounted(async () => {
 
 <style scoped>
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
-.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.65); /* 稍微调整透明度以获得更好质感 */ border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.65); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
 .note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
 @keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
@@ -289,37 +306,32 @@ onMounted(async () => {
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
 
-/* --- [最终美学修复方案] --- */
-.player {
-  width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box;
-  /* 使用一个微妙的渐变增加质感，适用于所有浏览器 */
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
-  box-shadow: 2px 2px 5px #666; z-index: 1;
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: 2px 2px 5px #666; z-index: 1; }
+
+/* --- [终极Bug修复] --- */
+/* 1. 新增的包裹层样式 */
+.player-bg-wrapper {
+  /* 它的作用是作为一个稳定的容器，让内部的唱片不受Flex影响 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .player-bg {
-  width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%;
+  width: 280px; height: 280px; 
+  /* [关键] 移除 aspect-ratio，因为它在旧浏览器中可能导致问题 */
+  border-radius: 50%;
   position: relative;
-  /* 1. 使用径向渐变模拟黑胶唱片的光泽 */
   background: radial-gradient(circle at center, #4a4a4a, #2c2c2c);
-  /* 2. 使用内外阴影组合，模拟唱片凹槽和立体感 */
-  box-shadow: 
-    inset 0 0 15px rgba(0,0,0,0.6), /* 内阴影，模拟凹槽深度 */
-    inset 0 0 5px rgba(255,255,255,0.1), /* 内高光，模拟边缘反光 */
-    0 0 20px rgba(0, 0, 0, 0.4); /* 外阴影，让唱片浮起来 */
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4);
   animation: albums_rotate 15s infinite linear;
   animation-play-state: var(--animation-state, paused);
+  /* [关键] 明确告诉浏览器，这个元素绝不允许被压缩 */
+  flex-shrink: 0;
 }
-/* 3. 我们不再需要 @supports 或 backdrop-filter，因为这个设计在所有地方都一样完美 */
-/* --- [修改结束] --- */
+/* --- [修复结束] --- */
 
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
-.album-image { 
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; 
-  /* 增强专辑图的阴影，使其在深色背景上更突出 */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); 
-  transition: all 0.4s ease;
-  z-index: 2;
-}
+.album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); transition: all 0.4s ease; z-index: 2; }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
 .music-info h2 { margin: 0 0 8px 0; font-size: 24px; color: #333; font-weight: 600; }
 .music-info p { margin: 0; font-size: 16px; color: #777; }
@@ -347,8 +359,29 @@ onMounted(async () => {
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 
-@media (min-width: 769px) and (max-width: 1024px) { .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } .player-select { width: 40%; } .player { width: 60%; padding: 20px; } .player-bg { width: 220px; height: 220px; } .album-image { width: 160px; height: 160px; } .music-info h2 { font-size: 20px; } .music-info p { font-size: 14px; } .btn-bar div:nth-child(2) img { width: 45px; } }
-@media (max-width: 768px) { .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } .player-select { width: 100%; height: 30%; flex-shrink: 0; } .player { width: 100%; height: 70%; padding: 15px; } .now-playing { justify-content: space-around; } .player-bg { width: 180px; height: 180px; } .album-image { width: 120px; height: 120px; } .music-info h2 { font-size: 18px; } .music-info p { font-size: 14px; } .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } }
+/* 响应式代码保持不变，但因为包裹层的存在，现在在所有浏览器上都表现一致 */
+@media (min-width: 769px) and (max-width: 1024px) { 
+    .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } 
+    .player-select { width: 40%; } 
+    .player { width: 60%; padding: 20px; } 
+    .player-bg { width: 220px; height: 220px; } 
+    .album-image { width: 160px; height: 160px; } 
+    .music-info h2 { font-size: 20px; } 
+    .music-info p { font-size: 14px; } 
+    .btn-bar div:nth-child(2) img { width: 45px; } 
+}
+@media (max-width: 768px) { 
+    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
+    .player-select { width: 100%; height: 30%; flex-shrink: 0; } 
+    .player { width: 100%; height: 70%; padding: 15px; } 
+    .now-playing { justify-content: space-around; } 
+    .player-bg-wrapper { margin-top: 15px; } /* 在手机端给唱片顶部一点空间 */
+    .player-bg { width: 180px; height: 180px; } 
+    .album-image { width: 120px; height: 120px; } 
+    .music-info h2 { font-size: 18px; } 
+    .music-info p { font-size: 14px; } 
+    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
+}
 
 .control-panel .like-btn.liked img { filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%); }
 </style>
