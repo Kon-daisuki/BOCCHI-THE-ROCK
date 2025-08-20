@@ -34,37 +34,40 @@ onMounted(() => { const boxesContainers = document.querySelectorAll('.boxes'); b
 .boxes:hover { animation-play-state: paused; }
 .boxes-backward .box { transform: perspective(100px) rotateY(15deg); }
 .boxes-backward .box:hover { transform: scale(1.1); }
+
 /* --- 新增平板样式 --- */
-/* 适用于屏幕宽度在 769px 到 1024px 之间的设备 */
 @media (min-width: 769px) and (max-width: 1024px) {
     .scroll-container {
-        height: 200px; /* 行高调整为中间值 */
+        height: 200px;
         margin-top: 15px;
     }
     .boxes {
-        margin-top: 30px; /* 顶部边距调整 */
-        gap: 15px; /* 间距调整 */
+        margin-top: 30px;
+        gap: 15px;
     }
     .box {
-        width: 160px; /* 图片尺寸调整为中间值 */
+        width: 160px;
         height: 160px;
     }
     .box:hover {
-        width: 240px; /* 悬停时放大尺寸也相应调整 */
+        width: 240px;
     }
 }
 /* --- 平板样式结束 --- */
+
 @media (max-width: 768px) {
     .container { padding-top: 0; }
     .scroll-container { height: 150px; margin-top: 10px; }
     .boxes { margin-top: 15px; gap: 10px; }
     .box { width: 120px; height: 120px; }
     .box:hover {
-        width: 200px; /* <<< 修改在这里：将 120px 改为 200px */
+        width: 200px;
         transform: scale(1.05) rotateY(0);
     }
     .boxes-backward .box:hover {
         transform: scale(1.05) rotateY(0);
     }
 }
-</style>
+</style>```
+
+现在您已经拥有了两个组件的完整且已适配平板的代码。替换完成后，请再次尝试部署，这次应该就不会有任何问题了！
