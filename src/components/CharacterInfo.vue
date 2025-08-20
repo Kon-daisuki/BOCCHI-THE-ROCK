@@ -1,39 +1,8 @@
-<!-- 
-    @Author: Sudoria
-    [最终完美交付版 - 艺术性氛围光效背景]
--->
-<script setup>
-import { ref } from 'vue';
-const characters = [ { name: '后藤一里', romaji: 'GOTOU  HITORI  ', instrument: 'Gt.', cv: '青山吉能', cv_romaji: 'Yoshino Aoyama', color: '#d65484', line: ['​绝对不要！','​不想工作！！','好可怕！社会好可怕！！'], desc: '极度怕生、性格内向的高中一年级学生。是结束乐队的吉他主奏。虽然性格内向，却因憧憬能在乐队活动中闪闪发光而开始学习吉他。实力是货真价实的，但无法在乐队演出或人前好好发挥。每次开口说话前必定会先冒出一声“啊…”。' }, { name: '伊地知虹夏', romaji: 'IJICHI  NIJIKA  ', instrument: 'Dr.', cv: '铃代纱弓', cv_romaji: 'Sayumi Sazushiro', color: '#f9b000', line: ['我的梦想','或许在不远的将来','就能实现...'], desc: '活力满满、开朗的高中二年级学生，结束乐队的鼓手。作为乐队核心成员，总是热心地照顾每位新加入的伙伴。她是Livehouse「STARRY」店长星歌的妹妹，对这家Livehouse怀有特殊的感情。' }, { name: '山田凉', romaji: 'YAMADA  RYO  ', instrument: 'Ba.', cv: '水野朔', cv_romaji: 'Saku Mizuno', color: '#99d6f1', line: ['分散各异的人类个性','汇聚在一起','便成为了一种音乐'], desc: '孤高冷静的高中二年级学生，结束乐队的贝斯手。虹夏的挚友。兴趣爱好脱离世俗，被人称作“怪人”反而会开心。虽然家境优渥，但在乐器上挥霍无度，总是陷入经济危机。偶尔会靠吃杂草充饥' }, { name: '喜多郁代', romaji: 'KITA  IKUYO  ', instrument: 'Gt.Vo.', cv: '长谷川育美', cv_romaji: 'Ikumi Hasegawa', color: '#ce2525', line: ['如果这么厉害的后藤同学','愿意教导我的话','或许就能提起干劲了…'], desc: '开朗受欢迎的高中一年级学生，结束乐队的主唱兼吉他手。天生擅长交际，即使初次见面也能毫不怯场地笑着搭话，是典型的现充。对凉抱有憧憬之情，偶尔会因这份感情过度热情。经常给伊地知星歌（イソスタ）发送照片。' } ];
-const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const getPostImage = (name) => `/assets/images/海报_${name}.png`; const activeItem = ref(characters[0]); const lastItem = ref(activeItem); const switchItem = (index) => { lastItem.value = activeItem; activeItem.value = characters[index]; };
-</script>
-
-<template>
-    <!-- [最终修复] 现在背景会根据角色颜色动态生成光效 -->
-    <div class="bg" :style="{ '--highlight-color': activeItem.color }">
-        <div class="info-container">
-            <div class="left-part" :style="{ '--highlight-color': activeItem.color, '--last-highlight-color': lastItem.color }"><Transition name="wait" mode="out-in"><img :key="activeItem.name" :src="getPostImage(activeItem.name)"></Transition><transition name="slip" mode="out-in"><div class="box-cover" :key="activeItem.name"></div></transition></div>
-            <div class="right-part">
-                <div class="character-line" :style="{ '--highlight-color': activeItem.color }"><p v-for="(e, index) in activeItem.line" :key="index">{{ e }}</p></div>
-                <div class="character-head"><img :src="'/assets/images/大头_' + activeItem.name + '.webp'" /></div>
-                <div class="instrument-content" :style="{ left: activeItem.name === '喜多郁代' ? '10%' : '60%' }">{{ activeItem.instrument }}</div>
-                <div class="line-container"><div class="romaji-line" :style="{ '--highlight-color': activeItem.color }"><div class="scroll-wrapper"><div class="scroll-romaji" v-for="i in 2" :key="i"><span v-for="i in 16">{{ activeItem.romaji }}</span></div></div></div><span class="name-line" :style="{ '--highlight-color': activeItem.color }">{{ activeItem.name }}</span></div>
-                <div class="character-desc" :style="{ '--highlight-color': activeItem.color }">
-                    <div><span class="cv-logo">CV</span><span class="cv-name">{{ activeItem.cv }}</span></div><span class="cv-instrument">{{ activeItem.instrument }}</span>
-                    <div class="cv-info"><div class="cv-romaji">{{ activeItem.romaji }} / CV {{ activeItem.cv_romaji }}</div></div>
-                    <div class="desc-content">{{ activeItem.desc }}</div>
-                </div>
-                <transition name="fade" appear><div :key="activeItem.name" class="character-image"><img :src="getCharacterImage(activeItem.name)" /></div></transition>
-                <div class="logo"><img src="/assets/images/logo_movie.svg" /></div>
-            </div>
-            <div class="select-part"><ul><li v-for="(character, i) in characters" :key="character.name" @click="switchItem(i)" :class="{ 'selected': activeItem.name === character.name }" :style="{ '--highlight-color': character.color }"><img :src="getPostImage(character.name)" /></li></ul></div>
-        </div>
-    </div>
-</template>
-
 <style scoped>
 .bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #141414; }
 .info-container { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; }
+
+/* --- 默认桌面端样式 --- */
 .left-part { position: relative; overflow: hidden; }
 .left-part img { height: 100%; }
 .box-cover { position: absolute; left: -100%; top: 0; height: 100%; width: 100%; background-color: var(--highlight-color); }
@@ -64,33 +33,60 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease, transform 0.5s ease; } .fade-enter-from { opacity: 0; transform: translateY(20px); } .fade-leave-to { opacity: 0; transform: translateY(-20px); }
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
-@media (max-width: 768px) {
-    /* --- [最终艺术性调整] --- */
-    .bg {
-        /* 创建一个伪元素作为背景层 */
-        position: relative;
-        z-index: 0;
-    }
-    .bg::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        /* 使用角色的主题色创建柔和的圆形渐变光效 */
-        background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--highlight-color) 25%, transparent), transparent 70%);
-        z-index: -1; /* 确保光效在最底层 */
-        transition: background 0.5s ease; /* 让颜色切换更平滑 */
-    }
-    /* --- 调整结束 --- */
 
+/* --- 新增平板样式 --- */
+/* 适用于屏幕宽度在 769px 到 1024px 之间的设备 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .left-part {
+        display: none; /* 在平板上隐藏左侧海报图，为右侧内容腾出空间 */
+    }
+    .right-part {
+        flex-basis: 100%; /* 让右侧部分占据全部宽度 */
+    }
+    .character-image img {
+        height: 85vh; /* 稍微缩小人物立绘 */
+        left: 45%; /* 调整立绘位置，使其更居中 */
+    }
+    .character-desc {
+        width: 45%; /* 增加描述文字区域的宽度 */
+        left: 2%; /* 调整位置 */
+        top: 55%;
+        font-size: 0.9em; /* 适当缩小字体 */
+    }
+    .character-line {
+        font-size: 1.2em; /* 缩小台词字体 */
+        padding: 20px;
+        left: 2%;
+    }
+    .line-container {
+        height: 18vh; /* 调整滚动文字容器高度 */
+    }
+    .name-line {
+        font-size: 2.5rem; /* 调整名字大小 */
+    }
+    .instrument-content, .character-head, .logo {
+        display: none; /* 隐藏一些装饰性元素，避免拥挤 */
+    }
+    .select-part {
+        left: 50%;
+        transform: translateX(-50%); /* 将选择器移动到中间 */
+        bottom: 10px;
+    }
+    .select-part li { width: 60px; height: 60px; }
+    .select-part li.selected, .select-part li:hover { width: 75px; height: 75px; }
+}
+/* --- 平板样式结束 --- */
+
+
+/* --- 您的手机端样式 (保持不变) --- */
+@media (max-width: 768px) {
+    .bg { position: relative; z-index: 0; }
+    .bg::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--highlight-color) 25%, transparent), transparent 70%); z-index: -1; transition: background 0.5s ease; }
     .info-container { padding-bottom: 10px; }
     .left-part { display: none; }
     .right-part { width: 100%; }
     .character-image { z-index: 2; }
     .character-image img { height: 70vh; object-fit: contain; }
-    /* [关键] 彻底移除手机端诡异的背景图 */
     .character-head, .character-line, .instrument-content, .logo { display: none; }
     .line-container { top: auto; bottom: 95px; transform: none; height: auto; z-index: 10; }
     .name-line { font-size: 1.8rem; text-indent: 1em; }
