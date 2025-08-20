@@ -288,9 +288,36 @@ onMounted(async () => {
 .music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
-.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; backdrop-filter: blur(2rem); box-shadow: 2px 2px 5px #666; z-index: 1; }
+
+/* --- [核心修改] --- */
+.player {
+  width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box;
+  /* 1. 这是为不支持 backdrop-filter 的浏览器准备的后备方案 */
+  background-color: rgba(255, 255, 255, 0.6); 
+  box-shadow: 2px 2px 5px #666; z-index: 1;
+}
+.player-bg {
+  width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%;
+  /* 2. 这是为不支持 backdrop-filter 的浏览器准备的后备方案 */
+  background-color: rgba(255, 255, 255, 0.8);
+  position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused);
+}
+/* 3. 使用 @supports 规则，如果浏览器支持，就覆盖上面的后备方案 */
+@supports (backdrop-filter: blur(1rem)) or (-webkit-backdrop-filter: blur(1rem)) {
+  .player {
+    background-color: transparent; /* 背景设为透明，让 backdrop-filter 生效 */
+    backdrop-filter: blur(2rem);
+    -webkit-backdrop-filter: blur(2rem);
+  }
+  .player-bg {
+    background-color: rgba(255, 255, 255, 0.3); /* 使用一个更透明的白色来配合模糊效果 */
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+}
+/* --- [修改结束] --- */
+
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
-.player-bg { width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%; background-color: #fff; position: relative; box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); animation: albums_rotate 15s infinite linear; backdrop-filter: blur(3px); animation-play-state: var(--animation-state, paused); }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.4s ease; }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
 .music-info h2 { margin: 0 0 8px 0; font-size: 24px; color: #333; font-weight: 600; }
@@ -319,38 +346,9 @@ onMounted(async () => {
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 
-/* --- 新增平板样式 --- */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .player-container {
-        /* [关键修复] 移除最小宽度限制，使其能适应平板尺寸 */
-        min-width: 95%;
-        width: 95%;
-        height: 85vh;
-        min-height: 550px;
-    }
-    .player-select { width: 40%; }
-    .player { width: 60%; padding: 20px; }
-    .player-bg { width: 220px; height: 220px; }
-    .album-image { width: 160px; height: 160px; }
-    .music-info h2 { font-size: 20px; }
-    .music-info p { font-size: 14px; }
-    .btn-bar div:nth-child(2) img { width: 45px; }
-}
-/* --- 平板样式结束 --- */
+/* (这些是我们之前添加的响应式代码，保持不变) */
+@media (min-width: 769px) and (max-width: 1024px) { .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } .player-select { width: 40%; } .player { width: 60%; padding: 20px; } .player-bg { width: 220px; height: 220px; } .album-image { width: 160px; height: 160px; } .music-info h2 { font-size: 20px; } .music-info p { font-size: 14px; } .btn-bar div:nth-child(2) img { width: 45px; } }
+@media (max-width: 768px) { .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } .player-select { width: 100%; height: 30%; flex-shrink: 0; } .player { width: 100%; height: 70%; padding: 15px; } .now-playing { justify-content: space-around; } .player-bg { width: 180px; height: 180px; } .album-image { width: 120px; height: 120px; } .music-info h2 { font-size: 18px; } .music-info p { font-size: 14px; } .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } }
 
-@media (max-width: 768px) {
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; }
-    .player-select { width: 100%; height: 30%; flex-shrink: 0; }
-    .player { width: 100%; height: 70%; padding: 15px; }
-    .now-playing { justify-content: space-around; }
-    .player-bg { width: 180px; height: 180px; }
-    .album-image { width: 120px; height: 120px; }
-    .music-info h2 { font-size: 18px; }
-    .music-info p { font-size: 14px; }
-    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; }
-}
-
-.control-panel .like-btn.liked img {
-    filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%);
-}
+.control-panel .like-btn.liked img { filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%); }
 </style>
