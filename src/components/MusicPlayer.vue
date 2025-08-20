@@ -271,7 +271,7 @@ onMounted(async () => {
 
 <style scoped>
 .bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
-.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.5); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.65); /* 稍微调整透明度以获得更好质感 */ border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
 .note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
 @keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
@@ -292,51 +292,33 @@ onMounted(async () => {
 /* --- [最终美学修复方案] --- */
 .player {
   width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box;
+  /* 使用一个微妙的渐变增加质感，适用于所有浏览器 */
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
   box-shadow: 2px 2px 5px #666; z-index: 1;
 }
 .player-bg {
   width: 280px; height: 280px; aspect-ratio: 1/1; border-radius: 50%;
-  /* [修改] 移除背景色，因为它会被伪元素完全替代 */
   position: relative;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  /* 1. 使用径向渐变模拟黑胶唱片的光泽 */
+  background: radial-gradient(circle at center, #4a4a4a, #2c2c2c);
+  /* 2. 使用内外阴影组合，模拟唱片凹槽和立体感 */
+  box-shadow: 
+    inset 0 0 15px rgba(0,0,0,0.6), /* 内阴影，模拟凹槽深度 */
+    inset 0 0 5px rgba(255,255,255,0.1), /* 内高光，模拟边缘反光 */
+    0 0 20px rgba(0, 0, 0, 0.4); /* 外阴影，让唱片浮起来 */
   animation: albums_rotate 15s infinite linear;
   animation-play-state: var(--animation-state, paused);
 }
-/* [新增] “垫片”伪元素，用于创建完美圆形光晕 */
-.player-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  /* 优雅降级的、更美观的径向渐变背景 */
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
-  z-index: 1; /* 确保它在最底层 */
-}
-@supports (backdrop-filter: blur(1rem)) or (-webkit-backdrop-filter: blur(1rem)) {
-  .player {
-    background-color: transparent;
-    backdrop-filter: blur(2rem);
-    -webkit-backdrop-filter: blur(2rem);
-  }
-  .player-bg::before {
-    /* [修改] 在支持的浏览器上，让垫片更透明以配合毛玻璃效果 */
-    background-color: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-  }
-}
+/* 3. 我们不再需要 @supports 或 backdrop-filter，因为这个设计在所有地方都一样完美 */
 /* --- [修改结束] --- */
 
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .album-image { 
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); 
+  /* 增强专辑图的阴影，使其在深色背景上更突出 */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); 
   transition: all 0.4s ease;
-  z-index: 2; /* [新增] 确保专辑图在“垫片”伪元素之上 */
+  z-index: 2;
 }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
 .music-info h2 { margin: 0 0 8px 0; font-size: 24px; color: #333; font-weight: 600; }
