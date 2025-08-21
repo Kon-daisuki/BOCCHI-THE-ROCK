@@ -65,8 +65,26 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
 .slip-enter-active, .slip-leave-active { transition: left 0.5s ease, background-color 0.4s ease; } .slip-leave-to { left: 0; } .slip-leave-from { left: -100%; background-color: var(--last-hightlight-color); } .slip-enter-from { left: 0; background-color: var(--highlight-color); } .slip-enter-to { left: 100%; }
 .wait-enter-active, .wait-leave-active { transition: all 0.5s ease; }
 
-/* --- 新增平板样式 --- */
+/* --- 平板样式 --- */
 @media (min-width: 769px) and (max-width: 1024px) {
+    /* --- [核心修改] 为平板添加背景光效 --- */
+    .bg {
+        position: relative;
+        z-index: 0;
+    }
+    .bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--highlight-color) 25%, transparent), transparent 70%);
+        z-index: -1;
+        transition: background 0.5s ease;
+    }
+    /* --- [修改结束] --- */
+
     .left-part { display: none; }
     .right-part { flex-basis: 100%; }
     .character-image img { height: 85vh; left: 45%; }
@@ -79,8 +97,9 @@ const getCharacterImage = (name) => `/assets/images/立绘_${name}.png`; const g
     .select-part li { width: 60px; height: 60px; }
     .select-part li.selected, .select-part li:hover { width: 75px; height: 75px; }
 }
+/* --- 平板样式结束 --- */
 
-/* --- 手机端样式 --- */
+/* --- 手机端样式 (保持不变) --- */
 @media (max-width: 768px) {
     .bg { position: relative; z-index: 0; }
     .bg::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--highlight-color) 25%, transparent), transparent 70%); z-index: -1; transition: background 0.5s ease; }
