@@ -27,6 +27,10 @@ const playlists = {
     { index: 14, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1nV4y1w74h' },
     { index: 15, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
     { index: 16, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'BV1ik4y1s7Sf' },
+    { index: 17, name: '月並みに輝け', duration: '04:07', image: '/assets/albums/月並みに輝け - 結束バンド.jpg', src: '/assets/musics/月並みに輝け - 結束バンド.mp3', singer: '结束バンド' , bvid:'BV1wb421v7Mb' },
+    { index: 18, name: 'ドッペルゲンガー', duration: '03:39', image: '/assets/albums/ドッペルゲンガー - 結束バンド.jpg', src: '/assets/musics/ドッペルゲンガー - 結束バンド.mp3', singer: '结束バンド' , bvid:'BV1hS411w773' },
+    { index: 19, name: 'Re；Re；', duration: '05:07', image: '/assets/albums/Re；Re； - 結束バンド.jpg', src: '/assets/musics/Re；Re； - 結束バンド.mp3', singer: '结束バンド' , bvid:'BV1YDVYzeE39' },
+    { index: 20, name: '僕と三原色', duration: '03:39', image: '/assets/albums/僕と三原色 - 結束バンド.jpg', src: '/assets/musics/僕と三原色 - 結束バンド.mp3', singer: '结束バンド' , bvid:'BV1xn4y1f7GJ' },
   ],
   'バンド': [
     { index: 1, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
