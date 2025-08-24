@@ -169,38 +169,13 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
 .player-select::-webkit-scrollbar { width: 6px; }
 
-/* --- [核心修改] --- */
-/* 这是桌面/平板专用的切换器样式 */
-.playlist-switcher-desktop {
-  display: flex;
-  padding: 8px;
-  gap: 8px;
-  background-color: rgba(0,0,0,0.05);
-  border-bottom: 1px solid #e0e0e0;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-/* 这是手机专用的切换器，默认隐藏 */
-.playlist-switcher-mobile {
-  display: none;
-}
-.playlist-btn {
-  flex-grow: 1;
-  padding: 8px 12px;
-  border: 1px solid rgba(0,0,0,0.1);
-  background-color: rgba(255,255,255,0.4);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  font-weight: 500;
-  color: #555;
-}
+.playlist-switcher-desktop { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
+.playlist-switcher-mobile { display: none; }
+.playlist-btn { flex-grow: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; color: #555; }
 .playlist-btn:hover { background-color: rgba(255,255,255,0.7); }
 .playlist-btn.active { background-color: #ec407a; color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: transparent; }
 .playlist-fade-enter-active, .playlist-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .playlist-fade-enter-from, .playlist-fade-leave-to { opacity: 0; transform: translateY(10px); }
-/* --- 修改结束 --- */
 
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
@@ -208,9 +183,21 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .player-select ul li.active { background-color: #e8e8e8; border-right: 4px solid #ec407a; }
 .music-item { height: 60px; display: flex; gap: 12px; width: 100%; min-width: 0; }
 .player-select img { height: 95%; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-.music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; }
+
+/* --- [核心修复] --- */
+.music-info { 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  height: 100%; 
+  overflow: hidden;
+  /* 这行代码是关键！它修复了Flexbox的压缩Bug，让文字截断(...)能正确生效 */
+  min-width: 0;
+}
+/* --- [修复结束] --- */
+
 .music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
-.music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
+.music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 也为歌手名加上截断 */ }
 
 .player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: 2px 2px 5px #666; z-index: 1; }
 .player-bg-wrapper { display: flex; justify-content: center; align-items: center; }
@@ -253,18 +240,8 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 @media (max-width: 768px) { 
-    /* --- [核心修改] --- */
-    .playlist-switcher-desktop {
-      display: none; /* 在手机上隐藏顶部的切换器 */
-    }
-    .playlist-switcher-mobile {
-      display: flex; /* 在手机上显示播放器内部的切换器 */
-      width: 100%;
-      max-width: 250px;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
-    /* --- 调整手机端整体布局，为新切换器腾出空间 --- */
+    .playlist-switcher-desktop { display: none; }
+    .playlist-switcher-mobile { display: flex; width: 100%; max-width: 250px; margin-bottom: 10px; gap: 10px; }
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
     .player-select { width: 100%; height: 35%; flex-shrink: 0; } 
     .player { width: 100%; height: 65%; padding: 10px 15px; } 
