@@ -14,7 +14,7 @@ const playlists = {
     { index: 1, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
     { index: 2, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'BV1V84y1v766' },
     { index: 3, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
-    { index: 4, name: 'ひみつ基地', duration: '03:52', image: '/assets/albums/ひみつ基地 - 結束バンド.jpg', src: '/assets/musics/ひみつ基地 - 結束バンド.mp3', singer: '结束バンド', bvid: 'BV1zoF5ecE4v' },
+    { index: 4, name: 'ひみつ基地', duration: '03:52', image: '/assets/albums/ひみつ基地 - 結束バンド.jpg', src: '/assets/musics/ひみつ基地 - 結束バンド.mp3', singer: '结束バンド', bvid: 'BV14wkzYPEHG' },
     { index: 5, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'BV1sv4y1U7j6' },
     { index: 6, name: 'ラブソングが歌えない', duration: '03:09', image: '/assets/albums/ラブソングが歌えない - 結束バンド.jpg', src: '/assets/musics/ラブソングが歌えない - 結束バンド.mp3', singer: '结束バンド', bvid: 'BV1o24y1U7gR' },
     { index: 7, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1v24y1C735' },
