@@ -113,23 +113,9 @@ onMounted(async () => {
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
-                <!-- [新增] 歌单切换器 -->
-                <div class="playlist-switcher">
-                    <button 
-                        v-for="(_, name) in playlists" 
-                        :key="name"
-                        class="playlist-btn"
-                        :class="{ 'active': name === activePlaylistName }"
-                        @click="switchPlaylist(name)"
-                    >
-                        {{ name }}
-                    </button>
-                </div>
-
-                <!-- [核心修改] 使用 <Transition> 和 :key 来实现列表切换动画 -->
+                <!-- [核心修改] 歌单切换器已从此区域移除 -->
                 <Transition name="playlist-fade" mode="out-in">
                     <ul :key="activePlaylistName">
-                        <!-- [核心修改] 循环遍历的是计算属性 currentTracklist -->
                         <li v-for="(music, index) in currentTracklist" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
                             <div class="music-item">
                                 <img :src="music.image" :alt="music.name" />
@@ -151,6 +137,19 @@ onMounted(async () => {
                     </div>
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
+                        <!-- [核心修改] 将歌单切换器移动到这里 -->
+                        <div class="playlist-switcher">
+                            <button 
+                                v-for="(_, name) in playlists" 
+                                :key="name"
+                                class="playlist-btn"
+                                :class="{ 'active': name === activePlaylistName }"
+                                @click="switchPlaylist(name)"
+                            >
+                                {{ name }}
+                            </button>
+                        </div>
+
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
                         <div class="control-panel">
                             <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
@@ -187,22 +186,18 @@ onMounted(async () => {
 .player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
 .player-select::-webkit-scrollbar { width: 6px; }
 
-/* --- [新增] 歌单切换器样式 --- */
+/* --- [核心修改] 歌单切换器的新样式 --- */
 .playlist-switcher {
   display: flex;
-  padding: 8px;
-  gap: 8px;
-  background-color: rgba(0,0,0,0.05);
-  border-bottom: 1px solid #e0e0e0;
-  /* 让切换器固定在顶部 */
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  gap: 10px;
+  width: 100%;
+  max-width: 300px; /* 在宽屏上给一个最大宽度，避免按钮过长 */
+  margin-bottom: 15px; /* 与下方的音量条保持间距 */
 }
 .playlist-btn {
   flex-grow: 1;
   padding: 8px 12px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(0,0,0,0.1);
   background-color: rgba(255,255,255,0.4);
   border-radius: 6px;
   cursor: pointer;
@@ -212,25 +207,17 @@ onMounted(async () => {
 }
 .playlist-btn:hover {
   background-color: rgba(255,255,255,0.7);
-  border-color: rgba(0,0,0,0.1);
 }
 .playlist-btn.active {
   background-color: #ec407a;
   color: white;
   font-weight: 600;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border-color: transparent;
 }
-/* --- [新增] 歌单列表切换动画 --- */
-.playlist-fade-enter-active,
-.playlist-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.playlist-fade-enter-from,
-.playlist-fade-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
-/* --- 样式结束 --- */
+.playlist-fade-enter-active, .playlist-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.playlist-fade-enter-from, .playlist-fade-leave-to { opacity: 0; transform: translateY(10px); }
+/* --- 修改结束 --- */
 
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
@@ -247,10 +234,8 @@ onMounted(async () => {
 .player-bg { width: 280px; height: 280px; border-radius: 50%; position: relative; background: radial-gradient(circle at center, #4a4a4a, #2c2c2c); box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused); flex-shrink: 0; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); transition: all 0.4s ease; z-index: 2; }
-.music-info { text-align: center; margin-bottom: 30px; width: 100%; }
-.music-info h2 { margin: 0 0 8px 0; font-size: 24px; color: #333; font-weight: 600; }
-.music-info p { margin: 0; font-size: 16px; color: #777; }
-.player-controls { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.music-info { text-align: center; margin-bottom: 20px; } /* [修改] 减小了这里的 margin，为切换器腾出空间 */
+.player-controls { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; } /* [修改] 减小了这里的 gap，让布局更紧凑 */
 .volume-control { display: flex; align-items: center; gap: 12px; width: 60%; justify-content: center; }
 .volume-control img { width: 20px; opacity: 0.7; transition: opacity 0.2s; }
 .volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
@@ -286,16 +271,20 @@ onMounted(async () => {
 }
 @media (max-width: 768px) { 
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
-    .player-select { width: 100%; height: 40%; flex-shrink: 0; } /* [修改] 稍微增加手机端列表高度，以容纳切换器 */
-    .player { width: 100%; height: 60%; padding: 15px; } 
+    /* [核心修改] 调整手机端上下布局比例，为播放器腾出更多空间 */
+    .player-select { width: 100%; height: 35%; flex-shrink: 0; } 
+    .player { width: 100%; height: 65%; padding: 10px 15px; } 
     .now-playing { justify-content: space-around; } 
-    .player-bg-wrapper { margin-top: 15px; }
-    .player-bg { width: 180px; height: 180px; } 
-    .album-image { width: 120px; height: 120px; } 
-    .music-info h2 { font-size: 18px; } 
-    .music-info p { font-size: 14px; } 
+    .player-bg-wrapper { margin-top: 10px; }
+    .player-bg { width: 150px; height: 150px; } /* 稍微缩小唱片，让布局更和谐 */
+    .album-image { width: 100px; height: 100px; } 
+    .music-info { margin-bottom: 10px; }
+    .music-info h2 { font-size: 16px; } 
+    .music-info p { font-size: 13px; } 
+    .player-controls { gap: 10px; } /* 进一步压缩间距 */
+    .playlist-switcher { margin-bottom: 10px; }
+    .playlist-btn { font-size: 13px; padding: 6px 10px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
-    .playlist-btn { font-size: 14px; padding: 6px 10px; } /* [新增] 调整手机端切换器按钮尺寸 */
 }
 
 .control-panel .like-btn.liked img { filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%); }
