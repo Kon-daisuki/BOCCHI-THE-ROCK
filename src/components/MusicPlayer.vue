@@ -178,26 +178,35 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .playlist-fade-enter-from, .playlist-fade-leave-to { opacity: 0; transform: translateY(10px); }
 
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
-.player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
+/* [修改] 增加垂直内边距，为换行文本提供空间 */
+.player-select ul li { list-style: none; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; }
 .player-select ul li:hover { background-color: #f0f0f0; }
 .player-select ul li.active { background-color: #e8e8e8; border-right: 4px solid #ec407a; }
-.music-item { height: 60px; display: flex; gap: 12px; width: 100%; min-width: 0; }
-.player-select img { height: 95%; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+/* [修改] 让列表项高度自适应 */
+.music-item { height: auto; min-height: 60px; display: flex; gap: 12px; width: 100%; align-items: center; }
+.player-select img { height: 60px; /* 固定图片高度 */ width: 60px; /* 固定图片宽度 */ border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); flex-shrink: 0; }
+.music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; flex: 1; min-width: 0; }
 
 /* --- [核心修复] --- */
-.music-info { 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
-  height: 100%; 
-  overflow: hidden;
-  /* 这行代码是关键！它修复了Flexbox的压缩Bug，让文字截断(...)能正确生效 */
-  min-width: 0;
+/* 移除所有截断文字的样式，允许其自由换行 */
+.music-title { 
+  font-size: 16px; 
+  color: #333; 
+  font-weight: 600; 
+  line-height: 1.3; /* 调整行高，让多行文本更好看 */
+  text-align: left;
+  white-space: normal; /* 允许换行 */
+  word-break: break-word; /* 允许在单词中间换行，防止长英文溢出 */
+}
+.music-singer { 
+  font-size: 13px; 
+  color: #777; 
+  text-align: left; 
+  line-height: 1.3;
+  white-space: normal; /* 允许换行 */
+  word-break: break-word;
 }
 /* --- [修复结束] --- */
-
-.music-title { font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; text-align: left; }
-.music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 也为歌手名加上截断 */ }
 
 .player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: 2px 2px 5px #666; z-index: 1; }
 .player-bg-wrapper { display: flex; justify-content: center; align-items: center; }
