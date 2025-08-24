@@ -7,8 +7,7 @@ const API_BASE_URL = 'https://login.bocchi.us.kg';
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
 
-// --- [核心修改] 数据结构重构 ---
-// 将单一的歌曲列表，重构为包含多个歌单的对象
+// --- [修改 3] 数据结构更新 ---
 const playlists = {
   '結束バンド': [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
@@ -25,20 +24,16 @@ const playlists = {
     { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1nV4y1w74h' },
     { index: 13, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
   ],
-  'KARUT': [
-    { index: 14, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
+  'バンド': [ // <-- 歌单名已修改
+    { index: 1, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' }, // <-- index 已修改
   ]
 };
 
-// [新增] 追踪当前激活的歌单名称
 const activePlaylistName = ref('結束バンド');
-
-// [新增] 计算属性，根据激活的歌单名称，返回对应的歌曲列表
 const currentTracklist = computed(() => playlists[activePlaylistName.value]);
 
 const playerIcons = ["/assets/images/icon_play.png","/assets/images/icon_pause.png"];
 const playStatu = ref(0);
-// [修改] 当前播放歌曲，从第一个歌单的第一首歌开始
 const activeItem = ref(playlists.結束バンド[0]);
 const musicProgress = ref(0);
 const volumeProgress = ref(20);
@@ -49,46 +44,24 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// [新增] 切换歌单的函数
+// --- [修改 1] 切歌单逻辑 ---
 const switchPlaylist = (playlistName) => {
-    if (activePlaylistName.value === playlistName) return; // 如果已经是当前歌单，则不执行任何操作
+    if (activePlaylistName.value === playlistName) return;
     
-    activePlaylistName.value = playlistName;
-    // 切换歌单后，默认播放新歌单的第一首歌
-    activeItem.value = playlists[playlistName][0];
-    
-    // 切换后暂停播放，避免音乐突兀地改变
+    // 1. 暂停当前播放
     player.value.pause();
-    playStatu.value = 0;
+    playStatu.value = 0; // 更新播放状态为暂停
+
+    // 2. 切换歌单
+    activePlaylistName.value = playlistName;
+
+    // 3. 将待播歌曲设为新歌单的第一首
+    activeItem.value = playlists[playlistName][0];
 };
 
 const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
 const switchStatu = () => { if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; } else { player.value.pause(); playStatu.value = 0; } };
-
-// [核心修改] 让“上一首/下一首”只在当前歌单内循环
-const switchMusic = (direction) => {
-    if (!activeItem.value) return;
-    
-    // 使用计算属性 currentTracklist 来获取当前歌单
-    const tracklist = currentTracklist.value;
-    const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name);
-    
-    if (currentIndex === -1) {
-        activeItem.value = tracklist[0];
-        return;
-    }
-
-    let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1;
-
-    if (nextIndex >= tracklist.length) {
-        nextIndex = 0;
-    }
-    if (nextIndex < 0) {
-        nextIndex = tracklist.length - 1;
-    }
-
-    activeItem.value = tracklist[nextIndex];
-};
+const switchMusic = (direction) => { if (!activeItem.value) return; const tracklist = currentTracklist.value; const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name); if (currentIndex === -1) { activeItem.value = tracklist[0]; return; } let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1; if (nextIndex >= tracklist.length) { nextIndex = 0; } if (nextIndex < 0) { nextIndex = tracklist.length - 1; } activeItem.value = tracklist[nextIndex]; };
 
 watch(activeItem, (newItem) => {
     player.value.pause();
@@ -97,27 +70,23 @@ watch(activeItem, (newItem) => {
     player.value.src = newItem.src;
     updateMediaSession(newItem);
     if (playStatu.value === 1) {
+        // 使用 nextTick 确保DOM更新和src设置完成后再播放，更稳定
         player.value.play();
     }
 });
 
-watch(playStatu, (newVal) => {
-    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
-    if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; }
-    if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); }
-}, { immediate: true });
-
+watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; } if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); } }, { immediate: true });
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
-const toggleLike = async () => { /* ... (此函数无需修改) ... */ if (!currentUser.value) { alert('请先登录才能收藏歌曲哦！'); return; } const token = localStorage.getItem('authToken'); if (!token) { alert('登录状态失效，请重新登录！'); return; } const songName = activeItem.value.name; const newLikedSongs = new Set(likedSongs.value); if (newLikedSongs.has(songName)) { newLikedSongs.delete(songName); } else { newLikedSongs.add(songName); } likedSongs.value = newLikedSongs; try { await fetch(`${API_BASE_URL}/api/like`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ songName }), }); } catch (error) { console.error('收藏操作失败:', error); } };
+const toggleLike = async () => { if (!currentUser.value) { alert('请先登录才能收藏歌曲哦！'); return; } const token = localStorage.getItem('authToken'); if (!token) { alert('登录状态失效，请重新登录！'); return; } const songName = activeItem.value.name; const newLikedSongs = new Set(likedSongs.value); if (newLikedSongs.has(songName)) { newLikedSongs.delete(songName); } else { newLikedSongs.add(songName); } likedSongs.value = newLikedSongs; try { await fetch(`${API_BASE_URL}/api/like`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ songName }), }); } catch (error) { console.error('收藏操作失败:', error); } };
 
-// [核心修改] 让随机播放只在当前歌单内进行
+// --- [修改 2] 随机播放增强 ---
 const playWeightedRandom = () => {
+    const wasPaused = playStatu.value === 0; // 记录下按钮点击前的播放状态
+
     const weightedPool = [];
     const likedWeight = 5;
-    
-    // 使用计算属性 currentTracklist
     currentTracklist.value.forEach(song => {
         if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
@@ -126,20 +95,28 @@ const playWeightedRandom = () => {
         }
     });
 
-    if (weightedPool.length === 0) { switchMusic('next'); return; }
-    const randomIndex = Math.floor(Math.random() * weightedPool.length);
-    activeItem.value = weightedPool[randomIndex];
+    if (weightedPool.length === 0) {
+        switchMusic('next');
+    } else {
+        const randomIndex = Math.floor(Math.random() * weightedPool.length);
+        activeItem.value = weightedPool[randomIndex];
+    }
+
+    // 如果之前是暂停状态，则开始播放
+    if (wasPaused) {
+        playStatu.value = 1;
+    }
 };
 
-const updateFavicon = (iconUrl) => { /* ... (此函数无需修改) ... */ let link = document.querySelector("link[rel~='icon']"); if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); } link.href = iconUrl; };
-const updateMediaSession = (song) => { /* ... (此函数无需修改) ... */ if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.singer, album: '結束バンド', artwork: [ { src: song.image, sizes: '96x96', type: 'image/jpeg' }, { src: song.image, sizes: '128x128', type: 'image/jpeg' }, { src: song.image, sizes: '192x192', type: 'image/jpeg' }, { src: song.image, sizes: '256x256', type: 'image/jpeg' }, { src: song.image, sizes: '384x384', type: 'image/jpeg' }, { src: song.image, sizes: '512x512', type: 'image/jpeg' }, ] }); } };
+const updateFavicon = (iconUrl) => { let link = document.querySelector("link[rel~='icon']"); if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); } link.href = iconUrl; };
+const updateMediaSession = (song) => { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.singer, album: '結束バンド', artwork: [ { src: song.image, sizes: '96x96', type: 'image/jpeg' }, { src: song.image, sizes: '128x128', type: 'image/jpeg' }, { src: song.image, sizes: '192x192', type: 'image/jpeg' }, { src: song.image, sizes: '256x256', type: 'image/jpeg' }, { src: song.image, sizes: '384x384', type: 'image/jpeg' }, { src: song.image, sizes: '512x512', type: 'image/jpeg' }, ] }); } };
 const showMv = () => { if (activeItem.value.bvid) isMvVisible.value = true; };
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
-onMounted(async () => { /* ... (此函数无需修改) ... */ const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); } updateMediaSession(activeItem.value); if ('mediaSession' in navigator) { navigator.mediaSession.setActionHandler('play', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); }); navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); }); } });
+onMounted(async () => { const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); } updateMediaSession(activeItem.value); if ('mediaSession' in navigator) { navigator.mediaSession.setActionHandler('play', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); }); navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); }); } });
 </script>
 
 <template>
