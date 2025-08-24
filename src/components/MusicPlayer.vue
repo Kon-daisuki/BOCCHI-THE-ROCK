@@ -7,24 +7,32 @@ const API_BASE_URL = 'https://login.bocchi.us.kg';
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
 
+// --- [核心修改] 歌单内容更新 ---
 const playlists = {
   '結束バンド': [
-    { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
-    { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
-    { index: 3, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1v24y1C735' },
-    { index: 4, name: 'なにが悪い', duration: '03:47', image: '/assets/albums/なにが悪い.jpg', src: '/assets/musics/なにが悪い.mp3', singer: '结束バンド' , bvid:'BV1jK411o7Q5' },
-    { index: 5, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'BV1V84y1v766' },
-    { index: 6, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' , bvid:'BV1ae4y127K5' },
-    { index: 7, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'BV1sv4y1U7j6' },
-    { index: 8, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'BV1ik4y1s7Sf' },
+    // 按照官方专辑顺序排列
+    { index: 1, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
+    { index: 2, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'BV1V84y1v766' },
+    { index: 3, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
+    { index: 4, name: 'ひみつ基地', duration: '00:00', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/ひみつ基地.mp3', singer: '结束バンド', bvid: 'YOUR_BVID_HERE' },
+    { index: 5, name: 'ギターと孤独と蒼い惑星', duration: '03:48', image: '/assets/albums/ギターと孤独と蒼い惑星.jpg', src: '/assets/musics/ギターと孤独と蒼い惑星.mp3', singer: '结束バンド', bvid:'BV1sv4y1U7j6' },
+    { index: 6, name: 'ラブソングが歌えない', duration: '00:00', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/ラブソングが歌えない.mp3', singer: '结束バンド', bvid: 'YOUR_BVID_HERE' },
+    { index: 7, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1v24y1C735' },
+    { index: 8, name: 'カラカラ', duration: '04:25', image: '/assets/albums/カラカラ.jpg', src: '/assets/musics/カラカラ.mp3', singer: '结束バンド' , bvid:'BV1ae4y127K5' },
     { index: 9, name: '小さな海', duration: '03:43', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/小さな海.mp3', singer: '结束バンド' , bvid:'BV1UG4y1J7mg' },
-    { index: 10, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/忘れてやらない.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド', bvid:'BV1pM41117Yr' },
-    { index: 11, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'BV1u8411H7yA' },
-    { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1nV4y1w74h' },
-    { index: 13, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
+    { index: 10, name: 'なにが悪い', duration: '03:47', image: '/assets/albums/なにが悪い.jpg', src: '/assets/musics/なにが悪い.mp3', singer: '结束バンド' , bvid:'BV1jK411o7Q5' },
+    { index: 11, name: '忘れてやらない', duration: '03:43', image: '/assets/albums/忘れてやらない.jpg', src: '/assets/musics/忘れてやらない.mp3', singer: '结束バンド', bvid:'BV1pM41117Yr' },
+    { index: 12, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'BV1u8411H7yA' },
+    { index: 13, name: 'フラッシュバッカー', duration: '00:00', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/フラッシュバッカー.mp3', singer: '结束バンド', bvid: 'YOUR_BVID_HERE' },
+    { index: 14, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1nV4y1w74h' },
+    { index: 15, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
+    { index: 16, name: '光の中へ', duration: '04:18', image: '/assets/albums/光の中へ.jpg', src: '/assets/musics/光の中へ.mp3', singer: '结束バンド' , bvid:'BV1ik4y1s7Sf' },
   ],
   'バンド': [
     { index: 1, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
+    { index: 2, name: 'Cagayake!GIRLS', duration: '00:00', image: '/assets/albums/YOUR_ALBUM_IMAGE.jpg', src: '/assets/musics/cagayake_girls.mp3', singer: '放課後ティータイム', bvid: 'YOUR_BVID_HERE' },
+    { index: 3, name: '天使にふれたよ！', duration: '00:00', image: '/assets/albums/YOUR_ALBUM_IMAGE.jpg', src: '/assets/musics/tenshi_ni_fureta_yo.mp3', singer: '放課後ティータイム', bvid: 'YOUR_BVID_HERE' },
+
   ]
 };
 
@@ -49,26 +57,8 @@ const updateProgress = () => { if (player.value && player.value.duration && isFi
 const switchStatu = () => { if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; } else { player.value.pause(); playStatu.value = 0; } };
 const switchMusic = (direction) => { if (!activeItem.value) return; const tracklist = currentTracklist.value; const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name); if (currentIndex === -1) { activeItem.value = tracklist[0]; return; } let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1; if (nextIndex >= tracklist.length) { nextIndex = 0; } if (nextIndex < 0) { nextIndex = tracklist.length - 1; } activeItem.value = tracklist[nextIndex]; };
 
-watch(activeItem, (newItem) => {
-    player.value.pause();
-    musicProgress.value = 0; 
-    player.value.currentTime = 0;
-    player.value.src = newItem.src;
-    updateMediaSession(newItem);
-    player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
-    
-    if (playStatu.value === 1) {
-        player.value.play();
-    }
-});
-
-watch(playStatu, (newVal) => {
-    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
-    if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; }
-    updatePositionState();
-    if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); }
-}, { immediate: true });
-
+watch(activeItem, (newItem) => { player.value.pause(); musicProgress.value = 0; player.value.currentTime = 0; player.value.src = newItem.src; updateMediaSession(newItem); player.value.addEventListener('loadedmetadata', updatePositionState, { once: true }); if (playStatu.value === 1) { player.value.play(); } });
+watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; } updatePositionState(); if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); } }, { immediate: true });
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
@@ -82,30 +72,7 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
-onMounted(async () => {
-    // ... (onMounted 内部的上半部分代码无需修改) ...
-
-    updateMediaSession(activeItem.value);
-
-    // --- [核心修复] ---
-    // 为初始加载的歌曲添加一次性的事件监听器。
-    // 当音频元数据加载完毕后，立即向系统UI同步一次正确的时间（时长 & 当前位置0），
-    // 从而修复初始状态不同步的Bug。
-    player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
-
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
-      navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); });
-      navigator.mediaSession.setActionHandler('seekbackward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.max(player.value.currentTime - skipTime, 0); updatePositionState(); });
-      navigator.mediaSession.setActionHandler('seekforward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.min(player.value.currentTime + skipTime, player.value.duration); updatePositionState(); });
-      navigator.mediaSession.setActionHandler('seekto', (details) => { if (details.fastSeek && 'fastSeek' in player.value) { player.value.fastSeek(details.seekTime); } else { player.value.currentTime = details.seekTime; } updatePositionState(); });
-    }
-    
-    // ... (onMounted 内部的下半部分代码无需修改) ...
-    const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); }
-});
+onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEventListener('loadedmetadata', updatePositionState, { once: true }); if ('mediaSession' in navigator) { navigator.mediaSession.setActionHandler('play', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); }); navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); }); navigator.mediaSession.setActionHandler('seekbackward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.max(player.value.currentTime - skipTime, 0); updatePositionState(); }); navigator.mediaSession.setActionHandler('seekforward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.min(player.value.currentTime + skipTime, player.value.duration); updatePositionState(); }); navigator.mediaSession.setActionHandler('seekto', (details) => { if (details.fastSeek && 'fastSeek' in player.value) { player.value.fastSeek(details.seekTime); } else { player.value.currentTime = details.seekTime; } updatePositionState(); }); } const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); } });
 </script>
 
 <template>
