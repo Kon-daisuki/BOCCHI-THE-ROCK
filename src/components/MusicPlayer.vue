@@ -44,21 +44,7 @@ player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
 const updatePositionState = () => { if ('mediaSession' in navigator && player.value.duration) { navigator.mediaSession.setPositionState({ duration: player.value.duration, playbackRate: player.value.playbackRate, position: player.value.currentTime, }); } };
-
-// --- [核心修改] 切换歌单时自动播放 ---
-const switchPlaylist = (playlistName) => {
-    if (activePlaylistName.value === playlistName) return;
-    
-    // 1. 切换歌单名称
-    activePlaylistName.value = playlistName;
-    // 2. 将待播歌曲设为新歌单的第一首
-    activeItem.value = playlists[playlistName][0];
-    
-    // 3. 将播放状态设为“播放”
-    // watch(activeItem) 监听器会自动处理加载并播放这首新歌的逻辑
-    playStatu.value = 1;
-};
-
+const switchPlaylist = (playlistName) => { if (activePlaylistName.value === playlistName) return; activePlaylistName.value = playlistName; activeItem.value = playlists[playlistName][0]; playStatu.value = 1; };
 const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; updatePositionState(); } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
 const switchStatu = () => { if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; } else { player.value.pause(); playStatu.value = 0; } };
 const switchMusic = (direction) => { if (!activeItem.value) return; const tracklist = currentTracklist.value; const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name); if (currentIndex === -1) { activeItem.value = tracklist[0]; return; } let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1; if (nextIndex >= tracklist.length) { nextIndex = 0; } if (nextIndex < 0) { nextIndex = tracklist.length - 1; } activeItem.value = tracklist[nextIndex]; };
@@ -76,7 +62,13 @@ watch(activeItem, (newItem) => {
     }
 });
 
-watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused'); if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; } if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); } }, { immediate: true });
+watch(playStatu, (newVal) => {
+    document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
+    if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; }
+    updatePositionState();
+    if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); }
+}, { immediate: true });
+
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
@@ -90,7 +82,30 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
-onMounted(async () => { updateMediaSession(activeItem.value); if ('mediaSession' in navigator) { navigator.mediaSession.setActionHandler('play', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); }); navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); }); navigator.mediaSession.setActionHandler('seekbackward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.max(player.value.currentTime - skipTime, 0); updatePositionState(); }); navigator.mediaSession.setActionHandler('seekforward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.min(player.value.currentTime + skipTime, player.value.duration); updatePositionState(); }); navigator.mediaSession.setActionHandler('seekto', (details) => { if (details.fastSeek && 'fastSeek' in player.value) { player.value.fastSeek(details.seekTime); } else { player.value.currentTime = details.seekTime; } updatePositionState(); }); } const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); } });
+onMounted(async () => {
+    // ... (onMounted 内部的上半部分代码无需修改) ...
+
+    updateMediaSession(activeItem.value);
+
+    // --- [核心修复] ---
+    // 为初始加载的歌曲添加一次性的事件监听器。
+    // 当音频元数据加载完毕后，立即向系统UI同步一次正确的时间（时长 & 当前位置0），
+    // 从而修复初始状态不同步的Bug。
+    player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
+
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
+      navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
+      navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); });
+      navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); });
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.max(player.value.currentTime - skipTime, 0); updatePositionState(); });
+      navigator.mediaSession.setActionHandler('seekforward', (details) => { const skipTime = details.seekOffset || 10; player.value.currentTime = Math.min(player.value.currentTime + skipTime, player.value.duration); updatePositionState(); });
+      navigator.mediaSession.setActionHandler('seekto', (details) => { if (details.fastSeek && 'fastSeek' in player.value) { player.value.fastSeek(details.seekTime); } else { player.value.currentTime = details.seekTime; } updatePositionState(); });
+    }
+    
+    // ... (onMounted 内部的下半部分代码无需修改) ...
+    const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); }
+});
 </script>
 
 <template>
