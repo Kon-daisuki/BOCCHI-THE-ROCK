@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 
 // 您的后端API地址
 const API_BASE_URL = 'https://login.bocchi.us.kg';
@@ -7,7 +7,10 @@ const API_BASE_URL = 'https://login.bocchi.us.kg';
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
 
-const musics = [
+// --- [核心修改] 数据结构重构 ---
+// 将单一的歌曲列表，重构为包含多个歌单的对象
+const playlists = {
+  '結束バンド': [
     { index: 1, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
     { index: 2, name: 'milky way', duration: '03:32', image: '/assets/albums/We will.png', src: '/assets/musics/milky way.mp3', singer: '结束バンド' , bvid:'BV1mVpGewEfz' },
     { index: 3, name: 'あのバンド', duration: '03:33', image: '/assets/albums/あのバンド.jpg', src: '/assets/musics/あのバンド.mp3', singer: '结束バンド' , bvid:'BV1v24y1C735' },
@@ -21,12 +24,22 @@ const musics = [
     { index: 11, name: '星座になれたら', duration: '04:18', image: '/assets/albums/星座になれたら.jpg', src: '/assets/musics/星座になれたら.mp3', singer: '结束バンド' , bvid:'BV1u8411H7yA' },
     { index: 12, name: '転がる岩、君に朝が降る', duration: '04:31', image: '/assets/albums/転がる岩、君に朝が降る.jpg', src: '/assets/musics/転がる岩、君に朝が降る.mp3', singer: '结束バンド' , bvid:'BV1nV4y1w74h' },
     { index: 13, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
+  ],
+  'KARUT': [
     { index: 14, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
-];
+  ]
+};
+
+// [新增] 追踪当前激活的歌单名称
+const activePlaylistName = ref('結束バンド');
+
+// [新增] 计算属性，根据激活的歌单名称，返回对应的歌曲列表
+const currentTracklist = computed(() => playlists[activePlaylistName.value]);
 
 const playerIcons = ["/assets/images/icon_play.png","/assets/images/icon_pause.png"];
 const playStatu = ref(0);
-const activeItem = ref(musics[0]);
+// [修改] 当前播放歌曲，从第一个歌单的第一首歌开始
+const activeItem = ref(playlists.結束バンド[0]);
 const musicProgress = ref(0);
 const volumeProgress = ref(20);
 const player = ref(new Audio());
@@ -36,40 +49,45 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-const updateProgress = () => {
-    if (player.value && player.value.duration && isFinite(player.value.duration)) {
-        musicProgress.value = (player.value.currentTime / player.value.duration) * 100;
-    }
-    if (playStatu.value === 1) {
-        requestAnimationFrame(updateProgress);
-    }
+// [新增] 切换歌单的函数
+const switchPlaylist = (playlistName) => {
+    if (activePlaylistName.value === playlistName) return; // 如果已经是当前歌单，则不执行任何操作
+    
+    activePlaylistName.value = playlistName;
+    // 切换歌单后，默认播放新歌单的第一首歌
+    activeItem.value = playlists[playlistName][0];
+    
+    // 切换后暂停播放，避免音乐突兀地改变
+    player.value.pause();
+    playStatu.value = 0;
 };
 
-const switchStatu = () => {
-    if (playStatu.value === 0) {
-        player.value.play();
-        playStatu.value = 1;
-    } else {
-        player.value.pause();
-        playStatu.value = 0;
-    }
-};
+const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
+const switchStatu = () => { if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; } else { player.value.pause(); playStatu.value = 0; } };
 
+// [核心修改] 让“上一首/下一首”只在当前歌单内循环
 const switchMusic = (direction) => {
     if (!activeItem.value) return;
-    const currentIndex = musics.findIndex(music => music.name === activeItem.value.name);
+    
+    // 使用计算属性 currentTracklist 来获取当前歌单
+    const tracklist = currentTracklist.value;
+    const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name);
+    
     if (currentIndex === -1) {
-        activeItem.value = musics[0];
+        activeItem.value = tracklist[0];
         return;
     }
+
     let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1;
-    if (nextIndex >= musics.length) {
+
+    if (nextIndex >= tracklist.length) {
         nextIndex = 0;
     }
     if (nextIndex < 0) {
-        nextIndex = musics.length - 1;
+        nextIndex = tracklist.length - 1;
     }
-    activeItem.value = musics[nextIndex];
+
+    activeItem.value = tracklist[nextIndex];
 };
 
 watch(activeItem, (newItem) => {
@@ -85,151 +103,43 @@ watch(activeItem, (newItem) => {
 
 watch(playStatu, (newVal) => {
     document.documentElement.style.setProperty('--animation-state', newVal === 1 ? 'running' : 'paused');
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused';
-    }
-    if (newVal === 1) {
-        requestAnimationFrame(updateProgress);
-        updateFavicon(activeItem.value.image);
-    } else {
-        updateFavicon(defaultFavicon);
-    }
+    if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = newVal === 1 ? 'playing' : 'paused'; }
+    if (newVal === 1) { requestAnimationFrame(updateProgress); updateFavicon(activeItem.value.image); } else { updateFavicon(defaultFavicon); }
 }, { immediate: true });
 
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
+player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
-player.value.addEventListener('ended', () => {
-    playStatu.value = 1;
-    switchMusic('next');
-});
+const toggleLike = async () => { /* ... (此函数无需修改) ... */ if (!currentUser.value) { alert('请先登录才能收藏歌曲哦！'); return; } const token = localStorage.getItem('authToken'); if (!token) { alert('登录状态失效，请重新登录！'); return; } const songName = activeItem.value.name; const newLikedSongs = new Set(likedSongs.value); if (newLikedSongs.has(songName)) { newLikedSongs.delete(songName); } else { newLikedSongs.add(songName); } likedSongs.value = newLikedSongs; try { await fetch(`${API_BASE_URL}/api/like`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ songName }), }); } catch (error) { console.error('收藏操作失败:', error); } };
 
-const toggleLike = async () => {
-    if (!currentUser.value) {
-        alert('请先登录才能收藏歌曲哦！');
-        return;
-    }
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-        alert('登录状态失效，请重新登录！');
-        return;
-    }
-    const songName = activeItem.value.name;
-    const newLikedSongs = new Set(likedSongs.value);
-    if (newLikedSongs.has(songName)) {
-        newLikedSongs.delete(songName);
-    } else {
-        newLikedSongs.add(songName);
-    }
-    likedSongs.value = newLikedSongs;
-    try {
-        await fetch(`${API_BASE_URL}/api/like`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ songName }),
-        });
-    } catch (error) {
-        console.error('收藏操作失败:', error);
-    }
-};
-
+// [核心修改] 让随机播放只在当前歌单内进行
 const playWeightedRandom = () => {
     const weightedPool = [];
     const likedWeight = 5;
-    musics.forEach(song => {
+    
+    // 使用计算属性 currentTracklist
+    currentTracklist.value.forEach(song => {
         if (song.name === activeItem.value.name) return;
         const weight = likedSongs.value.has(song.name) ? likedWeight : 1;
         for (let i = 0; i < weight; i++) {
             weightedPool.push(song);
         }
     });
-    if (weightedPool.length === 0) {
-        switchMusic('next');
-        return;
-    }
+
+    if (weightedPool.length === 0) { switchMusic('next'); return; }
     const randomIndex = Math.floor(Math.random() * weightedPool.length);
     activeItem.value = weightedPool[randomIndex];
 };
 
-const updateFavicon = (iconUrl) => {
-    let link = document.querySelector("link[rel~='icon']");
-    if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.getElementsByTagName('head')[0].appendChild(link);
-    }
-    link.href = iconUrl;
-};
-
-const updateMediaSession = (song) => {
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: song.name, artist: song.singer, album: '結束バンド',
-            artwork: [
-                { src: song.image, sizes: '96x96', type: 'image/jpeg' },
-                { src: song.image, sizes: '128x128', type: 'image/jpeg' },
-                { src: song.image, sizes: '192x192', type: 'image/jpeg' },
-                { src: song.image, sizes: '256x256', type: 'image/jpeg' },
-                { src: song.image, sizes: '384x384', type: 'image/jpeg' },
-                { src: song.image, sizes: '512x512', type: 'image/jpeg' },
-            ]
-        });
-    }
-};
-
-const showMv = () => {
-    if (activeItem.value.bvid) isMvVisible.value = true;
-};
-
+const updateFavicon = (iconUrl) => { /* ... (此函数无需修改) ... */ let link = document.querySelector("link[rel~='icon']"); if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); } link.href = iconUrl; };
+const updateMediaSession = (song) => { /* ... (此函数无需修改) ... */ if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: song.name, artist: song.singer, album: '結束バンド', artwork: [ { src: song.image, sizes: '96x96', type: 'image/jpeg' }, { src: song.image, sizes: '128x128', type: 'image/jpeg' }, { src: song.image, sizes: '192x192', type: 'image/jpeg' }, { src: song.image, sizes: '256x256', type: 'image/jpeg' }, { src: song.image, sizes: '384x384', type: 'image/jpeg' }, { src: song.image, sizes: '512x512', type: 'image/jpeg' }, ] }); } };
+const showMv = () => { if (activeItem.value.bvid) isMvVisible.value = true; };
 const onVolumeProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; volumeProgress.value=pct; player.value.volume=pct/100; }
 const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; const w=p.clientWidth; const pct=(c/w)*100; musicProgress.value=pct; player.value.currentTime=(pct/100)*player.value.duration; }
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s }
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; }
 
-onMounted(async () => {
-    const userData = localStorage.getItem('currentUser');
-    const token = localStorage.getItem('authToken');
-
-    if (userData && token) {
-        currentUser.value = JSON.parse(userData);
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/likes`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const songs = await response.json();
-                likedSongs.value = new Set(songs);
-            } else if (response.status === 401) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('authToken');
-                currentUser.value = null;
-            }
-        } catch (error) {
-            console.error('获取收藏列表失败:', error);
-        }
-    }
-
-    const el = document.querySelector('.player-select');
-    if (el) {
-        el.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            el.scrollTop += e.deltaY * 0.5;
-        });
-    }
-
-    updateMediaSession(activeItem.value);
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
-        navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); });
-    }
-});
+onMounted(async () => { /* ... (此函数无需修改) ... */ const userData = localStorage.getItem('currentUser'); const token = localStorage.getItem('authToken'); if (userData && token) { currentUser.value = JSON.parse(userData); try { const response = await fetch(`${API_BASE_URL}/api/likes`, { headers: { 'Authorization': `Bearer ${token}` } }); if (response.ok) { const songs = await response.json(); likedSongs.value = new Set(songs); } else if (response.status === 401) { localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); currentUser.value = null; } } catch (error) { console.error('获取收藏列表失败:', error); } } const el = document.querySelector('.player-select'); if (el) { el.addEventListener('wheel', (e) => { e.preventDefault(); e.stopPropagation(); el.scrollTop += e.deltaY * 0.5; }); } updateMediaSession(activeItem.value); if ('mediaSession' in navigator) { navigator.mediaSession.setActionHandler('play', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); }); navigator.mediaSession.setActionHandler('previoustrack', () => { switchMusic('previous'); }); navigator.mediaSession.setActionHandler('nexttrack', () => { switchMusic('next'); }); } });
 </script>
 
 <template>
@@ -237,42 +147,56 @@ onMounted(async () => {
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
-                <ul><li v-for="(music, index) in musics" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music"><div class="music-item"><img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div></div></li></ul>
+                <!-- [新增] 歌单切换器 -->
+                <div class="playlist-switcher">
+                    <button 
+                        v-for="(_, name) in playlists" 
+                        :key="name"
+                        class="playlist-btn"
+                        :class="{ 'active': name === activePlaylistName }"
+                        @click="switchPlaylist(name)"
+                    >
+                        {{ name }}
+                    </button>
+                </div>
+
+                <!-- [核心修改] 使用 <Transition> 和 :key 来实现列表切换动画 -->
+                <Transition name="playlist-fade" mode="out-in">
+                    <ul :key="activePlaylistName">
+                        <!-- [核心修改] 循环遍历的是计算属性 currentTracklist -->
+                        <li v-for="(music, index) in currentTracklist" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                            <div class="music-item">
+                                <img :src="music.image" :alt="music.name" />
+                                <div class="music-info">
+                                    <span class="music-title">{{ music.name }}</span>
+                                    <span class="music-singer">{{ music.singer }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </Transition>
             </div>
             <div class="player">
                 <div class="now-playing">
-                    <!-- [核心修改] 添加了一个包裹层来隔离Flexbox的渲染Bug -->
                     <div class="player-bg-wrapper">
                         <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
                             <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
                         </div>
                     </div>
-                    
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
-                    
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
-                        
                         <div class="control-panel">
-                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike">
-                                <img src="/assets/images/icon_like.png" />
-                            </span>
-                            <span @click="playWeightedRandom">
-                                <img src="/assets/images/icon_mode.png" />
-                            </span>
-                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv">
-                                <img src="/assets/images/icon_mv.png" />
-                            </span>
+                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
+                            <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
+                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
                         </div>
-
                         <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        
                         <div class="btn-bar">
                             <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
                             <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
                             <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -296,6 +220,52 @@ onMounted(async () => {
 @keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 .player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
 .player-select::-webkit-scrollbar { width: 6px; }
+
+/* --- [新增] 歌单切换器样式 --- */
+.playlist-switcher {
+  display: flex;
+  padding: 8px;
+  gap: 8px;
+  background-color: rgba(0,0,0,0.05);
+  border-bottom: 1px solid #e0e0e0;
+  /* 让切换器固定在顶部 */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.playlist-btn {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  background-color: rgba(255,255,255,0.4);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  color: #555;
+}
+.playlist-btn:hover {
+  background-color: rgba(255,255,255,0.7);
+  border-color: rgba(0,0,0,0.1);
+}
+.playlist-btn.active {
+  background-color: #ec407a;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+/* --- [新增] 歌单列表切换动画 --- */
+.playlist-fade-enter-active,
+.playlist-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.playlist-fade-enter-from,
+.playlist-fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+/* --- 样式结束 --- */
+
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 5px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; overflow: hidden; }
 .player-select ul li:hover { background-color: #f0f0f0; }
@@ -307,29 +277,8 @@ onMounted(async () => {
 .music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.2; }
 
 .player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: 2px 2px 5px #666; z-index: 1; }
-
-/* --- [终极Bug修复] --- */
-/* 1. 新增的包裹层样式 */
-.player-bg-wrapper {
-  /* 它的作用是作为一个稳定的容器，让内部的唱片不受Flex影响 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.player-bg {
-  width: 280px; height: 280px; 
-  /* [关键] 移除 aspect-ratio，因为它在旧浏览器中可能导致问题 */
-  border-radius: 50%;
-  position: relative;
-  background: radial-gradient(circle at center, #4a4a4a, #2c2c2c);
-  box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4);
-  animation: albums_rotate 15s infinite linear;
-  animation-play-state: var(--animation-state, paused);
-  /* [关键] 明确告诉浏览器，这个元素绝不允许被压缩 */
-  flex-shrink: 0;
-}
-/* --- [修复结束] --- */
-
+.player-bg-wrapper { display: flex; justify-content: center; align-items: center; }
+.player-bg { width: 280px; height: 280px; border-radius: 50%; position: relative; background: radial-gradient(circle at center, #4a4a4a, #2c2c2c); box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused); flex-shrink: 0; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); transition: all 0.4s ease; z-index: 2; }
 .music-info { text-align: center; margin-bottom: 30px; width: 100%; }
@@ -359,7 +308,6 @@ onMounted(async () => {
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
 
-/* 响应式代码保持不变，但因为包裹层的存在，现在在所有浏览器上都表现一致 */
 @media (min-width: 769px) and (max-width: 1024px) { 
     .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } 
     .player-select { width: 40%; } 
@@ -372,15 +320,16 @@ onMounted(async () => {
 }
 @media (max-width: 768px) { 
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
-    .player-select { width: 100%; height: 30%; flex-shrink: 0; } 
-    .player { width: 100%; height: 70%; padding: 15px; } 
+    .player-select { width: 100%; height: 40%; flex-shrink: 0; } /* [修改] 稍微增加手机端列表高度，以容纳切换器 */
+    .player { width: 100%; height: 60%; padding: 15px; } 
     .now-playing { justify-content: space-around; } 
-    .player-bg-wrapper { margin-top: 15px; } /* 在手机端给唱片顶部一点空间 */
+    .player-bg-wrapper { margin-top: 15px; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
     .music-info h2 { font-size: 18px; } 
     .music-info p { font-size: 14px; } 
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
+    .playlist-btn { font-size: 14px; padding: 6px 10px; } /* [新增] 调整手机端切换器按钮尺寸 */
 }
 
 .control-panel .like-btn.liked img { filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%); }
