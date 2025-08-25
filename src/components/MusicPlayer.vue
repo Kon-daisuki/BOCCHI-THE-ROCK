@@ -142,20 +142,25 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
                         </div>
                     </div>
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
-                    <div class="player-controls">
-                        <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
-                        <div class="control-panel">
-                            <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
-                            <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
-                            <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
-                        </div>
-                        <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
-                        <div class="btn-bar">
-                            <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
-                            <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
-                            <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
+
+                    <!-- [修改] 新增一个容器来隔离控件 -->
+                    <div class="controls-container">
+                        <div class="player-controls">
+                            <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
+                            <div class="control-panel">
+                                <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
+                                <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
+                                <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
+                            </div>
+                            <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
+                            <div class="btn-bar">
+                                <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
+                                <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
+                                <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -242,48 +247,17 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 
 /* --- [终极修复] --- */
 @media (max-width: 768px) { 
-    /* 1. 恢复正确的垂直布局 */
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
-    
-    /* 2. 恢复手机端歌曲列表的显示 */
     .player-select-desktop { display: none; }
-    .player-select-mobile { 
-        display: block; 
-        width: 100%; 
-        height: 30%; /* 列表占30%高度 */
-        flex-shrink: 0; 
-        overflow-y: auto; 
-        scrollbar-width: none; 
-        background-color: rgba(255, 255, 255, 0.5); 
-    }
+    .player-select-mobile { display: block; width: 100%; height: 30%; flex-shrink: 0; overflow-y: auto; scrollbar-width: none; background-color: rgba(255, 255, 255, 0.5); }
     .player-select-mobile::-webkit-scrollbar { display: none; }
-    
-    /* 3. 恢复播放器区域的布局 */
-    .player { 
-        width: 100%; 
-        height: 70%; /* 播放器占70%高度 */
-        padding: 10px 15px; 
-        position: relative; /* 成为垂直切换器的定位父级 */
-    } 
+    .player { width: 100%; height: 70%; padding: 10px 15px; position: relative; } 
     .now-playing { justify-content: space-around; } 
-
-    /* 4. 垂直切换器样式与定位 */
-    .playlist-switcher-mobile {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        left: 15px; /* 紧贴左边缘 */
-        top: 100px; /* [关键] 基于唱片位置进行微调，使其中心对齐 */
-        transform: translateY(-50%);
-        gap: 10px;
-        z-index: 10;
-    }
+    .playlist-switcher-mobile { display: flex; flex-direction: column; position: absolute; left: 15px; top: 100px; transform: translateY(-50%); gap: 10px; z-index: 10; }
     .playlist-btn-mobile { background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 10px 5px; cursor: pointer; transition: all 0.2s ease; }
     .playlist-btn-mobile span { writing-mode: vertical-rl; text-orientation: mixed; color: #333; font-weight: 600; font-size: 12px; }
     .playlist-btn-mobile.active { background-color: #ec407a; }
     .playlist-btn-mobile.active span { color: white; }
-    
-    /* 5. 调整唱片和文字，确保居中 */
     .player-bg-wrapper { margin: 10px 0; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
@@ -292,16 +266,24 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .music-info { 
         margin-bottom: 10px; 
         width: 100%; 
-        overflow: hidden; /* 新增：确保内部内容不会撑开布局 */
+        overflow: hidden; /* 隐藏内部溢出的文本 */
     }
     .music-info h2 {
         font-size: 18px;
-        white-space: nowrap; 
+        white-space: nowrap; /* 文本不换行 */
     } 
+    /* 新增一个容器来固定控件的宽度 */
+    .controls-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .player-controls { 
+        gap: 12px; 
+    }
     /* --- [修改结束] --- */
 
     .music-info p { font-size: 14px; } 
-    .player-controls { gap: 12px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
 }
 
