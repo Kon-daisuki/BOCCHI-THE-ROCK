@@ -291,11 +291,12 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     /* --- [修改开始] --- */
     .music-info { 
         margin-bottom: 10px; 
-        width: 100%; /* 防止被内部超长文本撑开，影响同级元素 */
+        width: 100%; 
+        overflow: hidden; /* 新增：确保内部内容不会撑开布局 */
     }
     .music-info h2 {
         font-size: 18px;
-        white-space: nowrap; /* 强制文本不换行 */
+        white-space: nowrap; 
     } 
     /* --- [修改结束] --- */
 
