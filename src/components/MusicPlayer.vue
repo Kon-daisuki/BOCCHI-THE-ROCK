@@ -288,7 +288,14 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
     .music-info { margin-bottom: 10px; max-width: 90%; }
-    .music-info h2 { font-size: 18px; word-break: break-all; } 
+    
+    /* --- [修改开始] --- */
+    .music-info h2 {
+        font-size: 18px;
+        white-space: nowrap; /* 强制文本不换行 */
+    } 
+    /* --- [修改结束] --- */
+
     .music-info p { font-size: 14px; } 
     .player-controls { gap: 12px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
