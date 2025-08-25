@@ -7,10 +7,8 @@ const API_BASE_URL = 'https://login.bocchi.us.kg';
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
 
-// --- [核心修改] 歌单内容更新 ---
 const playlists = {
   '結束バンド': [
-    // 按照官方专辑顺序排列
     { index: 1, name: '青春コンプレックス', duration: '03:23', image: '/assets/albums/結束バンド.jpg', src: '/assets/musics/青春コンプレックス.mp3', singer: '结束バンド' , bvid:'BV1HT411N7FP' },
     { index: 2, name: 'ひとりぼっち東京', duration: '03:52', image: '/assets/albums/ひとりぼっち東京.jpg', src: '/assets/musics/ひとりぼっち東京.mp3', singer: '结束バンド' , bvid:'BV1V84y1v766' },
     { index: 3, name: 'Distortion!!', duration: '03:23', image: '/assets/albums/Distortion!!.jpg', src: '/assets/musics/Distortion!!.mp3', singer: '结束バンド' , bvid:'BV1ng411h71y' },
@@ -36,7 +34,6 @@ const playlists = {
     { index: 1, name: 'Connected Sky', duration: '02:06', image: '/assets/albums/Connected Sky.jpg', src: '/assets/musics/Connected Sky.mp3', singer: 'KARUT', bvid:'BV1X64y1A71s' },
     { index: 2, name: 'Cagayake!GIRLS', duration: '04:10', image: '/assets/albums/Cagayake!GIRLS - 放課後ティータイム.jpg', src: '/assets/musics/Cagayake!GIRLS - 放課後ティータイム.mp3', singer: '放課後ティータイム', bvid: 'BV1V54y167fr' },
     { index: 3, name: '天使にふれたよ！', duration: '04:41', image: '/assets/albums/天使にふれたよ! - 放課後ティータイム.jpg', src: '/assets/musics/天使にふれたよ! - 放課後ティータイム.mp3', singer: '放課後ティータイム', bvid: 'BV1prnQebEwm' },
-
   ]
 };
 
@@ -55,8 +52,25 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-const updatePositionState = () => { if ('mediaSession' in navigator && player.value.duration) { navigator.mediaSession.setPositionState({ duration: player.value.duration, playbackRate: player.value.playbackRate, position: player.value.currentTime, }); } };
+// [修改] 桌面/平板切换器使用的函数
 const switchPlaylist = (playlistName) => { if (activePlaylistName.value === playlistName) return; activePlaylistName.value = playlistName; activeItem.value = playlists[playlistName][0]; playStatu.value = 1; };
+
+// [新增] 手机端上下箭头切换器使用的函数
+const playlistNames = Object.keys(playlists);
+const switchPlaylistVertical = (direction) => {
+    const currentIndex = playlistNames.indexOf(activePlaylistName.value);
+    const total = playlistNames.length;
+    let nextIndex;
+    if (direction === 'next') {
+        nextIndex = (currentIndex + 1) % total;
+    } else {
+        nextIndex = (currentIndex - 1 + total) % total;
+    }
+    const nextPlaylistName = playlistNames[nextIndex];
+    switchPlaylist(nextPlaylistName);
+};
+
+const updatePositionState = () => { if ('mediaSession' in navigator && player.value.duration) { navigator.mediaSession.setPositionState({ duration: player.value.duration, playbackRate: player.value.playbackRate, position: player.value.currentTime, }); } };
 const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; updatePositionState(); } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
 const switchStatu = () => { if (playStatu.value === 0) { player.value.play(); playStatu.value = 1; } else { player.value.pause(); playStatu.value = 0; } };
 const switchMusic = (direction) => { if (!activeItem.value) return; const tracklist = currentTracklist.value; const currentIndex = tracklist.findIndex(music => music.name === activeItem.value.name); if (currentIndex === -1) { activeItem.value = tracklist[0]; return; } let nextIndex = (direction === 'next') ? currentIndex + 1 : currentIndex - 1; if (nextIndex >= tracklist.length) { nextIndex = 0; } if (nextIndex < 0) { nextIndex = tracklist.length - 1; } activeItem.value = tracklist[nextIndex]; };
@@ -84,42 +98,51 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
         <div class="player-container">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
             <div class="player-select">
-                <!-- [核心修改] 将切换器和列表包裹起来 -->
-                <div class="list-content-wrapper">
-                    <div class="playlist-switcher">
-                        <button 
-                            v-for="(_, name) in playlists" 
-                            :key="name"
-                            class="playlist-btn"
-                            :class="{ 'active': name === activePlaylistName }"
-                            @click="switchPlaylist(name)"
-                        >
-                            {{ name }}
-                        </button>
-                    </div>
-
-                    <Transition name="playlist-fade" mode="out-in">
-                        <ul :key="activePlaylistName">
-                            <li v-for="(music, index) in currentTracklist" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
-                                <div class="music-item">
-                                    <img :src="music.image" :alt="music.name" />
-                                    <div class="music-info">
-                                        <span class="music-title">{{ music.name }}</span>
-                                        <span class="music-singer">{{ music.singer }}</span>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-                    </Transition>
+                <!-- [修改] 这是桌面/平板专用的切换器 -->
+                <div class="playlist-switcher playlist-switcher-desktop">
+                    <button 
+                        v-for="(_, name) in playlists" 
+                        :key="name"
+                        class="playlist-btn"
+                        :class="{ 'active': name === activePlaylistName }"
+                        @click="switchPlaylist(name)"
+                    >
+                        {{ name }}
+                    </button>
                 </div>
+
+                <Transition name="playlist-fade" mode="out-in">
+                    <ul :key="activePlaylistName">
+                        <li v-for="(music, index) in currentTracklist" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                            <div class="music-item">
+                                <img :src="music.image" :alt="music.name" />
+                                <div class="music-info">
+                                    <span class="music-title">{{ music.name }}</span>
+                                    <span class="music-singer">{{ music.singer }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </Transition>
             </div>
             <div class="player">
                 <div class="now-playing">
-                    <div class="player-bg-wrapper">
-                        <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
-                            <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
+                    <!-- [新增] 这是一个新的容器，用于在手机端横向排列切换器和唱片 -->
+                    <div class="album-area">
+                        <!-- [新增] 这是手机专用的垂直切换器 -->
+                        <div class="playlist-switcher-mobile">
+                            <button class="playlist-arrow-btn" @click="switchPlaylistVertical('previous')">▲</button>
+                            <span class="playlist-name-mobile">{{ activePlaylistName }}</span>
+                            <button class="playlist-arrow-btn" @click="switchPlaylistVertical('next')">▼</button>
+                        </div>
+
+                        <div class="player-bg-wrapper">
+                            <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
+                                <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
+                            </div>
                         </div>
                     </div>
+
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
@@ -155,35 +178,14 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 @keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
 .bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
 @keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
-/* --- [核心修改] --- */
-.player-select { 
-  width: 35%; 
-  background-color: rgba(255, 255, 255, 0.5); 
-  /* [修改] 不再直接滚动自己，而是让子元素滚动 */
-  overflow: hidden; 
-  border-right: 1px solid #e0e0e0; 
-  z-index: 1; 
-  display: flex; /* 让内部wrapper能撑开 */
-}
-.list-content-wrapper {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto; /* 让这个容器负责滚动 */
-  scrollbar-width: none;
-}
-.list-content-wrapper::-webkit-scrollbar { width: 6px; }
+.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
+.player-select::-webkit-scrollbar { width: 6px; }
 
-.playlist-switcher {
-  display: flex;
-  padding: 8px;
-  gap: 8px;
-  background-color: rgba(0,0,0,0.05);
-  border-bottom: 1px solid #e0e0e0;
-  /* [修改] 关键的“粘性定位” */
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
+/* --- [核心修改] --- */
+/* 这是桌面/平板专用的切换器样式 */
+.playlist-switcher-desktop { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
+/* 这是手机专用的切换器，默认隐藏 */
+.playlist-switcher-mobile { display: none; }
 .playlist-btn { flex-grow: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; color: #555; }
 .playlist-btn:hover { background-color: rgba(255,255,255,0.7); }
 .playlist-btn.active { background-color: #ec407a; color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: transparent; }
@@ -241,18 +243,23 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 @media (max-width: 768px) { 
+    .playlist-switcher-desktop { display: none; }
+    .playlist-switcher-mobile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+    .playlist-arrow-btn { border: none; background: rgba(0,0,0,0.1); color: #333; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; line-height: 30px; cursor: pointer; }
+    .playlist-name-mobile { font-size: 12px; font-weight: 600; color: #333; writing-mode: vertical-rl; text-orientation: mixed; }
+    .album-area { display: flex; align-items: center; gap: 15px; }
+    
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
-    .player-select { width: 100%; height: 40%; flex-shrink: 0; } 
-    .player { width: 100%; height: 60%; padding: 15px; } 
+    .player-select { width: 100%; height: 35%; flex-shrink: 0; } 
+    .player { width: 100%; height: 65%; padding: 10px 15px; } 
     .now-playing { justify-content: space-around; } 
-    .player-bg-wrapper { margin-top: 10px; }
-    .player-bg { width: 150px; height: 150px; } 
-    .album-image { width: 100px; height: 100px; } 
+    .player-bg-wrapper { margin: 10px 0; }
+    .player-bg { width: 180px; height: 180px; } 
+    .album-image { width: 120px; height: 120px; } 
     .music-info { margin-bottom: 10px; }
-    .music-info h2 { font-size: 16px; } 
-    .music-info p { font-size: 13px; } 
-    .player-controls { gap: 10px; }
-    .playlist-btn { font-size: 13px; padding: 6px 10px; }
+    .music-info h2 { font-size: 18px; } 
+    .music-info p { font-size: 14px; } 
+    .player-controls { gap: 12px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
 }
 
