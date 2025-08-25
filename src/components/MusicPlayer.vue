@@ -239,58 +239,33 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .music-info p { font-size: 14px; } 
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
-
-/* --- [终极修复] --- */
 @media (max-width: 768px) { 
-    /* 1. 恢复正确的垂直布局 */
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
+    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
     
-    /* 2. 恢复手机端歌曲列表的显示 */
-    .player-select-desktop { display: none; }
-    .player-select-mobile { 
-        display: block; 
+    /* --- [核心修复] --- */
+    .player-select { 
         width: 100%; 
-        height: 35%; /* 列表占35%高度 */
+        height: 35%; /* 列表高度从 40% 缩减为 35% */
         flex-shrink: 0; 
-        overflow-y: auto; 
-        scrollbar-width: none; 
-        background-color: rgba(255, 255, 255, 0.5); 
-    }
-    .player-select-mobile::-webkit-scrollbar { display: none; }
-    
-    /* 3. 恢复播放器区域的布局 */
+    } 
     .player { 
         width: 100%; 
-        height: 65%; /* 播放器占65%高度 */
-        padding: 10px 15px; 
-        position: relative; /* 成为垂直切换器的定位父级 */
+        height: 65%; /* 播放器高度从 60% 增加到 65% */
+        padding: 15px; 
     } 
-    .now-playing { justify-content: space-around; } 
+    /* --- [修复结束] --- */
 
-    /* 4. 垂直切换器样式与定位 */
-    .playlist-switcher-mobile {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        left: 15px; /* 紧贴左边缘 */
-        top: 100px; /* [关键] 基于唱片位置进行微调，使其中心对齐 */
-        transform: translateY(-50%);
-        gap: 10px;
-        z-index: 10;
-    }
-    .playlist-btn-mobile { background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 10px 5px; cursor: pointer; transition: all 0.2s ease; }
-    .playlist-btn-mobile span { writing-mode: vertical-rl; text-orientation: mixed; color: #333; font-weight: 600; font-size: 12px; }
-    .playlist-btn-mobile.active { background-color: #ec407a; }
-    .playlist-btn-mobile.active span { color: white; }
-    
-    /* 5. 调整唱片和文字，确保居中 */
-    .player-bg-wrapper { margin: 10px 0; }
+    .now-playing { justify-content: space-around; } 
+    .player-bg-wrapper { margin-top: 10px; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
-    .music-info { margin-bottom: 10px; max-width: 90%; }
+    .music-info { margin-bottom: 10px; }
     .music-info h2 { font-size: 18px; word-break: break-all; } 
     .music-info p { font-size: 14px; } 
     .player-controls { gap: 12px; }
+    .playlist-switcher-desktop { display: none; }
+    .list-content-wrapper { width: 100%; height: 100%; overflow-y: auto; scrollbar-width: none; }
+    .list-content-wrapper::-webkit-scrollbar { display: none; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
 }
 
