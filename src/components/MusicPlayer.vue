@@ -287,9 +287,12 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .player-bg-wrapper { margin: 10px 0; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
-    .music-info { margin-bottom: 10px; max-width: 90%; }
     
     /* --- [修改开始] --- */
+    .music-info { 
+        margin-bottom: 10px; 
+        width: 100%; /* 防止被内部超长文本撑开，影响同级元素 */
+    }
     .music-info h2 {
         font-size: 18px;
         white-space: nowrap; /* 强制文本不换行 */
