@@ -177,10 +177,9 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
 @keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 
-/* --- 桌面/平板 列表 --- */
 .player-select-desktop { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
 .player-select-desktop::-webkit-scrollbar { width: 6px; }
-.player-select-mobile { display: none; } /* 默认隐藏手机列表 */
+.player-select-mobile { display: none; }
 
 .playlist-switcher { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
 .playlist-btn { flex-grow: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; color: #555; }
@@ -204,7 +203,7 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .player-bg { width: 280px; height: 280px; border-radius: 50%; position: relative; background: radial-gradient(circle at center, #4a4a4a, #2c2c2c); box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused); flex-shrink: 0; }
 .now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
 .album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); transition: all 0.4s ease; z-index: 2; }
-.music-info { text-align: center; margin-bottom: 20px; }
+.music-info { text-align: center; margin-bottom: 20px; width: 100%; }
 .player-controls { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .volume-control { display: flex; align-items: center; gap: 12px; width: 60%; justify-content: center; }
 .volume-control img { width: 20px; opacity: 0.7; transition: opacity 0.2s; }
@@ -241,54 +240,56 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 @media (max-width: 768px) { 
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
+    .player-container { flex-direction: row; /* [修改] 手机端改为横向布局 */ width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
     .player-select-desktop { display: none; }
-    .player-select-mobile { display: block; width: 100%; height: 35%; flex-shrink: 0; overflow-y: auto; scrollbar-width: none; background-color: rgba(255, 255, 255, 0.5); }
-    .player-select-mobile::-webkit-scrollbar { display: none; }
-    .playlist-fade-mobile-enter-active, .playlist-fade-mobile-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
-    .playlist-fade-mobile-enter-from { opacity: 0; transform: translateY(-20px); }
-    .playlist-fade-mobile-leave-to { opacity: 0; transform: translateY(20px); }
+    .player-select-mobile { display: none; } /* [修改] 手机端不再需要独立的列表区域 */
 
-    .player { width: 100%; height: 65%; padding: 10px 15px; position: relative; } 
-    .now-playing { justify-content: flex-start; } 
+    /* [核心修改] 播放器主界面占据全部空间 */
+    .player {
+        width: 100%;
+        height: 100%;
+        padding: 10px 15px;
+        position: relative;
+        /* [新增] 将其变为 Flex 容器以控制内部对齐 */
+        display: flex;
+        justify-content: center;
+    }
+    .now-playing {
+        width: 100%;
+        justify-content: flex-start; /* 从顶部开始排列 */
+        gap: 15px; /* 增加元素间距 */
+    }
     
+    /* [核心修改] 手机端垂直切换器样式 */
     .playlist-switcher-mobile {
       display: flex;
       flex-direction: column;
       position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
+      left: 15px; /* 紧贴左边缘 */
+      top: 0;
+      bottom: 0;
+      margin: auto 0; /* 实现垂直居中 */
+      justify-content: center;
       gap: 10px;
       z-index: 10;
+      height: fit-content; /* 高度自适应内容 */
     }
-    .playlist-btn-mobile {
-      background: rgba(0,0,0,0.1);
-      border: 1px solid rgba(0,0,0,0.05);
-      border-radius: 8px;
-      padding: 10px 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .playlist-btn-mobile span {
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      color: #333;
-      font-weight: 600;
-      font-size: 12px;
-    }
-    .playlist-btn-mobile.active {
-      background-color: #ec407a;
-    }
-    .playlist-btn-mobile.active span {
-      color: white;
-    }
+    .playlist-btn-mobile { background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 10px 5px; cursor: pointer; transition: all 0.2s ease; }
+    .playlist-btn-mobile span { writing-mode: vertical-rl; text-orientation: mixed; color: #333; font-weight: 600; font-size: 12px; }
+    .playlist-btn-mobile.active { background-color: #ec407a; }
+    .playlist-btn-mobile.active span { color: white; }
 
+    /* [核心修改] 让唱片和文字整体居中 */
     .player-bg-wrapper { margin: 10px 0; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
-    .music-info { margin-bottom: 10px; }
-    .music-info h2 { font-size: 18px; } 
+    .music-info { margin-bottom: 0; }
+    .music-info h2 {
+        font-size: 18px; 
+        /* [新增] 允许歌名缩小以适应屏幕 */
+        overflow-wrap: break-word;
+        max-width: 200px; /* 限制一个最大宽度 */
+    } 
     .music-info p { font-size: 14px; } 
     .player-controls { gap: 12px; }
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
