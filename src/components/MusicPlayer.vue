@@ -95,54 +95,52 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 
 <template>
     <div class="bg">
-        <div class="player-container">
+        <!-- [修改] 为 player-container 绑定一个 class，用于判断当前歌单 -->
+        <div class="player-container" :class="'playlist-' + activePlaylistName">
             <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
-            <div class="player-select">
-                <!-- [修改] 这是桌面/平板专用的切换器 -->
-                <div class="playlist-switcher playlist-switcher-desktop">
-                    <button 
-                        v-for="(_, name) in playlists" 
-                        :key="name"
-                        class="playlist-btn"
-                        :class="{ 'active': name === activePlaylistName }"
-                        @click="switchPlaylist(name)"
-                    >
-                        {{ name }}
-                    </button>
+            
+            <!-- [修改] 桌面/平板的歌曲列表区域 -->
+            <div class="player-select player-select-desktop">
+                <div class="playlist-switcher">
+                    <button v-for="(_, name) in playlists" :key="name" class="playlist-btn" :class="{ 'active': name === activePlaylistName }" @click="switchPlaylist(name)">{{ name }}</button>
                 </div>
-
-                <Transition name="playlist-fade" mode="out-in">
+                <Transition name="playlist-fade-desktop" mode="out-in">
                     <ul :key="activePlaylistName">
-                        <li v-for="(music, index) in currentTracklist" :key="index" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                        <li v-for="music in currentTracklist" :key="music.name" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
                             <div class="music-item">
-                                <img :src="music.image" :alt="music.name" />
-                                <div class="music-info">
-                                    <span class="music-title">{{ music.name }}</span>
-                                    <span class="music-singer">{{ music.singer }}</span>
-                                </div>
+                                <img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div>
                             </div>
                         </li>
                     </ul>
                 </Transition>
             </div>
+
+            <!-- [修改] 手机端的歌曲列表区域，默认隐藏 -->
+            <div class="player-select player-select-mobile">
+                <Transition name="playlist-fade-mobile" mode="out-in">
+                    <ul :key="activePlaylistName">
+                         <li v-for="music in currentTracklist" :key="music.name" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                            <div class="music-item">
+                                <img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div>
+                            </div>
+                        </li>
+                    </ul>
+                </Transition>
+            </div>
+
             <div class="player">
                 <div class="now-playing">
-                    <!-- [新增] 这是一个新的容器，用于在手机端横向排列切换器和唱片 -->
-                    <div class="album-area">
-                        <!-- [新增] 这是手机专用的垂直切换器 -->
-                        <div class="playlist-switcher-mobile">
-                            <button class="playlist-arrow-btn" @click="switchPlaylistVertical('previous')">▲</button>
-                            <span class="playlist-name-mobile">{{ activePlaylistName }}</span>
-                            <button class="playlist-arrow-btn" @click="switchPlaylistVertical('next')">▼</button>
-                        </div>
-
-                        <div class="player-bg-wrapper">
-                            <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
-                                <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
-                            </div>
+                    <!-- [新增] 手机端专用的垂直切换器 -->
+                    <div class="playlist-switcher-mobile">
+                        <button v-for="(_, name) in playlists" :key="name" class="playlist-btn-mobile" :class="{ 'active': name === activePlaylistName }" @click="switchPlaylist(name)">
+                            <span>{{ name }}</span>
+                        </button>
+                    </div>
+                    <div class="player-bg-wrapper">
+                        <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
+                            <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
                         </div>
                     </div>
-
                     <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
                     <div class="player-controls">
                         <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
@@ -178,19 +176,18 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 @keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
 .bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
 @keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
-.player-select { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
-.player-select::-webkit-scrollbar { width: 6px; }
 
-/* --- [核心修改] --- */
-/* 这是桌面/平板专用的切换器样式 */
-.playlist-switcher-desktop { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
-/* 这是手机专用的切换器，默认隐藏 */
-.playlist-switcher-mobile { display: none; }
+/* --- 桌面/平板 列表 --- */
+.player-select-desktop { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
+.player-select-desktop::-webkit-scrollbar { width: 6px; }
+.player-select-mobile { display: none; } /* 默认隐藏手机列表 */
+
+.playlist-switcher { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
 .playlist-btn { flex-grow: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; color: #555; }
 .playlist-btn:hover { background-color: rgba(255,255,255,0.7); }
 .playlist-btn.active { background-color: #ec407a; color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: transparent; }
-.playlist-fade-enter-active, .playlist-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
-.playlist-fade-enter-from, .playlist-fade-leave-to { opacity: 0; transform: translateY(10px); }
+.playlist-fade-desktop-enter-active, .playlist-fade-desktop-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.playlist-fade-desktop-enter-from, .playlist-fade-desktop-leave-to { opacity: 0; transform: translateY(10px); }
 
 .player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
 .player-select ul li { list-style: none; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; }
@@ -231,10 +228,11 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
 .mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
 .mv-modal-content iframe { width: 100%; height: 100%; }
 .close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
+.playlist-switcher-mobile { display: none; }
 
 @media (min-width: 769px) and (max-width: 1024px) { 
     .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } 
-    .player-select { width: 40%; } 
+    .player-select-desktop { width: 40%; } 
     .player { width: 60%; padding: 20px; } 
     .player-bg { width: 220px; height: 220px; } 
     .album-image { width: 160px; height: 160px; } 
@@ -243,16 +241,49 @@ onMounted(async () => { updateMediaSession(activeItem.value); player.value.addEv
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 @media (max-width: 768px) { 
-    .playlist-switcher-desktop { display: none; }
-    .playlist-switcher-mobile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-    .playlist-arrow-btn { border: none; background: rgba(0,0,0,0.1); color: #333; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; line-height: 30px; cursor: pointer; }
-    .playlist-name-mobile { font-size: 12px; font-weight: 600; color: #333; writing-mode: vertical-rl; text-orientation: mixed; }
-    .album-area { display: flex; align-items: center; gap: 15px; }
+    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
+    .player-select-desktop { display: none; }
+    .player-select-mobile { display: block; width: 100%; height: 35%; flex-shrink: 0; overflow-y: auto; scrollbar-width: none; background-color: rgba(255, 255, 255, 0.5); }
+    .player-select-mobile::-webkit-scrollbar { display: none; }
+    .playlist-fade-mobile-enter-active, .playlist-fade-mobile-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+    .playlist-fade-mobile-enter-from { opacity: 0; transform: translateY(-20px); }
+    .playlist-fade-mobile-leave-to { opacity: 0; transform: translateY(20px); }
+
+    .player { width: 100%; height: 65%; padding: 10px 15px; position: relative; } 
+    .now-playing { justify-content: flex-start; } 
     
-    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; } 
-    .player-select { width: 100%; height: 35%; flex-shrink: 0; } 
-    .player { width: 100%; height: 65%; padding: 10px 15px; } 
-    .now-playing { justify-content: space-around; } 
+    .playlist-switcher-mobile {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      gap: 10px;
+      z-index: 10;
+    }
+    .playlist-btn-mobile {
+      background: rgba(0,0,0,0.1);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 8px;
+      padding: 10px 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .playlist-btn-mobile span {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      color: #333;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .playlist-btn-mobile.active {
+      background-color: #ec407a;
+    }
+    .playlist-btn-mobile.active span {
+      color: white;
+    }
+
     .player-bg-wrapper { margin: 10px 0; }
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
