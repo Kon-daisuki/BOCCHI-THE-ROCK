@@ -251,7 +251,7 @@ const goHome = () => {
     width: 100vw;
     height: 100vh;
     background-size: cover;
-    background-position: center;
+    background-position: center bottom; 
     flex-shrink: 0;
 }
 
@@ -296,12 +296,17 @@ const goHome = () => {
     outline-offset: -20px;
 }
 
+/* --- [核心修复] --- */
 .target {
     position: absolute;
     display: flex;
     flex-direction: column;
+    /* [新增] 使用 space-between 将两个子元素推向两端 */
+    justify-content: space-between; 
     align-items: center;
-    padding-top: 2.5%;
+    /* [修改] 调整 padding，并确保 box-sizing 正确 */
+    padding: 2.5% 0;
+    box-sizing: border-box;
     height: 100%;
     left: 10px;
     top: 0;
@@ -311,6 +316,16 @@ const goHome = () => {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
     border-radius: 5px;
 }
+.target-image-1 {
+    width: 70%;
+    transition: all 0.8s ease;
+}
+.target-image-2 {
+    width: 70%;
+    /* [移除] 彻底删除不稳定的 margin-top */
+    transition: all 0.8s ease;
+}
+/* --- [修复结束] --- */
 
 .targetbox {
     width: 25%;
@@ -328,6 +343,7 @@ const goHome = () => {
     top: 10px;
     transition: all 0.8s ease-in-out;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+    z-index: 5; /* [新增] 确保滑动块在最上层 */
 }
 
 .slide-image {
@@ -340,17 +356,6 @@ const goHome = () => {
     top: 47.5%;
 }
 
-.target-image-1 {
-    width: 70%;
-    transition: all 0.8s ease;
-}
-
-.target-image-2 {
-    width: 70%;
-    margin-top: 29%;
-    transition: all 0.8s ease;
-}
-
 .loginbox {
     width: 73.5%;
     height: 95%;
@@ -358,192 +363,50 @@ const goHome = () => {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center; /* [UI优化] 居中对齐所有子元素 */
+    align-items: center;
     box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
-    position: relative; /* [UI优化] 为了定位子元素 */
+    position: relative;
 }
-
 
 @font-face {
     font-family: 'Note-Script-SemiBold-2';
     src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
     font-style: normal;
 }
-
 @font-face {
     font-family: 'Brush-Script-MT';
     src: url('/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
     font-style: normal;
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-h2 {
-    font-family: 'Brush-Script-MT';
-    font-size: 3em;
-    font-weight: bolder;
-    margin-bottom: 20px; /* [UI优化] 统一边距 */
-}
-
-input {
-    width: 60%;
-    border: none;
-    border-bottom: 1px solid black;
-    font-size: 1.2em;
-    background: transparent;
-    margin-bottom: 10px; /* [UI优化] 统一边距 */
-}
-
-input:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-button:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-.input-name {
-    font-family: 'Note-Script-SemiBold-2';
-    width: 60%;
-    text-align: left;
-    font-size: 20px;
-}
-
-/* [动画优化] 固定高度，防止跳动 */
-.repassword-container {
-    height: 70px; 
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-}
-.repassword-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-button {
-    background: none;
-    border: none;
-    font-size: 1.4em;
-    width: auto;
-    height: auto;
-    font-family: 'Note-Script-SemiBold-2';
-    cursor: pointer;
-    margin-top: 20px; /* [UI优化] 统一边距 */
-}
-
-/* [UI优化] 切换提示文字样式 */
-.switch-prompt {
-    font-size: 14px;
-    color: #888;
-    margin-top: 15px;
-    cursor: pointer;
-    text-align: center;
-}
-.switch-prompt .link {
-    color: #ec407a;
-    text-decoration: underline;
-    font-weight: bold;
-}
-
-.switch-login {
-    position: absolute;
-    top: 5%;
-    right: 25px;
-    width: 60px;
-    height: auto;
-    z-index: 2;
-    cursor: pointer;
-    transform: scale(1);
-    transition: transform 0.5s ease;
-}
-
-.switch-login:hover {
-    transform: scale(1.3);
-}
-
-.close-login {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 5%;
-    height: auto;
-    z-index: 4;
-    cursor: pointer;
-    color: #ff3aa0bc;
-}
-
-/* [动画优化] 使用更平滑的过渡效果 */
-.form-fade-enter-active,
-.form-fade-leave-active {
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.form-fade-enter-from,
-.form-fade-leave-to {
-    opacity: 0;
-    transform: translateY(10px);
-}
+form { display: flex; flex-direction: column; align-items: center; width: 100%; }
+h2 { font-family: 'Brush-Script-MT'; font-size: 3em; font-weight: bolder; margin-bottom: 20px; }
+input { width: 60%; border: none; border-bottom: 1px solid black; font-size: 1.2em; background: transparent; margin-bottom: 10px; }
+input:focus { outline: none; box-shadow: none; }
+button:focus { outline: none; box-shadow: none; }
+.input-name { font-family: 'Note-Script-SemiBold-2'; width: 60%; text-align: left; font-size: 20px; }
+.repassword-container { height: 70px; width: 100%; display: flex; justify-content: center; flex-direction: column; align-items: center; }
+.repassword-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
+button { background: none; border: none; font-size: 1.4em; width: auto; height: auto; font-family: 'Note-Script-SemiBold-2'; cursor: pointer; margin-top: 20px; }
+.switch-prompt { font-size: 14px; color: #888; margin-top: 15px; cursor: pointer; text-align: center; }
+.switch-prompt .link { color: #ec407a; text-decoration: underline; font-weight: bold; }
+.switch-login { position: absolute; top: 5%; right: 25px; width: 60px; height: auto; z-index: 2; cursor: pointer; transform: scale(1); transition: transform 0.5s ease; }
+.switch-login:hover { transform: scale(1.3); }
+.close-login { position: absolute; top: 0; right: 0; width: 5%; height: auto; z-index: 4; cursor: pointer; color: #ff3aa0bc; }
+.form-fade-enter-active, .form-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.form-fade-enter-from, .form-fade-leave-to { opacity: 0; transform: translateY(10px); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
-    .left, .right, .target, .targetbox, .switch-login, .ribbons {
-        display: none;
-    }
-    .box {
-        width: 90vw;
-        height: 70vh;
-        flex-direction: column;
-        outline: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        border-radius: 10px;
-    }
-    .loginbox {
-        width: 100%;
-        height: 100%;
-        box-shadow: none;
-        border-radius: 10px;
-    }
-    form {
-        justify-content: center;
-        height: auto;
-    }
-    input, .input-name {
-        width: 80%;
-    }
-    h2 {
-        font-size: 2.5em;
-        position: static;
-        margin-bottom: 20px;
-    }
-    button {
-        position: static;
-        margin-top: 20px;
-        padding: 12px 30px;
-        background-color: #ff3aa0bc;
-        color: white;
-        border-radius: 8px;
-        font-size: 1.2em;
-    }
-    .switch-prompt { /* [UI优化] 确保在移动端显示并有足够间距 */
-        display: block;
-        margin-top: 30px;
-    }
-    .close-login {
-        width: 10%;
-        top: 10px;
-        right: 10px;
-    }
+    .left, .right, .target, .targetbox, .switch-login, .ribbons { display: none; }
+    .box { width: 90vw; height: 70vh; flex-direction: column; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 10px; }
+    .loginbox { width: 100%; height: 100%; box-shadow: none; border-radius: 10px; }
+    form { justify-content: center; height: auto; }
+    input, .input-name { width: 80%; }
+    h2 { font-size: 2.5em; position: static; margin-bottom: 20px; }
+    button { position: static; margin-top: 20px; padding: 12px 30px; background-color: #ff3aa0bc; color: white; border-radius: 8px; font-size: 1.2em; }
+    .switch-prompt { display: block; margin-top: 30px; }
+    .close-login { width: 10%; top: 10px; right: 10px; }
 }
 </style>
