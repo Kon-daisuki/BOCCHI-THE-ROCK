@@ -7,7 +7,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['nav-click']);
-
 const router = useRouter();
 const currentUser = ref(null);
 
@@ -19,25 +18,37 @@ onMounted(() => {
 });
 
 const nav = [
-  {title: '主页', to: '#section1', 'color': '#fff'},
-  {title: '角色', to: '#section2', 'color': '#ff90b9'},
-  {title: '音乐', to: '#section3', 'color': '#fff475'},
-  {title: '相册', to: '#section4', 'color': '#75bfff'},
-  {title: '关于', to: '#section5', 'color': '#ff5252'},
+  {title: '主页', to: '#section1', color: '#fff'},
+  {title: '角色', to: '#section2', color: '#ff90b9'},
+  {title: '音乐', to: '#section3', color: '#fff475'},
+  {title: '相册', to: '#section4', color: '#75bfff'},
+  {title: '关于', to: '#section5', color: '#ff5252'},
 ];
 
 const bg_color = ref('rgba(0, 0, 0, 0.35)');
 
 watch(() => props.activeSection, (newSection) => {
-  if (newSection !== 'section1') {
-    bg_color.value = 'rgba(0, 0, 0, 0.5)';
-  } else {
-    bg_color.value = 'rgba(0, 0, 0, 0.35)';
-  }
+  bg_color.value = newSection !== 'section1'
+    ? 'rgba(0, 0, 0, 0.5)'
+    : 'rgba(0, 0, 0, 0.35)';
 });
 
 const handleClick = (e, to) => {
   e.preventDefault();
+  const el = document.querySelector(to);
+  if (el) {
+    // 平滑滚动到目标
+    el.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+    // 给目标添加临时动画
+    el.classList.add('section-active');
+    setTimeout(() => {
+      el.classList.remove('section-active');
+    }, 600); // 动画时长 0.6s
+  }
   emit('nav-click', to);
 };
 
@@ -64,7 +75,7 @@ const handleLogout = () => {
         >
           <a 
             :href="i.to" 
-            @click="(e) => handleClick(e, i.to)"
+            @click.prevent="(e) => handleClick(e, i.to)"
           >
             {{ i.title }}
             <span class="underline"></span>
@@ -85,7 +96,20 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
-.header { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(to bottom, var(--bg-color), transparent); height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1000; transition: background-color 0.5s ease, background 0.5s ease; }
+.header { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  background: linear-gradient(to bottom, var(--bg-color), transparent); 
+  height: 72px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 40px; 
+  z-index: 1000; 
+  transition: background-color 0.5s ease, background 0.5s ease; 
+}
 .logo { height: 40px; transition: transform 0.3s ease; }
 .logo:hover { transform: scale(1.05); }
 .nav { position: absolute; left: 50%; transform: translateX(-50%); }
@@ -105,6 +129,21 @@ const handleLogout = () => {
 .login-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: white; transform: translateY(-2px); }
 .login-btn.logout { border-color: #ff8a8a; color: #ff8a8a; }
 .login-btn.logout:hover { background-color: #ff5252; border-color: #ff5252; color: white; }
+
+/* --- section 动画 --- */
+.section-active {
+  animation: fadeIn 0.6s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0.6;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* --- 新增平板样式 --- */
 @media (min-width: 769px) and (max-width: 1024px) {
