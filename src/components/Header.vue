@@ -109,6 +109,7 @@ const handleLogout = () => {
   padding: 0 40px; 
   z-index: 1000; 
   transition: background-color 0.5s ease, background 0.5s ease; 
+  will-change: background;
 }
 .logo { height: 40px; transition: transform 0.3s ease; }
 .logo:hover { transform: scale(1.05); }
