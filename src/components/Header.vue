@@ -56,14 +56,14 @@ const handleLogout = () => {
     <img class="logo" src="/assets/images/logo_movie_cn.png"/>
     <div class="nav">
       <ul>
-        <li
-          v-for="i in nav"
-          :key="i.title"
+        <li 
+          v-for="i in nav" 
+          :key="i.title" 
           :class="{ active: i.to === `#${activeSection}` }"
           :style="{'--active-color': i.color}"
         >
-          <a
-            :href="i.to"
+          <a 
+            :href="i.to" 
             @click="(e) => handleClick(e, i.to)"
           >
             {{ i.title }}
@@ -72,10 +72,10 @@ const handleLogout = () => {
         </li>
       </ul>
     </div>
-
+    
     <div class="user-area">
       <button v-if="!currentUser" class="login-btn" @click="goToLogin">登录</button>
-
+      
       <div v-else class="user-info">
         <span>欢迎, {{ currentUser.username }}</span>
         <button class="login-btn logout" @click="handleLogout">退出</button>
@@ -85,27 +85,10 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
-/* 在 .header 样式中添加 transform: translateZ(0) 即可修复问题 */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to bottom, var(--bg-color), transparent);
-  height: 72px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-  z-index: 1000;
-  transition: background-color 0.5s ease, background 0.5s ease;
-  /* --- 新增的修复代码 --- */
-  transform: translateZ(0);
-}
-
+.header { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(to bottom, var(--bg-color), transparent); height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 1000; transition: background-color 0.5s ease, background 0.5s ease; }
 .logo { height: 40px; transition: transform 0.3s ease; }
 .logo:hover { transform: scale(1.05); }
-.nav { position: absolute; left: 50%; transform: translateX(--50%); }
+.nav { position: absolute; left: 50%; transform: translateX(-50%); }
 .nav ul { display: flex; margin: 0; padding: 0; height: 100%; gap: 32px; justify-self: center; }
 .nav li { list-style: none; position: relative; cursor: pointer; }
 .nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; }
