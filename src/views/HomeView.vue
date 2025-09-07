@@ -1,7 +1,3 @@
-<!-- 
-    @Author: Sudoria
-    [最终完美收官版 - 修复底部白线]
--->
 <script setup>
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
@@ -27,7 +23,26 @@ onMounted(() => {
 <template>
   <div class="header-container"><Header :active-section="activeSection" @nav-click="handleNavClick" /></div>
   <div class="scroll-container" ref="scrollContainer">
-    <section id="section1" class="scroll-page"><div class="video-background-container"><video autoplay loop muted playsinline class="video-background"><source src="/assets/videos/video_和服.mp4" type="video/mp4" />视频加载失败</video></div><div class="title-container"><img src="/assets/images/logo_movie_cn.png"/></div></section>
+    <section id="section1" class="scroll-page">
+      <div class="video-background-container">
+        <!-- [核心修改] 添加 poster 和 preload 属性 -->
+        <video 
+          autoplay 
+          loop 
+          muted 
+          playsinline 
+          class="video-background" 
+          poster="/assets/videos/video_poster.webp" 
+          preload="metadata"
+        >
+          <source src="/assets/videos/video_和服.mp4" type="video/mp4" />
+          视频加载失败
+        </video>
+      </div>
+      <div class="title-container">
+        <img src="/assets/images/logo_movie_cn.png"/>
+      </div>
+    </section>
     <section id="section2" class="scroll-page"><CharacterInfo /></section>
     <section id="section3" class="scroll-page"><MusicPlayer /></section>
     <section id="section4" class="scroll-page"><Photos/></section>
