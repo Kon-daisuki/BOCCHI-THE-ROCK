@@ -219,7 +219,6 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* CSS 保持不变...除了下面的优化部分 */
 .main {
     display: flex;
     align-items: center;
@@ -296,16 +295,14 @@ const goHome = () => {
     outline-offset: -20px;
 }
 
-/* --- [核心修复] --- */
 .target {
     position: absolute;
     display: flex;
     flex-direction: column;
-    /* [新增] 使用 space-between 将两个子元素推向两端 */
     justify-content: space-between; 
     align-items: center;
-    /* [修改] 调整 padding，并确保 box-sizing 正确 */
-    padding: 2.5% 0;
+    /* [修改] 增加底部 padding，让滑块有空间停靠 */
+    padding: 10px 0;
     box-sizing: border-box;
     height: 100%;
     left: 10px;
@@ -316,16 +313,6 @@ const goHome = () => {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
     border-radius: 5px;
 }
-.target-image-1 {
-    width: 70%;
-    transition: all 0.8s ease;
-}
-.target-image-2 {
-    width: 70%;
-    /* [移除] 彻底删除不稳定的 margin-top */
-    transition: all 0.8s ease;
-}
-/* --- [修复结束] --- */
 
 .targetbox {
     width: 25%;
@@ -340,10 +327,10 @@ const goHome = () => {
     position: absolute;
     width: 100%;
     height: 50%;
-    top: 10px;
+    top: 10px; /* 初始位置紧贴顶部 padding */
     transition: all 0.8s ease-in-out;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
-    z-index: 5; /* [新增] 确保滑动块在最上层 */
+    z-index: 5;
 }
 
 .slide-image {
@@ -352,8 +339,22 @@ const goHome = () => {
     object-fit: cover;
 }
 
+/* --- [核心修复] --- */
 .slide {
-    top: 47.5%;
+    /* 使用 calc() 动态计算最终位置，确保精准停靠 */
+    top: calc(100% - 10px - 50%);
+}
+/* --- [修复结束] --- */
+
+
+.target-image-1 {
+    width: 70%;
+    transition: all 0.8s ease;
+}
+
+.target-image-2 {
+    width: 70%;
+    transition: all 0.8s ease;
 }
 
 .loginbox {
