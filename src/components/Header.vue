@@ -1,4 +1,3 @@
-<!-- src/components/Header.vue -->
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -95,27 +94,10 @@ const handleLogout = () => {
 .nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; }
 .nav li a:hover { color: var(--active-color); transform: translateY(-2px); }
 .nav li.active a { color: var(--active-color); font-weight: 600; }
+.nav li .underline { position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #ff8a00, #ff5252); transition: width 0.3s ease; }
+.nav li:hover .underline, .nav li.active .underline { width: 100%; }
+.nav li.active .underline { background: linear-gradient(90deg, #ff8a00, #ff5252); box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
 
-/* --- [核心修改] --- */
-/* 1. 初始状态：横线在中心点，宽度为0 (通过 scaleX(0)) */
-.nav li .underline {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%; /* 宽度始终是100% */
-  height: 2px;
-  background: linear-gradient(90deg, #ff8a00, #ff5252);
-  transform: scaleX(0); /* 初始时在X轴上缩放为0 */
-  transform-origin: center; /* 确保从中心开始缩放 */
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 使用更平滑的过渡动画 */
-}
-/* 2. 激活状态：横线从中心展开到100%宽度 */
-.nav li:hover .underline, .nav li.active .underline {
-  transform: scaleX(1);
-}
-/* --- [修改结束] --- */
-
-.nav li.active .underline { box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
 .user-area { color: white; }
 .user-info { display: flex; align-items: center; gap: 15px; }
 .user-info span { font-weight: 500; color: rgba(255, 255, 255, 0.9); }
@@ -124,11 +106,20 @@ const handleLogout = () => {
 .login-btn.logout { border-color: #ff8a8a; color: #ff8a8a; }
 .login-btn.logout:hover { background-color: #ff5252; border-color: #ff5252; color: white; }
 
-@media (max-width: 1024px) {
-  .header { padding: 0 25px; }
-  .nav ul { gap: 20px; }
-  .nav li a { font-size: 15px; }
+/* --- 新增平板样式 --- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .header {
+    padding: 0 25px; /* 调整内边距 */
+  }
+  .nav ul {
+    gap: 20px; /* 减小导航项之间的间距 */
+  }
+  .nav li a {
+    font-size: 15px; /* 稍微减小字体大小 */
+  }
 }
+/* --- 平板样式结束 --- */
+
 @media (max-width: 768px) {
   .header { padding: 0 15px; height: 60px; }
   .logo { height: 30px; }
