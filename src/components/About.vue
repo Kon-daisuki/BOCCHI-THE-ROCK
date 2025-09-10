@@ -1,7 +1,3 @@
-<!-- 
-    @Author: Alola
-    [终极重构版]
--->
 <script setup>
 const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color: '#d65484', desc: 'Bocchi the Rock！！！' }, { name: 'Alola', url: '/assets/images/Alola.jpg', color: '#ce2525', desc: '那我问你，有耳朵不能体现耋，没耳朵不能体现耄，那耄耋娘化是什么样子？' }, { name: 'Daxi', url: '/assets/images/Daxi.jpg', color: '#99d6f1', desc: '关注永雏塔菲喵，关注永雏塔菲谢谢喵8' }, { name: 'Rquars', url: '/assets/images/Rquars.jpg', color: '#f9b000', desc: '什么时候才能长高...' } ];
 </script>
@@ -38,16 +34,51 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 .container-producer { position: relative; top: -15%; width: 70%; }
 .producer-label { position: absolute; font-family: '微软雅黑'; top: 0; left: 0; width: 100%; font-weight: bold; font-size: 2em; text-align: left; color: rgb(197, 89, 255); border-bottom: 1px solid gray; }
 @font-face { font-family: 'Note-Script-SemiBold-2'; src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype'); font-style: normal; }
-.producer-item { position: absolute; width: 10%; aspect-ratio: 1/1; left: 2%; }
-.producer-item:nth-child(2) { top: 15%; } .producer-item:nth-child(3) { top: 40%; } .producer-item:nth-child(4) { top: 65%; } .producer-item:nth-child(5) { top: 90%; }
+
+/* --- [核心修复] --- */
+.producer-item {
+    position: absolute;
+    /* 使用 vw (视口宽度) 单位，让头像大小与屏幕宽度关联 */
+    width: 8vw;
+    max-width: 120px; /* 限制一个最大尺寸，防止在超宽屏上过大 */
+    min-width: 80px;  /* 限制一个最小尺寸，防止过小 */
+    aspect-ratio: 1/1;
+    /* 使用百分比定位 */
+    left: 10%;
+}
+/* 使用百分比来确定每个 item 的垂直位置 */
+.producer-item:nth-child(2) { top: 15%; }
+.producer-item:nth-child(3) { top: 35%; }
+.producer-item:nth-child(4) { top: 55%; }
+.producer-item:nth-child(5) { top: 75%; }
+
 .producer-scale { width: 100%; height: 100%; transform: scale(1); transition: transform 0.5s ease; }
 .producer-image { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transition: transform 0.8s ease, box-shadow 0.7s ease; transform: none; box-shadow: 0 0 0 rgba(197, 89, 255, 0); }
 .producer-image:hover { transform: rotate(360deg); box-shadow: 0 0 20px rgba(197, 89, 255, 0.7); filter: brightness(1.1); }
 .producer-scale:hover { transform: scale(1.2); }
-.producer-name { position: absolute; top: 0; left: 70%; font-family: 'Note-Script-SemiBold-2'; font-size: 1.5em; }
-.producer-drc { position: absolute; text-align: left; width: 800%; height: auto; top: 27%; left: 130%; font-size: 1.2em; font-family: '宋体'; }
 
-/* --- 新增平板样式 --- */
+.producer-name {
+    position: absolute;
+    top: 10%; /* 相对于 item 的顶部 */
+    left: 150%; /* 相对于 item 的左边缘 */
+    font-family: 'Note-Script-SemiBold-2';
+    font-size: 1.5em;
+    white-space: nowrap; /* 防止名字换行 */
+}
+.producer-drc {
+    position: absolute;
+    text-align: left;
+    width: 50vw; /* 描述区域的宽度也与视口关联 */
+    max-width: 600px;
+    height: auto;
+    top: 40%; /* 相对于 item 的顶部 */
+    left: 180%; /* 相对于 item 的左边缘 */
+    font-size: 1.2em;
+    font-family: '宋体';
+}
+/* --- [修复结束] --- */
+
+
 @media (min-width: 769px) and (max-width: 1024px) {
     .head { height: 25vh; }
     .label1 { font-size: 3em; }
@@ -56,36 +87,36 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
         position: relative;
         top: -10%;
         width: 85%;
-        display: grid; /* 使用Grid布局 */
-        grid-template-columns: repeat(2, 1fr); /* 创建两列 */
-        gap: 50px 20px; /* 定义行和列的间距 */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 50px 20px;
     }
     .producer-label {
         position: relative;
         text-align: center;
-        grid-column: 1 / -1; /* 让标题横跨两列 */
+        grid-column: 1 / -1;
         margin-bottom: 20px;
     }
     .producer-item {
-        position: relative; /* 移除绝对定位 */
+        position: relative;
         width: 100%;
         left: auto; top: auto;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    .producer-item:nth-child(n) { top: auto; } /* 重置所有 item 的 top 属性 */
+    .producer-item:nth-child(n) { top: auto; }
     .producer-scale {
         width: 100px;
         height: 100px;
     }
     .producer-name {
-        position: static; /* 移除绝对定位 */
+        position: static;
         margin-top: 10px;
         font-size: 1.3em;
     }
     .producer-drc {
-        position: static; /* 移除绝对定位 */
+        position: static;
         width: 100%;
         font-size: 1em;
         text-align: center;
@@ -93,7 +124,6 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
         padding: 0 15px;
     }
 }
-/* --- 平板样式结束 --- */
 
 @media (max-width: 768px) {
     .head { height: 20vh; min-height: 180px; }
