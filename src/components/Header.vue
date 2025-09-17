@@ -10,12 +10,27 @@ const emit = defineEmits(['nav-click']);
 const router = useRouter();
 const currentUser = ref(null);
 
+const clickedSection = ref(null);
+
 onMounted(() => {
   const userData = localStorage.getItem('currentUser');
   if (userData) {
     currentUser.value = JSON.parse(userData);
   }
 });
+
+// === [代码修改] START ===
+// 监听来自父组件的 activeSection 属性的变化
+watch(() => props.activeSection, (newSectionId) => {
+  // 如果 clickedSection 有值 (意味着上一次操作是点击)
+  // 并且当前滚动到的区域 (newSectionId) 与当初点击的目标不一致
+  // 这就说明用户已经开始手动滚动了
+  // 此时，我们清空 clickedSection，将导航条的控制权交还给滚动监听
+  if (clickedSection.value && clickedSection.value !== `#${newSectionId}`) {
+    clickedSection.value = null;
+  }
+});
+// === [代码修改] END ===
 
 const nav = [
   {title: '主页', to: '#section1', color: '#fff'},
@@ -31,25 +46,26 @@ watch(() => props.activeSection, (newSection) => {
   bg_color.value = newSection !== 'section1'
     ? 'rgba(0, 0, 0, 0.5)'
     : 'rgba(0, 0, 0, 0.35)';
-});
+}, { immediate: true });
 
-const handleClick = (e, to) => {
+const handleClick = (e, item) => {
   e.preventDefault();
-  const el = document.querySelector(to);
+  const el = document.querySelector(item.to);
   if (el) {
-    // 平滑滚动到目标
-    el.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    });
+    // === [代码修改] START ===
+    // 点击时，仍然设置 clickedSection 以立即更新高亮
+    clickedSection.value = item.to;
+    // 移除之前不可靠的 setTimeout
+    // === [代码修改] END ===
+    
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // 给目标添加临时动画
     el.classList.add('section-active');
     setTimeout(() => {
       el.classList.remove('section-active');
-    }, 600); // 动画时长 0.6s
+    }, 600);
   }
-  emit('nav-click', to);
+  emit('nav-click', item.to);
 };
 
 const goToLogin = () => {
@@ -70,12 +86,12 @@ const handleLogout = () => {
         <li 
           v-for="i in nav" 
           :key="i.title" 
-          :class="{ active: i.to === `#${activeSection}` }"
+          :class="{ active: clickedSection ? i.to === clickedSection : i.to === `#${activeSection}` }"
           :style="{'--active-color': i.color}"
         >
           <a 
             :href="i.to" 
-            @click.prevent="(e) => handleClick(e, i.to)"
+            @click.prevent="(e) => handleClick(e, i)"
           >
             {{ i.title }}
             <span class="underline"></span>
@@ -96,6 +112,7 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
+/* Styles remain unchanged, only the script logic was updated */
 .header { 
   position: fixed; 
   top: 0; 
@@ -116,13 +133,9 @@ const handleLogout = () => {
 .nav { position: absolute; left: 50%; transform: translateX(-50%); }
 .nav ul { display: flex; margin: 0; padding: 0; height: 100%; gap: 32px; justify-self: center; }
 .nav li { list-style: none; position: relative; cursor: pointer; }
-/* === [代码修改] START === */
-/* 1. 给导航文字添加阴影，修复“重影”问题，提高可读性 */
 .nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
 .nav li a:hover { color: var(--active-color); transform: translateY(-2px); }
-/* 2. 给 active 状态的导航条添加向上位移的 transform */
 .nav li.active a { color: var(--active-color); font-weight: 600; transform: translateY(-2px); }
-/* === [代码修改] END === */
 .nav li .underline { position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #ff8a00, #ff5252); transition: width 0.3s ease; }
 .nav li:hover .underline, .nav li.active .underline { width: 100%; }
 .nav li.active .underline { background: linear-gradient(90deg, #ff8a00, #ff5252); box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
