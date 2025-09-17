@@ -9,7 +9,7 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
                 <div class="c-onpu"><div class="c-onpu__layer -layer1"></div><div class="c-onpu__layer -layer2"></div><div class="c-onpu__layer -layer3"></div></div>
                 
                 <!-- === [代码修改] START === -->
-                <!-- 使用一个新的 div 包裹标题和图标，方便布局 -->
+                <!-- 使用一个新的 div 包裹标题和图标, 方便布局 -->
                 <div class="title-container">
                     <p class="label1">制作组名单</p>
                     <!-- 添加 GitHub 链接和 SVG 图标 -->
@@ -79,10 +79,38 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 .label2 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 50%; color: yellow; font-size: 1.3em; font-weight: bold; }
 .container { position: relative; display: flex; width: 100%; height: auto; min-height: 70%; justify-content: center; padding-bottom: 50px; }
 .container-producer { position: relative; top: -15%; width: 70%; }
-.producer-label { position: absolute; font-family: '微软雅黑'; top: 0; left: 0; width: 100%; font-weight: bold; font-size: 2em; text-align: left; color: rgb(197, 89, 255); border-bottom: 1px solid gray; }
+
+/* === [代码修改] START === */
+/* 将 PRODUCER 标题从绝对定位修改为相对定位，使其能够参与文档流布局 */
+.producer-label {
+    position: relative; /* Change from absolute */
+    font-family: '微软雅黑';
+    width: 100%;
+    font-weight: bold;
+    font-size: 2em;
+    text-align: left;
+    color: rgb(197, 89, 255);
+    border-bottom: 1px solid gray;
+    padding-bottom: 10px; /* Add some padding for better visual */
+    margin-bottom: 80px;  /* Add margin to create space for the items */
+}
+/* === [代码修改] END === */
+
 @font-face { font-family: 'Note-Script-SemiBold-2'; src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype'); font-style: normal; }
-.producer-item { position: absolute; width: 120px; aspect-ratio: 1/1; left: 5%; }
-.producer-item:nth-child(2) { top: 15%; } .producer-item:nth-child(3) { top: 40%; } .producer-item:nth-child(4) { top: 65%; } .producer-item:nth-child(5) { top: 90%; }
+
+/* === [代码修改] START === */
+/* 将 producer-item 从绝对定位修改为相对定位，使其能够正常堆叠 */
+.producer-item {
+    position: relative; /* Change from absolute */
+    width: 120px;
+    aspect-ratio: 1/1;
+    margin-left: 5%;    /* Use margin for horizontal positioning */
+    margin-bottom: 80px; /* Add margin to vertically space out items */
+}
+/* 移除原先用于绝对定位的 nth-child 规则 */
+/* .producer-item:nth-child(2) { top: 15%; } etc. are removed */
+/* === [代码修改] END === */
+
 .producer-scale { width: 100%; height: 100%; transform: scale(1); transition: transform 0.5s ease; }
 .producer-image { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; transition: transform 0.8s ease, box-shadow 0.7s ease; transform: none; box-shadow: 0 0 0 rgba(197, 89, 255, 0); }
 .producer-image:hover { transform: rotate(360deg); box-shadow: 0 0 20px rgba(197, 89, 255, 0.7); filter: brightness(1.1); }
@@ -99,8 +127,29 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
     /* === [代码修改] END === */
     .label2 { font-size: 1.2em; }
     .container-producer { position: relative; top: -10%; width: 85%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 50px 20px; }
-    .producer-label { position: relative; text-align: center; grid-column: 1 / -1; margin-bottom: 20px; border-bottom: none; }
-    .producer-item { position: relative; width: 100%; left: auto; top: auto; display: flex; flex-direction: column; align-items: center; }
+    
+    /* === [代码修改] START === */
+    /* 媒体查询内的样式覆盖，确保网格布局正常 */
+    .producer-label {
+        position: relative;
+        text-align: center;
+        grid-column: 1 / -1;
+        margin-bottom: 20px; /* Adjust margin for tablet view */
+        border-bottom: none;
+    }
+    .producer-item {
+        position: relative;
+        width: 100%;
+        left: auto;
+        top: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-left: 0; /* Reset margin */
+        margin-bottom: 0; /* Reset margin, rely on grid gap */
+    }
+    /* === [代码修改] END === */
+    
     .producer-item:nth-child(n) { top: auto; }
     .producer-scale { width: 100px; height: 100px; }
     .producer-name { position: static; margin-top: 10px; font-size: 1.3em; }
@@ -119,8 +168,29 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
     .label2 { font-size: 1em; top: 65%; }
     .container { top: 0; min-height: 80vh; }
     .container-producer { width: 90%; top: -5%; position: relative; display: block; }
-    .producer-label { font-size: 1.5em; text-align: center; position: relative; }
-    .producer-item { position: relative; left: auto; top: auto; width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 25px; margin-bottom: 15px; }
+    
+    /* === [代码修改] START === */
+    /* 媒体查询内的样式覆盖，确保移动端布局正常 */
+    .producer-label {
+        font-size: 1.5em;
+        text-align: center;
+        position: relative;
+        margin-bottom: 0; /* Reset margin */
+    }
+    .producer-item {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        margin-left: 0; /* Reset margin */
+    }
+    /* === [代码修改] END === */
+    
     .producer-item:nth-child(n) { top: auto; }
     .producer-scale { width: 70px; height: 70px; }
     .producer-name { position: static; margin-top: 8px; font-size: 1.1em; }
