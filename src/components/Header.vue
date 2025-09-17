@@ -116,9 +116,13 @@ const handleLogout = () => {
 .nav { position: absolute; left: 50%; transform: translateX(-50%); }
 .nav ul { display: flex; margin: 0; padding: 0; height: 100%; gap: 32px; justify-self: center; }
 .nav li { list-style: none; position: relative; cursor: pointer; }
-.nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; }
+/* === [代码修改] START === */
+/* 1. 给导航文字添加阴影，修复“重影”问题，提高可读性 */
+.nav li a { text-decoration: none; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500; letter-spacing: 0.5px; padding: 8px 0; position: relative; transition: all 0.3s ease; display: inline-block; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
 .nav li a:hover { color: var(--active-color); transform: translateY(-2px); }
-.nav li.active a { color: var(--active-color); font-weight: 600; }
+/* 2. 给 active 状态的导航条添加向上位移的 transform */
+.nav li.active a { color: var(--active-color); font-weight: 600; transform: translateY(-2px); }
+/* === [代码修改] END === */
 .nav li .underline { position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, #ff8a00, #ff5252); transition: width 0.3s ease; }
 .nav li:hover .underline, .nav li.active .underline { width: 100%; }
 .nav li.active .underline { background: linear-gradient(90deg, #ff8a00, #ff5252); box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
