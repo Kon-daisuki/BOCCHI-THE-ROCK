@@ -9,25 +9,26 @@ import Photos from '../components/Photos.vue';
 const scrollContainer = ref(null);
 const activeSection = ref('section1');
 
-// This function remains the same, it works perfectly.
+// === [代码修改] START ===
+// This is the function to fix.
+// We must use scrollContainer.value.scrollTo() because you have a custom scroll area.
 const handleNavClick = (to) => {
   const sectionId = to.replace('#', '');
   const target = document.getElementById(sectionId);
-  if (target) {
-    target.scrollIntoView({ behavior: 'smooth' });
+  if (target && scrollContainer.value) {
+    scrollContainer.value.scrollTo({
+      top: target.offsetTop,
+      behavior: 'smooth'
+    });
   }
 };
+// === [代码修改] END ===
 
 onMounted(() => {
-  // --- [代码修改] START ---
-  // We are creating a more responsive IntersectionObserver
+  // Use the faster IntersectionObserver options
   const options = {
     root: scrollContainer.value,
-    // [Change 1] This creates a trigger zone in the middle of the screen.
-    // It shrinks the "viewport" by 40% from the top and 60% from the bottom.
-    rootMargin: "-40% 0px -60% 0px",
-    // [Change 2] The threshold is now 0, so it triggers the moment
-    // a section touches the new rootMargin zone.
+    rootMargin: "-40% 0px -60% 0px", // Trigger when a section is centered
     threshold: 0
   };
 
@@ -37,8 +38,7 @@ onMounted(() => {
         activeSection.value = entry.target.id;
       }
     });
-  }, options); // Use the new options here
-  // --- [代码修改] END ---
+  }, options);
 
   document.querySelectorAll('.scroll-page').forEach(section => {
     observer.observe(section);
@@ -47,53 +47,54 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <!-- 5. Place the Header here and pass the activeSection down as a prop -->
-    <Header :activeSection="activeSection" />
-
-    <main>
-      <!-- 6. This is where your actual page content goes. -->
-      <!--    Each scrollable section needs an 'id' that matches your Header's navigation links. -->
-      <section id="section1">
-        <h1>主页</h1>
-        <!-- Your content for section 1... -->
-      </section>
-      <section id="section2">
-        <h1>角色</h1>
-        <!-- Your content for section 2... -->
-      </section>
-      <section id="section3">
-        <h1>音乐</h1>
-        <!-- Your content for section 3... -->
-      </section>
-      <section id="section4">
-        <h1>相册</h1>
-        <!-- Your content for section 4... -->
-      </section>
-      <section id="section5">
-        <h1>关于</h1>
-        <!-- Your content for section 5... -->
-      </section>
-    </main>
+  <div class="header-container"><Header :active-section="activeSection" @nav-click="handleNavClick" /></div>
+  <div class="scroll-container" ref="scrollContainer">
+    <section id="section1" class="scroll-page">
+      <div class="video-background-container">
+        <video 
+          autoplay 
+          loop 
+          muted 
+          playsinline 
+          class="video-background" 
+          poster="/assets/videos/video_poster.webp" 
+          preload="metadata"
+        >
+          <source src="/assets/videos/video_和服.mp4" type="video/mp4" />
+          视频加载失败
+        </video>
+      </div>
+      <div class="title-container">
+        <img src="/assets/images/logo_movie_cn.png"/>
+      </div>
+    </section>
+    <section id="section2" class="scroll-page"><CharacterInfo /></section>
+    <section id="section3" class="scroll-page"><MusicPlayer /></section>
+    <section id="section4" class="scroll-page"><Photos/></section>
+    <section id="section5" class="scroll-page"><About/></section>
   </div>
 </template>
 
 <style scoped>
-/* Add some basic styling so you can see the sections and scroll through them */
-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; /* Make each section take up the full screen height */
-  font-size: 3rem;
-  color: white;
-  border-bottom: 1px solid #444;
+.header-container { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; }
+.scroll-container {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll; 
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #141414;
 }
-
-/* Just for demonstration */
-#section1 { background: #2c3e50; }
-#section2 { background: #34495e; }
-#section3 { background: #2c3e50; }
-#section4 { background: #34495e; }
-#section5 { background: #2c3e50; }
+.scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
+.video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
+.video-background { position: absolute; top: 50%; left: 50%; width: 100vw; height: 100vh; transform: translate(-50%, -50%); object-fit: cover; }
+.content { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
+.title-container { position: absolute; top: 50%; left: 50%; z-index: 2; text-align: center; transform: translateY(-40px); }
+.title-container img { animation: spinAndLand 2s ease-out forwards; opacity: 0; width: 80vw; max-width: 500px; }
+@keyframes spinAndLand { 0% { opacity: 0.5; transform: translate(100%, -100%) scale(2) rotate(1300deg); } 80% { transform: translate(-50%, -90%) scale(1.5) rotate(0); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
+@media (min-width: 768px) { .video-background-container { background: none; } }
+@media (max-width: 767px) { .video-background { display: none; } }
 </style>
