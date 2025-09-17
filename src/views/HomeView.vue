@@ -45,3 +45,55 @@ onMounted(() => {
   });
 });
 </script>
+
+<template>
+  <div>
+    <!-- 5. Place the Header here and pass the activeSection down as a prop -->
+    <Header :activeSection="activeSection" />
+
+    <main>
+      <!-- 6. This is where your actual page content goes. -->
+      <!--    Each scrollable section needs an 'id' that matches your Header's navigation links. -->
+      <section id="section1">
+        <h1>主页</h1>
+        <!-- Your content for section 1... -->
+      </section>
+      <section id="section2">
+        <h1>角色</h1>
+        <!-- Your content for section 2... -->
+      </section>
+      <section id="section3">
+        <h1>音乐</h1>
+        <!-- Your content for section 3... -->
+      </section>
+      <section id="section4">
+        <h1>相册</h1>
+        <!-- Your content for section 4... -->
+      </section>
+      <section id="section5">
+        <h1>关于</h1>
+        <!-- Your content for section 5... -->
+      </section>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+/* Add some basic styling so you can see the sections and scroll through them */
+section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Make each section take up the full screen height */
+  font-size: 3rem;
+  color: white;
+  border-bottom: 1px solid #444;
+}
+
+/* Just for demonstration */
+#section1 { background: #2c3e50; }
+#section2 { background: #34495e; }
+#section3 { background: #2c3e50; }
+#section4 { background: #34495e; }
+#section5 { background: #2c3e50; }
+</style>
