@@ -1,0 +1,21 @@
+{
+  "name": "孤独摇滚同人站",
+  "short_name": "孤独摇滚",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "description": "孤独摇滚同人站 - Bocchi the Rock!",
+  "icons": [
+    {
+      "src": "/bocchi the rock.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/bocchi the rock.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
