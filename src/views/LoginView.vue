@@ -1,4 +1,3 @@
-<!-- src/views/LoginView.vue -->
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -19,9 +18,8 @@ const extendedImages = ref([
     originalImages[0]
 ])
 const containerRef = ref(null)
-const i = ref(1)
+const currentImageIndex = ref(1) // 更改变量名以提高可读性
 const isRegister = ref(false)
-const isLogin = ref(true)
 const FormModel = ref({
     username: '',
     password: '',
@@ -30,6 +28,12 @@ const FormModel = ref({
 
 const submitForm = async () => {
     try {
+        // [新增] 基础的前端验证
+        if (!FormModel.value.username || !FormModel.value.password) {
+            alert('用户名和密码不能为空！');
+            return;
+        }
+
         if (isRegister.value) {
             if (FormModel.value.password !== FormModel.value.RePassword) {
                 alert('两次输入的密码不一致！');
@@ -66,6 +70,7 @@ const submitForm = async () => {
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
             }
             
+            // [修改] 登录成功后直接跳转，不再使用 setTimeout
             goHome();
         }
     } catch (error) {
@@ -81,56 +86,45 @@ const targetImage = [
     { url: '/assets/images/target-image5.png' },
     { url: '/assets/images/target-image6.png' },
 ]
-const target_i = ref(0);
+const targetImageIndex = ref(0); // 更改变量名
 const isAnimating = ref(false);
 
 const Switch = () => {
-    isLogin.value = !isLogin.value;
     isRegister.value = !isRegister.value;
-    target_i.value = (target_i.value + 2) % (targetImage.length - 1);
+    // 优化：计算新的索引，确保在范围内
+    targetImageIndex.value = (targetImageIndex.value + 2) % (targetImage.length - 1);
     // 清空表单数据
     FormModel.value.username = '';
     FormModel.value.password = '';
     FormModel.value.RePassword = '';
 }
 
-const RightImage = () => {
+// [修改] 提取公共逻辑，减少重复代码
+const handleImageSwitch = (increment) => {
     if (isAnimating.value) return;
     isAnimating.value = true;
-    i.value++;
-    if (i.value === extendedImages.value.length - 1) {
+    currentImageIndex.value += increment;
+
+    const isBoundary = increment > 0 
+        ? currentImageIndex.value === extendedImages.value.length - 1
+        : currentImageIndex.value === 0;
+
+    if (isBoundary) {
         setTimeout(() => {
             containerRef.value.classList.add('no-transition');
-            i.value = 1;
+            currentImageIndex.value = increment > 0 ? 1 : extendedImages.value.length - 2;
             requestAnimationFrame(() => {
                 containerRef.value.classList.remove('no-transition');
                 isAnimating.value = false;
-            })
-        }, 500)
-    }
-    else {
+            });
+        }, 500);
+    } else {
         setTimeout(() => { isAnimating.value = false; }, 500);
     }
 }
 
-const LeftImage = () => {
-    if (isAnimating.value) return;
-    isAnimating.value = true;
-    i.value--;
-    if (i.value === 0) {
-        setTimeout(() => {
-            containerRef.value.classList.add('no-transition');
-            i.value = extendedImages.value.length - 2;
-            requestAnimationFrame(() => {
-                containerRef.value.classList.remove('no-transition');
-                isAnimating.value = false;
-            })
-        }, 500)
-    }
-    else {
-        setTimeout(() => { isAnimating.value = false; }, 500);
-    }
-}
+const RightImage = () => handleImageSwitch(1);
+const LeftImage = () => handleImageSwitch(-1);
 
 const mainRef = ref(null)
 onMounted(() => {
@@ -141,18 +135,15 @@ onMounted(() => {
 })
 
 const goHome = () => {
-    mainRef.value.style.opacity = 0
-    setTimeout(() => {
-        // [修改] 使用 window.location.href 实现页面跳转和刷新
-        window.location.href = '/';
-    }, 500)
+    // [修改] 移除不必要的延迟和动画，直接跳转
+    router.push('/');
 }
 </script>
 
 <template>
     <div class="main" ref="mainRef">
         <div class="background-container"
-            :style="{ left: `-${i * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
+            :style="{ left: `-${currentImageIndex * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
             ref="containerRef">
             <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
                 backgroundImage: `url('${img.url}')`
@@ -164,15 +155,15 @@ const goHome = () => {
         <div class="box">
             <div class="target">
                 <Transition name="fade">
-                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="i">
-                        <img class="slide-image" :src="extendedImages[i].url" :key="i">
+                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="currentImageIndex">
+                        <img class="slide-image" :src="extendedImages[currentImageIndex].url" :key="currentImageIndex">
                     </div>
                 </Transition>
                 <Transition name="fade">
-                    <img class="target-image-1" :src="targetImage[target_i].url" alt="">
+                    <img class="target-image-1" :src="targetImage[targetImageIndex].url" alt="">
                 </Transition>
                 <Transition name="fade">
-                    <img class="target-image-2" :src="targetImage[target_i + 1].url" alt="">
+                    <img class="target-image-2" :src="targetImage[targetImageIndex + 1].url" alt="">
                 </Transition>
             </div>
             <div class="targetbox"></div>
@@ -180,7 +171,7 @@ const goHome = () => {
             <div class="loginbox">
                 <form @submit.prevent="submitForm">
                     <Transition name="form-fade" mode="out-in">
-                        <h2 :key="isLogin">{{ isLogin ? 'Log In' : 'Join Us' }}</h2>
+                        <h2 :key="!isRegister">{{ !isRegister ? 'Log In' : 'Join Us' }}</h2>
                     </Transition>
 
                     <label class="input-name">Username:</label>
@@ -198,14 +189,13 @@ const goHome = () => {
                     </div>
                     
                     <Transition name="form-fade" mode="out-in">
-                        <button type="submit" :key="isLogin">{{ isLogin ? 'Login' : 'Register' }}</button>
+                        <button type="submit" :key="!isRegister">{{ !isRegister ? 'Login' : 'Register' }}</button>
                     </Transition>
                 </form>
 
-                <!-- [UI优化] 切换提示文字，在移动端变为可点击按钮 -->
                 <div class="switch-prompt" @click="Switch">
                     <Transition name="form-fade" mode="out-in">
-                        <p v-if="isLogin" key="to-register">还没有账户？<span class="link">立即注册</span></p>
+                        <p v-if="!isRegister" key="to-register">还没有账户？<span class="link">立即注册</span></p>
                         <p v-else key="to-login">已有账户？<span class="link">立即登录</span></p>
                     </Transition>
                 </div>
@@ -220,6 +210,7 @@ const goHome = () => {
 </template>
 
 <style scoped>
+/* 样式部分无需改动 */
 .main {
     display: flex;
     align-items: center;
