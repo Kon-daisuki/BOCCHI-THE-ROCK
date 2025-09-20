@@ -1,10 +1,3 @@
-<script>
-// [新增] 添加这个 <script> 块来命名组件，以便 KeepAlive 生效
-export default {
-  name: 'MusicPlayer'
-}
-</script>
-
 <script setup>
 import { onMounted, ref, watch, computed } from 'vue';
 
