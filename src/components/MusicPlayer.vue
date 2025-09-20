@@ -6,6 +6,7 @@ const API_BASE_URL = 'https://login.bocchi.us.kg';
 
 const currentUser = ref(null);
 const likedSongs = ref(new Set());
+const isFetchingData = ref(false); // [新增] 状态锁，防止重复请求
 
 const playlists = {
   '結束バンド': [
@@ -52,7 +53,6 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
-// [修改] 桌面/平板切换器使用的函数
 const switchPlaylist = (playlistName) => { 
   if (activePlaylistName.value === playlistName) return; 
   activePlaylistName.value = playlistName; 
@@ -60,7 +60,6 @@ const switchPlaylist = (playlistName) => {
   playStatu.value = 1; 
 };
 
-// [新增] 手机端上下箭头切换器使用的函数
 const playlistNames = Object.keys(playlists);
 const switchPlaylistVertical = (direction) => {
     const currentIndex = playlistNames.indexOf(activePlaylistName.value);
@@ -75,14 +74,17 @@ const switchPlaylistVertical = (direction) => {
     switchPlaylist(nextPlaylistName);
 };
 
-// [新增] 提取的公共函数，用于获取用户数据和收藏列表
+// [修改] 添加了状态锁逻辑的最终版本
 const fetchUserDataAndLikes = async () => {
-    const userData = localStorage.getItem('currentUser');
-    const token = localStorage.getItem('authToken');
+    if (isFetchingData.value) return; // 如果正在请求，则直接返回
+    isFetchingData.value = true; // 上锁
 
-    if (userData && token) {
-        currentUser.value = JSON.parse(userData);
-        try {
+    try {
+        const userData = localStorage.getItem('currentUser');
+        const token = localStorage.getItem('authToken');
+
+        if (userData && token) {
+            currentUser.value = JSON.parse(userData);
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -90,18 +92,18 @@ const fetchUserDataAndLikes = async () => {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
-                // 登录状态失效，清除本地存储
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
             }
-        } catch (error) {
-            console.error('获取收藏列表失败:', error);
+        } else {
+            currentUser.value = null;
+            likedSongs.value = new Set();
         }
-    } else {
-        // 用户未登录，清除状态
-        currentUser.value = null;
-        likedSongs.value = new Set();
+    } catch (error) {
+        console.error('获取收藏列表失败:', error);
+    } finally {
+        isFetchingData.value = false; // 解锁
     }
 };
 
@@ -196,6 +198,7 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
+// [修改] 清理后的 onMounted，只负责一次性初始化
 onMounted(() => {
     updateMediaSession(activeItem.value);
     player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
@@ -225,18 +228,6 @@ onMounted(() => {
         });
     }
 
-    // [核心修复] onMounted 钩子中，移除获取用户数据的逻辑，并添加对 localStorage 的监听
-    window.addEventListener('storage', (event) => {
-        if (event.key === 'authToken') {
-            // 根据音乐的实际状态更新播放按钮的UI状态
-            playStatu.value = player.value.paused ? 0 : 1;
-            fetchUserDataAndLikes();
-        }
-    });
-
-    // 在组件挂载时首次加载用户数据
-    fetchUserDataAndLikes();
-
     const el = document.querySelector('.player-select');
     if (el) { 
       el.addEventListener('wheel', (e) => { 
@@ -247,10 +238,8 @@ onMounted(() => {
     }
 });
 
-// [最终修复] 在 onMounted 的紧下方，添加这个 onActivated 钩子
+// [修改] onActivated 作为刷新用户状态的唯一入口
 onActivated(() => {
-    // 当组件从缓存中被激活时（例如登录后返回），
-    // 再次调用函数以刷新用户登录状态和收藏列表。
     fetchUserDataAndLikes();
 });
 
