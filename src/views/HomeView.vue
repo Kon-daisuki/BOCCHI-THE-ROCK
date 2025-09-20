@@ -1,3 +1,9 @@
+<script>
+export default {
+  name: 'HomeView'
+}
+</script>
+
 <script setup>
 import Header from '@/components/Header.vue';
 import CharacterInfo from '@/components/CharacterInfo.vue';
