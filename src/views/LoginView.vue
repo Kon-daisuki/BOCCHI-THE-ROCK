@@ -2,9 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { userStore } from '../store/user'; // [集成] 导入 userStore
 
 const API_BASE_URL = 'https://login.bocchi.us.kg';
-const isLoading = ref(false); // [新增] 加载状态
+const isLoading = ref(false); // [修复] 加载状态
 
 const router = useRouter()
 
@@ -27,16 +28,14 @@ const FormModel = ref({
     RePassword: ''
 })
 
-// [修改] 改造 submitForm 函数以包含加载状态处理
 const submitForm = async () => {
-    if (isLoading.value) return; // 防止重复提交
+    if (isLoading.value) return;
 
     try {
-        isLoading.value = true; // 开始加载
+        isLoading.value = true;
 
         if (!FormModel.value.username || !FormModel.value.password) {
             alert('用户名和密码不能为空！');
-            // 注意：这里需要提前返回，所以也要在 finally 中解锁
             return; 
         }
 
@@ -69,18 +68,15 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '登录失败');
             
-            if (data.token) {
-                localStorage.setItem('authToken', data.token);
-            }
-            if (data.user) {
-                localStorage.setItem('currentUser', JSON.stringify(data.user));
-            }
+            // [集成] 调用 userStore 的 login 方法来更新全局状态
+            userStore.login(data.user, data.token);
+            
             goHome();
         }
     } catch (error) {
         alert(error.message);
     } finally {
-        isLoading.value = false; // 无论成功或失败，最后都结束加载
+        isLoading.value = false;
     }
 }
 
@@ -191,7 +187,6 @@ const goHome = () => {
                     </div>
                     
                     <Transition name="form-fade" mode="out-in">
-                        <!-- [修改] 绑定 disabled 属性和动态文本 -->
                         <button type="submit" :key="!isRegister" :disabled="isLoading">
                             {{ isLoading ? 'Processing...' : (!isRegister ? 'Login' : 'Register') }}
                         </button>
@@ -382,7 +377,6 @@ button:focus { outline: none; box-shadow: none; }
 .repassword-container { height: 70px; width: 100%; display: flex; justify-content: center; flex-direction: column; align-items: center; }
 .repassword-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
 button { background: none; border: none; font-size: 1.4em; width: auto; height: auto; font-family: 'Note-Script-SemiBold-2'; cursor: pointer; margin-top: 20px; }
-/* [新增] 为禁用的按钮添加样式 */
 button:disabled {
     cursor: not-allowed;
     opacity: 0.6;
