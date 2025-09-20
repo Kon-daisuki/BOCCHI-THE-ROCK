@@ -1,12 +1,11 @@
 <script setup>
 import { onMounted, ref, watch, computed, onActivated } from 'vue';
+import { userStore } from '../store/user'; // [集成] 导入 userStore
 
-// 您的后端API地址
 const API_BASE_URL = 'https://login.bocchi.us.kg';
 
-const currentUser = ref(null);
 const likedSongs = ref(new Set());
-const isFetchingData = ref(false); // [新增] 状态锁，防止重复请求
+const isFetchingData = ref(false); 
 
 const playlists = {
   '結束バンド': [
@@ -74,17 +73,13 @@ const switchPlaylistVertical = (direction) => {
     switchPlaylist(nextPlaylistName);
 };
 
-// [修改] 添加了状态锁逻辑的最终版本
 const fetchUserDataAndLikes = async () => {
-    if (isFetchingData.value) return; // 如果正在请求，则直接返回
-    isFetchingData.value = true; // 上锁
+    if (isFetchingData.value) return;
+    isFetchingData.value = true;
 
     try {
-        const userData = localStorage.getItem('currentUser');
-        const token = localStorage.getItem('authToken');
-
-        if (userData && token) {
-            currentUser.value = JSON.parse(userData);
+        if (userStore.isLoggedIn) {
+            const token = localStorage.getItem('authToken');
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -92,18 +87,15 @@ const fetchUserDataAndLikes = async () => {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('authToken');
-                currentUser.value = null;
+                userStore.logout(); // 如果token失效，调用全局登出
             }
         } else {
-            currentUser.value = null;
             likedSongs.value = new Set();
         }
     } catch (error) {
         console.error('获取收藏列表失败:', error);
     } finally {
-        isFetchingData.value = false; // 解锁
+        isFetchingData.value = false;
     }
 };
 
@@ -118,7 +110,7 @@ watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; })
 player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
 const toggleLike = async () => { 
-  if (!currentUser.value) { 
+  if (!userStore.isLoggedIn) { 
     alert('请先登录才能收藏歌曲哦！'); 
     return; 
   } 
@@ -198,7 +190,6 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
-// [修改] 清理后的 onMounted，只负责一次性初始化
 onMounted(() => {
     updateMediaSession(activeItem.value);
     player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
@@ -238,7 +229,6 @@ onMounted(() => {
     }
 });
 
-// [修改] onActivated 作为刷新用户状态的唯一入口
 onActivated(() => {
     fetchUserDataAndLikes();
 });
@@ -391,7 +381,6 @@ onActivated(() => {
     .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 
-/* --- [终极修复] --- */
 @media (max-width: 768px) { 
     .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
     .player-select-desktop { display: none; }
@@ -408,17 +397,15 @@ onActivated(() => {
     .player-bg { width: 180px; height: 180px; } 
     .album-image { width: 120px; height: 120px; } 
     
-    /* --- [修改开始] --- */
     .music-info { 
         margin-bottom: 10px;
         width: 100%; 
-        overflow: hidden; /* 隐藏内部溢出的文本 */
+        overflow: hidden; 
     }
     .music-info h2 {
         font-size: 18px;
-        white-space: nowrap; /* 文本不换行 */
+        white-space: nowrap; 
     } 
-    /* 新增一个容器来固定控件的宽度 */
     .controls-container {
         width: 100%;
         display: flex;
@@ -427,7 +414,6 @@ onActivated(() => {
     .player-controls { 
         gap: 12px;
     }
-    /* --- [修改结束] --- */
 
     .music-info p { font-size: 14px; } 
     .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
