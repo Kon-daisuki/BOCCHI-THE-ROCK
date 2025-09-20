@@ -6,7 +6,7 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, onBeforeUnmount } from 'vue';
 
 // 您的后端API地址
 const API_BASE_URL = 'https://login.bocchi.us.kg';
@@ -59,6 +59,7 @@ const defaultFavicon = '/favicon.ico';
 player.value.src = activeItem.value.src;
 player.value.volume = volumeProgress.value / 100;
 
+// [修改] 桌面/平板切换器使用的函数
 const switchPlaylist = (playlistName) => { 
   if (activePlaylistName.value === playlistName) return; 
   activePlaylistName.value = playlistName; 
@@ -66,6 +67,7 @@ const switchPlaylist = (playlistName) => {
   playStatu.value = 1; 
 };
 
+// [新增] 手机端上下箭头切换器使用的函数
 const playlistNames = Object.keys(playlists);
 const switchPlaylistVertical = (direction) => {
     const currentIndex = playlistNames.indexOf(activePlaylistName.value);
@@ -80,6 +82,7 @@ const switchPlaylistVertical = (direction) => {
     switchPlaylist(nextPlaylistName);
 };
 
+// [新增] 提取的公共函数，用于获取用户数据和收藏列表
 const fetchUserDataAndLikes = async () => {
     const userData = localStorage.getItem('currentUser');
     const token = localStorage.getItem('authToken');
@@ -94,7 +97,6 @@ const fetchUserDataAndLikes = async () => {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
-                // 登录状态失效，清除本地存储
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
@@ -103,11 +105,57 @@ const fetchUserDataAndLikes = async () => {
             console.error('获取收藏列表失败:', error);
         }
     } else {
-        // 用户未登录，清除状态
         currentUser.value = null;
         likedSongs.value = new Set();
     }
 };
+
+// [2. 新增：保存播放器状态的函数]
+const savePlayerState = () => {
+    if (!player.value) return;
+    const state = {
+        playlist: activePlaylistName.value,
+        songName: activeItem.value.name,
+        currentTime: player.value.currentTime,
+        volume: volumeProgress.value,
+        // 确保准确记录是否正在播放
+        isPlaying: playStatu.value === 1 && !player.value.paused,
+    };
+    // 使用 sessionStorage 将状态保存为字符串
+    sessionStorage.setItem('playerState', JSON.stringify(state));
+};
+
+// [3. 新增：恢复播放器状态的函数]
+const restorePlayerState = () => {
+    const savedStateJSON = sessionStorage.getItem('playerState');
+    if (savedStateJSON) {
+        const savedState = JSON.parse(savedStateJSON);
+        const playlist = playlists[savedState.playlist];
+        if (!playlist) return;
+
+        const song = playlist.find(s => s.name === savedState.songName);
+        if (song) {
+            activePlaylistName.value = savedState.playlist;
+            activeItem.value = song;
+            volumeProgress.value = savedState.volume;
+            
+            // 关键：必须在音频可以播放后才能设置 currentTime
+            player.value.addEventListener('canplay', () => {
+                player.value.currentTime = savedState.currentTime;
+                // 恢复播放/暂停的UI状态，watch效果会自动处理播放命令
+                if (savedState.isPlaying) {
+                    playStatu.value = 1;
+                } else {
+                    playStatu.value = 0;
+                }
+            }, { once: true }); // { once: true } 确保此事件只触发一次
+
+            // 清理状态，以免刷新页面时总是意外恢复
+            sessionStorage.removeItem('playerState');
+        }
+    }
+};
+
 
 const updatePositionState = () => { if ('mediaSession' in navigator && player.value.duration) { navigator.mediaSession.setPositionState({ duration: player.value.duration, playbackRate: player.value.playbackRate, position: player.value.currentTime, }); } };
 const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; updatePositionState(); } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
@@ -200,10 +248,17 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
+// [4. 修改 onMounted]
 onMounted(() => {
     updateMediaSession(activeItem.value);
     player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
     
+    // [新增] 组件挂载时，尝试恢复之前的播放状态
+    restorePlayerState();
+    
+    // [新增] 监听浏览器关闭或刷新事件，以保存状态
+    window.addEventListener('beforeunload', savePlayerState);
+
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
@@ -231,13 +286,11 @@ onMounted(() => {
 
     window.addEventListener('storage', (event) => {
         if (event.key === 'authToken') {
-            // 根据音乐的实际状态更新播放按钮的UI状态
             playStatu.value = player.value.paused ? 0 : 1;
             fetchUserDataAndLikes();
         }
     });
 
-    // 在组件挂载时首次加载用户数据
     fetchUserDataAndLikes();
 
     const el = document.querySelector('.player-select');
@@ -249,267 +302,206 @@ onMounted(() => {
       }); 
     }
 });
+
+// [5. 新增 onBeforeUnmount]
+// 组件被卸载（例如切换路由到登录页）前，保存状态
+onBeforeUnmount(() => {
+    savePlayerState();
+    // 移除监听器，防止内存泄漏
+    window.removeEventListener('beforeunload', savePlayerState);
+});
+
+</script>
+
 </script>
 
 <template>
-    <div class="main" ref="mainRef">
-        <div class="background-container"
-            :style="{ left: `-${currentImageIndex * 100}%`, '--background-width': extendedImages.length * 100 + '%' }"
-            ref="containerRef">
-            <div v-for="(img, index) in extendedImages" :key="index" class="main-background" :style="{
-                backgroundImage: `url('${img.url}')`
-            }"></div>
-        </div>
-
-        <Icon class="left" icon="material-symbols:arrow-back-ios-new-rounded" @click="LeftImage" />
-        <Icon class="right" icon="material-symbols:arrow-forward-ios-rounded" @click="RightImage" />
-        <div class="box">
-            <div class="target">
-                <Transition name="fade">
-                    <div class="slide-image-container" :class="{ 'slide': isRegister }" :key="currentImageIndex">
-                        <img class="slide-image" :src="extendedImages[currentImageIndex].url" :key="currentImageIndex">
-                    </div>
-                </Transition>
-                <Transition name="fade">
-                    <img class="target-image-1" :src="targetImage[targetImageIndex].url" alt="">
-                </Transition>
-                <Transition name="fade">
-                    <img class="target-image-2" :src="targetImage[targetImageIndex + 1].url" alt="">
+    <div class="bg">
+        <div class="player-container" :class="'playlist-' + activePlaylistName">
+            <div class="music-note note1">♪</div><div class="music-note note2">♫</div><div class="music-note note3">♩</div><div class="music-note note4">♬</div><div class="music-note note5">♪</div><div class="music-note note6">♫</div><div class="music-note note7">♩</div><div class="music-note note8">♬</div>
+            
+            <div class="player-select player-select-desktop">
+                <div class="playlist-switcher">
+                    <button v-for="(_, name) in playlists" :key="name" class="playlist-btn" :class="{ 'active': name === activePlaylistName }" @click="switchPlaylist(name)">{{ name }}</button>
+                </div>
+                <Transition name="playlist-fade-desktop" mode="out-in">
+                    <ul :key="activePlaylistName">
+                        <li v-for="music in currentTracklist" :key="music.name" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                            <div class="music-item">
+                                <img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div>
+                            </div>
+                        </li>
+                    </ul>
                 </Transition>
             </div>
-            <div class="targetbox"></div>
 
-            <div class="loginbox">
-                <form @submit.prevent="submitForm">
-                    <Transition name="form-fade" mode="out-in">
-                        <h2 :key="!isRegister">{{ !isRegister ? 'Log In' : 'Join Us' }}</h2>
-                    </Transition>
-
-                    <label class="input-name">Username:</label>
-                    <input v-model="FormModel.username" required></input>
-                    <label class="input-name">Password:</label>
-                    <input type="password" v-model="FormModel.password" required></input>
-                    
-                    <div class="repassword-container">
-                        <Transition name="form-fade" mode="out-in">
-                            <div v-if="isRegister" class="repassword-content">
-                                <label class="input-name">RePassword:</label>
-                                <input type="password" v-model="FormModel.RePassword" required></input>
+            <div class="player-select player-select-mobile">
+                <Transition name="playlist-fade-mobile" mode="out-in">
+                    <ul :key="activePlaylistName">
+                        <li v-for="music in currentTracklist" :key="music.name" :class="{ 'active': activeItem.name === music.name }" @click="activeItem = music">
+                            <div class="music-item">
+                                <img :src="music.image" :alt="music.name" /><div class="music-info"><span class="music-title">{{ music.name }}</span><span class="music-singer">{{ music.singer }}</span></div>
                             </div>
-                        </Transition>
-                    </div>
-                    
-                    <Transition name="form-fade" mode="out-in">
-                        <button type="submit" :key="!isRegister">{{ !isRegister ? 'Login' : 'Register' }}</button>
-                    </Transition>
-                </form>
+                        </li>
+                    </ul>
+                </Transition>
+            </div>
 
-                <div class="switch-prompt" @click="Switch">
-                    <Transition name="form-fade" mode="out-in">
-                        <p v-if="!isRegister" key="to-register">还没有账户？<span class="link">立即注册</span></p>
-                        <p v-else key="to-login">已有账户？<span class="link">立即登录</span></p>
-                    </Transition>
+            <div class="player">
+                <div class="now-playing">
+                    <div class="playlist-switcher-mobile">
+                        <button v-for="(_, name) in playlists" :key="name" class="playlist-btn-mobile" :class="{ 'active': name === activePlaylistName }" @click="switchPlaylist(name)">
+                            <span>{{ name }}</span>
+                        </button>
+                    </div>
+                    <div class="player-bg-wrapper">
+                        <div class="player-bg" :style="{ 'animation-play-state': playStatu === 0 ? 'paused' : 'running' }">
+                            <img :src="activeItem.image" :alt="activeItem.name" class="album-image" />
+                        </div>
+                    </div>
+                    <div class="music-info"><h2>{{ activeItem.name }}</h2><p>{{ activeItem.singer }}</p></div>
+
+                    <div class="controls-container">
+                        <div class="player-controls">
+                            <div class="volume-control"><span class="icon-defuse" @click="volumeHandle(-10)"><img src="/assets/images/icon_defuse.png" /></span><div class="volume-progress-box" :style="{ '--volume-progress': volumeProgress + '%' }" @click="onVolumeProgressClicked($event)"><div class="volume-progress-fill"></div></div><span class="icon-add" @click="volumeHandle(10)"><img src="/assets/images/icon_add.png" /></span></div>
+                            <div class="control-panel">
+                                <span class="like-btn" :class="{ 'liked': likedSongs.has(activeItem.name) }" @click="toggleLike"><img src="/assets/images/icon_like.png" /></span>
+                                <span @click="playWeightedRandom"><img src="/assets/images/icon_mode.png" /></span>
+                                <span class="mv-icon" :class="{ 'disabled': !activeItem.bvid }" @click="showMv"><img src="/assets/images/icon_mv.png" /></span>
+                            </div>
+                            <div class="music-progress-container"><span class="current-time">{{ secToMMSS(player.currentTime) }}</span><div class="music-progress-box" :style="{ '--music-progress': musicProgress + '%' }" @click="onProgressClicked($event)"><div class="music-progress-fill"></div></div><span class="duration-time">{{ activeItem.duration }}</span></div>
+                            <div class="btn-bar">
+                                <div @click="switchMusic('previous')"><img src="/assets/images/icon_last.png" /></div>
+                                <div><img @click="switchStatu()" :src="playerIcons[playStatu]" /></div>
+                                <div @click="switchMusic('next')"><img src="/assets/images/icon_next.png" /></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <img class="switch-login" src="/assets/images/电吉他.svg" alt="切换模式" @click="Switch"></img>
-            
-            <div class="ribbons"></div>
         </div>
-        <Icon class="close-login" icon="material-symbols:close-rounded" @click="goHome" />
+        <div v-if="isMvVisible" class="mv-modal-overlay" @click="isMvVisible = false">
+            <div class="mv-modal-content" @click.stop>
+                <button class="close-mv-btn" @click="isMvVisible = false">×</button>
+                <iframe :src="'//player.bilibili.com/player.html?isOutside=true&bvid='+activeItem.bvid+'&page=1&autoplay=1'" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+            </div>
+        </div>
     </div>
 </template>
 
 <style scoped>
-.main {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    opacity: 0;
-    transition: opacity 1s ease;
+.bg { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #ff86be 0%, #ffd859 25%, #5ad0ff 50%, #ff5656 75%); background-size: 300% 300%; animation: gradient 15s ease infinite; animation-play-state: var(--animation-state, paused); }
+.player-container { position: relative; display: flex; width: 80%; min-width: 900px; max-width: 1200px; height: 80vh; min-height: 600px; background-color: rgba(255, 255, 255, 0.65); border-right: 1px solid rgba(170, 170, 170, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 5px 8px rgba(81, 81, 81, 0.5); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.music-note { position: absolute; color: rgba(255, 255, 255, 0.7); font-size: 60px; opacity: 0; animation: floatNote 8s linear infinite; pointer-events: none; user-select: none; z-index: 0; }
+.note1 { top: 20%; left: 40%; animation-delay: 1s; } .note2 { top: 70%; left: 45%; animation-delay: 1s; } .note3 { top: 40%; left: 85%; animation-delay: 1s; } .note4 { top: 80%; left: 90%; animation-delay: 1s; } .note5 { top: 70%; left: 50%; animation-delay: 1s; } .note6 { top: 20%; left: 75%; animation-delay: 1s; } .note7 { top: 60%; left: 38%; animation-delay: 1s; } .note8 { top: 80%; left: 60%; animation-delay: 1s; }
+@keyframes floatNote { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.7; } 90% { opacity: 0.7; } 100% { transform: translateY(-100px) rotate(360deg); opacity: 0; } }
+.bg .music-note, .player-container .music-note { animation-play-state: var(--animation-state, paused); }
+@keyframes gradient { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
+
+.player-select-desktop { width: 35%; background-color: rgba(255, 255, 255, 0.5); overflow-y: auto; border-right: 1px solid #e0e0e0; scrollbar-width: none; z-index: 1; }
+.player-select-desktop::-webkit-scrollbar { width: 6px; }
+.player-select-mobile { display: none; }
+
+.playlist-switcher { display: flex; padding: 8px; gap: 8px; background-color: rgba(0,0,0,0.05); border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 2; }
+.playlist-btn { flex-grow: 1; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(255,255,255,0.4); border-radius: 6px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; color: #555; }
+.playlist-btn:hover { background-color: rgba(255,255,255,0.7); }
+.playlist-btn.active { background-color: #ec407a; color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: transparent; }
+.playlist-fade-desktop-enter-active, .playlist-fade-desktop-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.playlist-fade-desktop-enter-from, .playlist-fade-desktop-leave-to { opacity: 0; transform: translateY(10px); }
+
+.player-select ul { padding: 0; margin: 0; display: flex; flex-direction: column; }
+.player-select ul li { list-style: none; padding: 10px 16px; border-bottom: 1px solid #e0e0e0; cursor: pointer; transition: all 0.3s ease; }
+.player-select ul li:hover { background-color: #f0f0f0; }
+.player-select ul li.active { background-color: #e8e8e8; border-right: 4px solid #ec407a; }
+.music-item { height: auto; min-height: 60px; display: flex; gap: 12px; width: 100%; align-items: center; }
+.player-select img { height: 60px; width: 60px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); flex-shrink: 0; }
+.music-info { display: flex; flex-direction: column; justify-content: center; height: 100%; overflow: hidden; flex: 1; min-width: 0; }
+.music-title { font-size: 16px; color: #333; font-weight: 600; line-height: 1.3; text-align: left; white-space: normal; word-break: break-word; }
+.music-singer { font-size: 13px; color: #777; text-align: left; line-height: 1.3; white-space: normal; word-break: break-word; }
+
+.player { width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5)); box-shadow: 2px 2px 5px #666; z-index: 1; }
+.player-bg-wrapper { display: flex; justify-content: center; align-items: center; }
+.player-bg { width: 280px; height: 280px; border-radius: 50%; position: relative; background: radial-gradient(circle at center, #4a4a4a, #2c2c2c); box-shadow: inset 0 0 15px rgba(0,0,0,0.6), inset 0 0 5px rgba(255,255,255,0.1), 0 0 20px rgba(0, 0, 0, 0.4); animation: albums_rotate 15s infinite linear; animation-play-state: var(--animation-state, paused); flex-shrink: 0; }
+.now-playing { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between; }
+.album-image { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); transition: all 0.4s ease; z-index: 2; }
+.music-info { text-align: center; margin-bottom: 20px; width: 100%; }
+.player-controls { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.volume-control { display: flex; align-items: center; gap: 12px; width: 60%; justify-content: center; }
+.volume-control img { width: 20px; opacity: 0.7; transition: opacity 0.2s; }
+.volume-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
+.volume-progress-fill { height: 100%; background-color: #ec407a; border-radius: 2px; width: var(--volume-progress); }
+.control-panel { display: flex; align-items: center; gap: 30px; }
+.control-panel img { width: 24px; opacity: 0.7; cursor: pointer; transition: opacity 0.2s; }
+.control-panel .mv-icon.disabled { opacity: 0.4; cursor: not-allowed; }
+.control-panel .mv-icon.disabled:hover img { transform: none; }
+.music-progress-container { width: 100%; display: flex; align-items: center; gap: 12px; }
+.current-time, .duration-time { font-size: 12px; color: #555; width: 40px; }
+.music-progress-box { flex-grow: 1; height: 4px; background-color: rgba(0, 0, 0, 0.1); border-radius: 2px; position: relative; cursor: pointer; }
+.music-progress-fill { height: 100%; background: linear-gradient(90deg, #ff8a00, #ff5252); border-radius: 2px; width: var(--music-progress); }
+.btn-bar { display: flex; align-items: center; gap: 30px; }
+.btn-bar div { cursor: pointer; }
+.btn-bar img { width: 32px; transition: transform 0.2s; }
+.btn-bar div:nth-child(2) img { width: 50px; }
+.btn-bar div:hover img { transform: scale(1.1); }
+@keyframes albums_rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.mv-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+.mv-modal-content { position: relative; width: 90vw; max-width: 800px; aspect-ratio: 16/9; background-color: black; }
+.mv-modal-content iframe { width: 100%; height: 100%; }
+.close-mv-btn { position: absolute; top: -30px; right: -10px; background: none; border: none; font-size: 30px; color: white; cursor: pointer; }
+.playlist-switcher-mobile { display: none; }
+
+@media (min-width: 769px) and (max-width: 1024px) { 
+    .player-container { min-width: 95%; width: 95%; height: 85vh; min-height: 550px; } 
+    .player-select-desktop { width: 40%; } 
+    .player { width: 60%; padding: 20px; } 
+    .player-bg { width: 220px; height: 220px; } 
+    .album-image { width: 160px; height: 160px; } 
+    .music-info h2 { font-size: 20px; } 
+    .music-info p { font-size: 14px; } 
+    .btn-bar div:nth-child(2) img { width: 45px; } 
 }
 
-.background-container {
-    will-change: left;
-    position: absolute;
-    display: flex;
-    width: var(--background-width);
-    height: 100%;
-    transition: left 0.5s ease-in-out;
-    z-index: 0;
+/* --- [终极修复] --- */
+@media (max-width: 768px) { 
+    .player-container { flex-direction: column; width: 100%; height: 100%; min-width: unset; min-height: unset; border-radius: 0; overflow: hidden; } 
+    .player-select-desktop { display: none; }
+    .player-select-mobile { display: block; width: 100%; height: 30%; flex-shrink: 0; overflow-y: auto; scrollbar-width: none; background-color: rgba(255, 255, 255, 0.5); }
+    .player-select-mobile::-webkit-scrollbar { display: none; }
+    .player { width: 100%; height: 70%; padding: 10px 15px; position: relative; } 
+    .now-playing { justify-content: space-around; } 
+    .playlist-switcher-mobile { display: flex; flex-direction: column; position: absolute; left: 15px; top: 100px; transform: translateY(-50%); gap: 10px; z-index: 10; }
+    .playlist-btn-mobile { background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; padding: 10px 5px; cursor: pointer; transition: all 0.2s ease; }
+    .playlist-btn-mobile span { writing-mode: vertical-rl; text-orientation: mixed; color: #333; font-weight: 600; font-size: 12px; }
+    .playlist-btn-mobile.active { background-color: #ec407a; }
+    .playlist-btn-mobile.active span { color: white; }
+    .player-bg-wrapper { margin: 10px 0; }
+    .player-bg { width: 180px; height: 180px; } 
+    .album-image { width: 120px; height: 120px; } 
+    
+    /* --- [修改开始] --- */
+    .music-info { 
+        margin-bottom: 10px;
+        width: 100%; 
+        overflow: hidden; /* 隐藏内部溢出的文本 */
+    }
+    .music-info h2 {
+        font-size: 18px;
+        white-space: nowrap; /* 文本不换行 */
+    } 
+    /* 新增一个容器来固定控件的宽度 */
+    .controls-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    .player-controls { 
+        gap: 12px;
+    }
+    /* --- [修改结束] --- */
+
+    .music-info p { font-size: 14px; } 
+    .close-mv-btn { top: 0; right: 5px; transform: translateY(-100%); background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 25px; height: 25px; line-height: 25px; text-align: center; padding: 0; font-size: 20px; } 
 }
 
-.background-container.no-transition {
-    transition: none;
-}
-
-.main-background {
-    width: 100vw;
-    height: 100vh;
-    background-size: cover;
-    background-position: center bottom; 
-    flex-shrink: 0;
-}
-
-.main-background::before {
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    content: '';
-    background: linear-gradient(-10deg, rgba(255, 130, 130, 0.05) 50%, rgba(255, 212, 112, 0.05) 100%);
-    backdrop-filter: blur(3px);
-}
-
-.left,
-.right {
-    position: fixed;
-    width: 5%;
-    height: 10%;
-    cursor: pointer;
-    transform: scale(1);
-    transition: transform 0.5s ease;
-    color: #ffffff61;
-}
-
-.left:hover,
-.right:hover {
-    transform: scale(1.3);
-}
-
-.left { left: 30px; }
-.right { right: 30px; }
-
-.box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 50%;
-    height: 60%;
-    z-index: 1;
-    outline: 1.5px dashed #000;
-    outline-offset: -20px;
-}
-
-.target {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; 
-    align-items: center;
-    /* [修改] 增加底部 padding，让滑块有空间停靠 */
-    padding: 10px 0;
-    box-sizing: border-box;
-    height: 100%;
-    left: 10px;
-    top: 0;
-    width: 30%;
-    z-index: 2;
-    background-color: #ffecd7;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
-    border-radius: 5px;
-}
-
-.targetbox {
-    width: 25%;
-    height: 95%;
-    background-color: white;
-    outline: 1.5px dashed #000;
-    outline-offset: -8px;
-}
-
-.slide-image-container {
-    will-change: opacity;
-    position: absolute;
-    width: 100%;
-    height: 50%;
-    top: 10px; /* 初始位置紧贴顶部 padding */
-    transition: all 0.8s ease-in-out;
-    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
-    z-index: 5;
-}
-
-.slide-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* --- [核心修复] --- */
-.slide {
-    /* 使用 calc() 动态计算最终位置，确保精准停靠 */
-    top: calc(100% - 10px - 50%);
-}
-/* --- [修复结束] --- */
-
-
-.target-image-1 {
-    width: 70%;
-    transition: all 0.8s ease;
-}
-
-.target-image-2 {
-    width: 70%;
-    transition: all 0.8s ease;
-}
-
-.loginbox {
-    width: 73.5%;
-    height: 95%;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.7);
-    position: relative;
-}
-
-@font-face {
-    font-family: 'Note-Script-SemiBold-2';
-    src: url('/assets/fonts/Note-Script-SemiBold-2.ttf') format('truetype');
-    font-style: normal;
-}
-@font-face {
-    font-family: 'Brush-Script-MT';
-    src: url('/assets/fonts/Brush-Script-MT-Italic.ttf') format('truetype');
-    font-style: normal;
-}
-
-form { display: flex; flex-direction: column; align-items: center; width: 100%; }
-h2 { font-family: 'Brush-Script-MT'; font-size: 3em; font-weight: bolder; margin-bottom: 20px; }
-input { width: 60%; border: none; border-bottom: 1px solid black; font-size: 1.2em; background: transparent; margin-bottom: 10px; }
-input:focus { outline: none; box-shadow: none; }
-button:focus { outline: none; box-shadow: none; }
-.input-name { font-family: 'Note-Script-SemiBold-2'; width: 60%; text-align: left; font-size: 20px; }
-.repassword-container { height: 70px; width: 100%; display: flex; justify-content: center; flex-direction: column; align-items: center; }
-.repassword-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
-button { background: none; border: none; font-size: 1.4em; width: auto; height: auto; font-family: 'Note-Script-SemiBold-2'; cursor: pointer; margin-top: 20px; }
-.switch-prompt { font-size: 14px; color: #888; margin-top: 15px; cursor: pointer; text-align: center; }
-.switch-prompt .link { color: #ec407a; text-decoration: underline; font-weight: bold; }
-.switch-login { position: absolute; top: 5%; right: 25px; width: 60px; height: auto; z-index: 2; cursor: pointer; transform: scale(1); transition: transform 0.5s ease; }
-.switch-login:hover { transform: scale(1.3); }
-.close-login { position: absolute; top: 0; right: 0; width: 5%; height: auto; z-index: 4; cursor: pointer; color: #ff3aa0bc; }
-.form-fade-enter-active, .form-fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
-.form-fade-enter-from, .form-fade-leave-to { opacity: 0; transform: translateY(10px); }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-@media (max-width: 768px) {
-    .left, .right, .target, .targetbox, .switch-login, .ribbons { display: none; }
-    .box { width: 90vw; height: 70vh; flex-direction: column; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border-radius: 10px; }
-    .loginbox { width: 100%; height: 100%; box-shadow: none; border-radius: 10px; }
-    form { justify-content: center; height: auto; }
-    input, .input-name { width: 80%; }
-    h2 { font-size: 2.5em; position: static; margin-bottom: 20px; }
-    button { position: static; margin-top: 20px; padding: 12px 30px; background-color: #ff3aa0bc; color: white; border-radius: 8px; font-size: 1.2em; }
-    .switch-prompt { display: block; margin-top: 30px; }
-    .close-login { width: 10%; top: 10px; right: 10px; }
-}
+.control-panel .like-btn.liked img { filter: invert(58%) sepia(53%) saturate(4578%) hue-rotate(320deg) brightness(100%) contrast(101%); }
 </style>
