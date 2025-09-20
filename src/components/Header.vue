@@ -1,6 +1,8 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+// [1. 导入] 导入我们的全局用户状态
+import { userStore } from '../store/user';
 
 const props = defineProps({
   activeSection: String
@@ -8,29 +10,18 @@ const props = defineProps({
 
 const emit = defineEmits(['nav-click']);
 const router = useRouter();
-const currentUser = ref(null);
+
+// [2. 移除] 不再需要本地的 currentUser 和 onMounted
+// const currentUser = ref(null);
+// onMounted(() => { ... });
 
 const clickedSection = ref(null);
 
-onMounted(() => {
-  const userData = localStorage.getItem('currentUser');
-  if (userData) {
-    currentUser.value = JSON.parse(userData);
-  }
-});
-
-// === [代码修改] START ===
-// 监听来自父组件的 activeSection 属性的变化
 watch(() => props.activeSection, (newSectionId) => {
-  // 如果 clickedSection 有值 (意味着上一次操作是点击)
-  // 并且当前滚动到的区域 (newSectionId) 与当初点击的目标不一致
-  // 这就说明用户已经开始手动滚动了
-  // 此时，我们清空 clickedSection，将导航条的控制权交还给滚动监听
   if (clickedSection.value && clickedSection.value !== `#${newSectionId}`) {
     clickedSection.value = null;
   }
 });
-// === [代码修改] END ===
 
 const nav = [
   {title: '主页', to: '#section1', color: '#fff'},
@@ -52,14 +43,8 @@ const handleClick = (e, item) => {
   e.preventDefault();
   const el = document.querySelector(item.to);
   if (el) {
-    // === [代码修改] START ===
-    // 点击时，仍然设置 clickedSection 以立即更新高亮
     clickedSection.value = item.to;
-    // 移除之前不可靠的 setTimeout
-    // === [代码修改] END ===
-    
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
     el.classList.add('section-active');
     setTimeout(() => {
       el.classList.remove('section-active');
@@ -72,9 +57,12 @@ const goToLogin = () => {
   router.push('/login');
 };
 
+// [3. 修改] 改造 handleLogout 函数
 const handleLogout = () => {
-  localStorage.removeItem('currentUser');
-  window.location.reload();
+  // 通知全局状态进行登出
+  userStore.logout();
+  // 平滑地导航回首页，而不是强制刷新
+  router.push('/');
 };
 </script>
 
@@ -101,10 +89,12 @@ const handleLogout = () => {
     </div>
     
     <div class="user-area">
-      <button v-if="!currentUser" class="login-btn" @click="goToLogin">登录</button>
+      <!-- [修改] v-if 判断现在基于 userStore.isLoggedIn -->
+      <button v-if="!userStore.isLoggedIn" class="login-btn" @click="goToLogin">登录</button>
       
+      <!-- [修改] v-else 块现在从 userStore 读取用户名 -->
       <div v-else class="user-info">
-        <span>欢迎, {{ currentUser.username }}</span>
+        <span>欢迎, {{ userStore.user.username }}</span>
         <button class="login-btn logout" @click="handleLogout">退出</button>
       </div>
     </div>
