@@ -109,6 +109,10 @@ watch(playStatu, (newVal) => { document.documentElement.style.setProperty('--ani
 watch(volumeProgress, (newVolume) => { player.value.volume = newVolume / 100; });
 player.value.addEventListener('ended', () => { playStatu.value = 1; switchMusic('next'); });
 
+watch(() => userStore.isLoggedIn, (isNowLoggedIn) => {    
+    fetchUserDataAndLikes();
+});
+  
 const toggleLike = async () => { 
   if (!userStore.isLoggedIn) { 
     alert('请先登录才能收藏歌曲哦！'); 
