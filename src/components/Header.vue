@@ -1,8 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-// [1. 导入] 导入我们的全局用户状态
-import { userStore } from '../store/user';
+import { userStore } from '../store/user'; // [集成] 导入全局用户状态
 
 const props = defineProps({
   activeSection: String
@@ -10,10 +9,6 @@ const props = defineProps({
 
 const emit = defineEmits(['nav-click']);
 const router = useRouter();
-
-// [2. 移除] 不再需要本地的 currentUser 和 onMounted
-// const currentUser = ref(null);
-// onMounted(() => { ... });
 
 const clickedSection = ref(null);
 
@@ -57,11 +52,9 @@ const goToLogin = () => {
   router.push('/login');
 };
 
-// [3. 修改] 改造 handleLogout 函数
+// [修复] 使用 userStore 和 router.push
 const handleLogout = () => {
-  // 通知全局状态进行登出
   userStore.logout();
-  // 平滑地导航回首页，而不是强制刷新
   router.push('/');
 };
 </script>
@@ -89,10 +82,9 @@ const handleLogout = () => {
     </div>
     
     <div class="user-area">
-      <!-- [修改] v-if 判断现在基于 userStore.isLoggedIn -->
+      <!-- [集成] 完全依赖 userStore -->
       <button v-if="!userStore.isLoggedIn" class="login-btn" @click="goToLogin">登录</button>
       
-      <!-- [修改] v-else 块现在从 userStore 读取用户名 -->
       <div v-else class="user-info">
         <span>欢迎, {{ userStore.user.username }}</span>
         <button class="login-btn logout" @click="handleLogout">退出</button>
