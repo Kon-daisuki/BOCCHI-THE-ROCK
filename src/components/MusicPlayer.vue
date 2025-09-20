@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, onActivated } from 'vue';
 
 // 您的后端API地址
 const API_BASE_URL = 'https://login.bocchi.us.kg';
@@ -196,7 +196,6 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
-// [核心修复] onMounted 钩子中，移除获取用户数据的逻辑，并添加对 localStorage 的监听
 onMounted(() => {
     updateMediaSession(activeItem.value);
     player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
@@ -226,7 +225,7 @@ onMounted(() => {
         });
     }
 
-    // [核心修复] 监听 localStorage 中 authToken 的变化
+    // [核心修复] onMounted 钩子中，移除获取用户数据的逻辑，并添加对 localStorage 的监听
     window.addEventListener('storage', (event) => {
         if (event.key === 'authToken') {
             // 根据音乐的实际状态更新播放按钮的UI状态
@@ -247,6 +246,14 @@ onMounted(() => {
       }); 
     }
 });
+
+// [最终修复] 在 onMounted 的紧下方，添加这个 onActivated 钩子
+onActivated(() => {
+    // 当组件从缓存中被激活时（例如登录后返回），
+    // 再次调用函数以刷新用户登录状态和收藏列表。
+    fetchUserDataAndLikes();
+});
+
 </script>
 
 <template>
