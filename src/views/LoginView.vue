@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 
 const API_BASE_URL = 'https://login.bocchi.us.kg';
+const isLoading = ref(false); // [新增] 加载状态
 
 const router = useRouter()
 
@@ -18,7 +19,7 @@ const extendedImages = ref([
     originalImages[0]
 ])
 const containerRef = ref(null)
-const currentImageIndex = ref(1) // 更改变量名以提高可读性
+const currentImageIndex = ref(1)
 const isRegister = ref(false)
 const FormModel = ref({
     username: '',
@@ -26,12 +27,17 @@ const FormModel = ref({
     RePassword: ''
 })
 
+// [修改] 改造 submitForm 函数以包含加载状态处理
 const submitForm = async () => {
+    if (isLoading.value) return; // 防止重复提交
+
     try {
-        // [新增] 基础的前端验证
+        isLoading.value = true; // 开始加载
+
         if (!FormModel.value.username || !FormModel.value.password) {
             alert('用户名和密码不能为空！');
-            return;
+            // 注意：这里需要提前返回，所以也要在 finally 中解锁
+            return; 
         }
 
         if (isRegister.value) {
@@ -50,7 +56,7 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '注册失败');
             alert('注册成功！请登录。');
-            Switch(); // 切换回登录界面
+            Switch();
         } else {
             const response = await fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
@@ -69,12 +75,12 @@ const submitForm = async () => {
             if (data.user) {
                 localStorage.setItem('currentUser', JSON.stringify(data.user));
             }
-            
-            // [修改] 登录成功后直接跳转，不再使用 setTimeout
             goHome();
         }
     } catch (error) {
         alert(error.message);
+    } finally {
+        isLoading.value = false; // 无论成功或失败，最后都结束加载
     }
 }
 
@@ -86,20 +92,17 @@ const targetImage = [
     { url: '/assets/images/target-image5.png' },
     { url: '/assets/images/target-image6.png' },
 ]
-const targetImageIndex = ref(0); // 更改变量名
+const targetImageIndex = ref(0);
 const isAnimating = ref(false);
 
 const Switch = () => {
     isRegister.value = !isRegister.value;
-    // 优化：计算新的索引，确保在范围内
     targetImageIndex.value = (targetImageIndex.value + 2) % (targetImage.length - 1);
-    // 清空表单数据
     FormModel.value.username = '';
     FormModel.value.password = '';
     FormModel.value.RePassword = '';
 }
 
-// [修改] 提取公共逻辑，减少重复代码
 const handleImageSwitch = (increment) => {
     if (isAnimating.value) return;
     isAnimating.value = true;
@@ -135,7 +138,6 @@ onMounted(() => {
 })
 
 const goHome = () => {
-    // [修改] 移除不必要的延迟和动画，直接跳转
     router.push('/');
 }
 </script>
@@ -189,7 +191,10 @@ const goHome = () => {
                     </div>
                     
                     <Transition name="form-fade" mode="out-in">
-                        <button type="submit" :key="!isRegister">{{ !isRegister ? 'Login' : 'Register' }}</button>
+                        <!-- [修改] 绑定 disabled 属性和动态文本 -->
+                        <button type="submit" :key="!isRegister" :disabled="isLoading">
+                            {{ isLoading ? 'Processing...' : (!isRegister ? 'Login' : 'Register') }}
+                        </button>
                     </Transition>
                 </form>
 
@@ -293,7 +298,6 @@ const goHome = () => {
     flex-direction: column;
     justify-content: space-between; 
     align-items: center;
-    /* [修改] 增加底部 padding，让滑块有空间停靠 */
     padding: 10px 0;
     box-sizing: border-box;
     height: 100%;
@@ -319,7 +323,7 @@ const goHome = () => {
     position: absolute;
     width: 100%;
     height: 50%;
-    top: 10px; /* 初始位置紧贴顶部 padding */
+    top: 10px;
     transition: all 0.8s ease-in-out;
     box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
     z-index: 5;
@@ -331,12 +335,9 @@ const goHome = () => {
     object-fit: cover;
 }
 
-/* --- [核心修复] --- */
 .slide {
-    /* 使用 calc() 动态计算最终位置，确保精准停靠 */
     top: calc(100% - 10px - 50%);
 }
-/* --- [修复结束] --- */
 
 
 .target-image-1 {
@@ -381,6 +382,11 @@ button:focus { outline: none; box-shadow: none; }
 .repassword-container { height: 70px; width: 100%; display: flex; justify-content: center; flex-direction: column; align-items: center; }
 .repassword-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
 button { background: none; border: none; font-size: 1.4em; width: auto; height: auto; font-family: 'Note-Script-SemiBold-2'; cursor: pointer; margin-top: 20px; }
+/* [新增] 为禁用的按钮添加样式 */
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 .switch-prompt { font-size: 14px; color: #888; margin-top: 15px; cursor: pointer; text-align: center; }
 .switch-prompt .link { color: #ec407a; text-decoration: underline; font-weight: bold; }
 .switch-login { position: absolute; top: 5%; right: 25px; width: 60px; height: auto; z-index: 2; cursor: pointer; transform: scale(1); transition: transform 0.5s ease; }
