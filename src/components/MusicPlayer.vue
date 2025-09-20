@@ -229,6 +229,8 @@ onMounted(() => {
     // [核心修复] 监听 localStorage 中 authToken 的变化
     window.addEventListener('storage', (event) => {
         if (event.key === 'authToken') {
+            // 根据音乐的实际状态更新播放按钮的UI状态
+            playStatu.value = player.value.paused ? 0 : 1;
             fetchUserDataAndLikes();
         }
     });
