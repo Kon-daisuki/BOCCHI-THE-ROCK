@@ -143,7 +143,8 @@ onMounted(() => {
 const goHome = () => {
     mainRef.value.style.opacity = 0
     setTimeout(() => {
-        router.push('/')
+        // [修改] 使用 window.location.href 实现页面跳转和刷新
+        window.location.href = '/';
     }, 500)
 }
 </script>
