@@ -6,7 +6,7 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, ref, watch, computed, onBeforeUnmount } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 
 // 您的后端API地址
 const API_BASE_URL = 'https://login.bocchi.us.kg';
@@ -97,6 +97,7 @@ const fetchUserDataAndLikes = async () => {
                 const songs = await response.json();
                 likedSongs.value = new Set(songs);
             } else if (response.status === 401) {
+                // 登录状态失效，清除本地存储
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('authToken');
                 currentUser.value = null;
@@ -105,57 +106,11 @@ const fetchUserDataAndLikes = async () => {
             console.error('获取收藏列表失败:', error);
         }
     } else {
+        // 用户未登录，清除状态
         currentUser.value = null;
         likedSongs.value = new Set();
     }
 };
-
-// [2. 新增：保存播放器状态的函数]
-const savePlayerState = () => {
-    if (!player.value) return;
-    const state = {
-        playlist: activePlaylistName.value,
-        songName: activeItem.value.name,
-        currentTime: player.value.currentTime,
-        volume: volumeProgress.value,
-        // 确保准确记录是否正在播放
-        isPlaying: playStatu.value === 1 && !player.value.paused,
-    };
-    // 使用 sessionStorage 将状态保存为字符串
-    sessionStorage.setItem('playerState', JSON.stringify(state));
-};
-
-// [3. 新增：恢复播放器状态的函数]
-const restorePlayerState = () => {
-    const savedStateJSON = sessionStorage.getItem('playerState');
-    if (savedStateJSON) {
-        const savedState = JSON.parse(savedStateJSON);
-        const playlist = playlists[savedState.playlist];
-        if (!playlist) return;
-
-        const song = playlist.find(s => s.name === savedState.songName);
-        if (song) {
-            activePlaylistName.value = savedState.playlist;
-            activeItem.value = song;
-            volumeProgress.value = savedState.volume;
-            
-            // 关键：必须在音频可以播放后才能设置 currentTime
-            player.value.addEventListener('canplay', () => {
-                player.value.currentTime = savedState.currentTime;
-                // 恢复播放/暂停的UI状态，watch效果会自动处理播放命令
-                if (savedState.isPlaying) {
-                    playStatu.value = 1;
-                } else {
-                    playStatu.value = 0;
-                }
-            }, { once: true }); // { once: true } 确保此事件只触发一次
-
-            // 清理状态，以免刷新页面时总是意外恢复
-            sessionStorage.removeItem('playerState');
-        }
-    }
-};
-
 
 const updatePositionState = () => { if ('mediaSession' in navigator && player.value.duration) { navigator.mediaSession.setPositionState({ duration: player.value.duration, playbackRate: player.value.playbackRate, position: player.value.currentTime, }); } };
 const updateProgress = () => { if (player.value && player.value.duration && isFinite(player.value.duration)) { musicProgress.value = (player.value.currentTime / player.value.duration) * 100; updatePositionState(); } if (playStatu.value === 1) { requestAnimationFrame(updateProgress); } };
@@ -248,17 +203,11 @@ const onProgressClicked = (e) => { const p=e.currentTarget; const c=e.offsetX; c
 const secToMMSS = (sec) => { sec=sec|0; let m=(sec/60|0).toString().padStart(2, '0'); let s=(sec%60|0).toString().padStart(2, '0'); return m+':'+s };
 const volumeHandle = (num)=>{ let newVol = player.value.volume+num/100; newVol = Math.max(0, Math.min(1, newVol)); player.value.volume = newVol; volumeProgress.value = newVol*100; };
 
-// [4. 修改 onMounted]
+// [核心修复] onMounted 钩子中，移除获取用户数据的逻辑，并添加对 localStorage 的监听
 onMounted(() => {
     updateMediaSession(activeItem.value);
     player.value.addEventListener('loadedmetadata', updatePositionState, { once: true });
     
-    // [新增] 组件挂载时，尝试恢复之前的播放状态
-    restorePlayerState();
-    
-    // [新增] 监听浏览器关闭或刷新事件，以保存状态
-    window.addEventListener('beforeunload', savePlayerState);
-
     if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', () => { switchStatu(); });
         navigator.mediaSession.setActionHandler('pause', () => { switchStatu(); });
@@ -284,13 +233,16 @@ onMounted(() => {
         });
     }
 
+    // [核心修复] 监听 localStorage 中 authToken 的变化
     window.addEventListener('storage', (event) => {
         if (event.key === 'authToken') {
+            // 根据音乐的实际状态更新播放按钮的UI状态
             playStatu.value = player.value.paused ? 0 : 1;
             fetchUserDataAndLikes();
         }
     });
 
+    // 在组件挂载时首次加载用户数据
     fetchUserDataAndLikes();
 
     const el = document.querySelector('.player-select');
@@ -302,17 +254,6 @@ onMounted(() => {
       }); 
     }
 });
-
-// [5. 新增 onBeforeUnmount]
-// 组件被卸载（例如切换路由到登录页）前，保存状态
-onBeforeUnmount(() => {
-    savePlayerState();
-    // 移除监听器，防止内存泄漏
-    window.removeEventListener('beforeunload', savePlayerState);
-});
-
-</script>
-
 </script>
 
 <template>
