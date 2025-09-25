@@ -5,4 +5,4 @@
 
 支持登录，收藏歌曲功能，优化多端交互
 
-*** Ddesigned by Haonan Zhang
+### Designed by Haonan Zhang
