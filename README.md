@@ -5,4 +5,4 @@
 
 支持登录，收藏歌曲功能，优化多端交互
 
-## Designed by k
+## Designed by 【IChihaya_AnonI的个人空间-哔哩哔哩】 https://b23.tv/Cy2nowu
