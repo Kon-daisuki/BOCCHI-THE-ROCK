@@ -1,8 +1,8 @@
 # 孤独摇滚同人站
 
-原项目地址：https://github.com/sudoriaa/BOCCHI-THE-ROCK
-该网站基于该项目二次开发
+## 🙏 致谢
 
-支持登录，收藏歌曲功能，优化多端交互
+- 基于原始 [Fuwari](https://github.com/sudoriaa/BOCCHI-THE-ROCK) 模板
+- 支持登录，收藏歌曲功能，优化多端交互
 
 ## Designed by 【IChihaya_AnonI的个人空间-哔哩哔哩】 https://b23.tv/Cy2nowu
