@@ -1,3 +1,6 @@
+<!doctype html>
+<html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,50 +10,51 @@
   <!-- =================================================================== -->
   <title>Bocchi the Rock! 孤独摇滚 | 粉丝音乐站</title>
   <meta name="description" content="专为《孤独摇滚！》粉丝打造的同人音乐站。在线畅听结束乐队全曲目，体验沉浸式播放器，发现更多关于Bocchi the Rock!的精彩内容。">
+  <!-- [新增] 关键词, 虽然对谷歌排名影响很小，但对于其他搜索引擎仍有一定作用 -->
   <meta name="keywords" content="孤独摇滚, Bocchi the Rock, 结束乐队, Kessoku Band, 后藤一里, 伊地知虹夏, 山田凉, 喜多郁代, 在线听歌, 同人音乐站, 粉丝网站">
+  <!-- [新增] 告诉搜索引擎这是一个可被索引和跟随链接的页面 -->
   <meta name="robots" content="index, follow">
+  <!-- [新增][重要] 指定网站的“官方”唯一网址，避免搜索引擎因不同URL（如www和非www）而分散权重 -->
   <link rel="canonical" href="https://band.kessoku.us.kg/">
 
-  <!-- =================================================================== -->
-  <!-- [核心] Schema.org 结构化数据，用于定义网站名称                       -->
-  <!-- =================================================================== -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "孤独摇滚粉丝音乐站",
-    "url": "https://band.kessoku.us.kg/"
-  }
-  </script>
 
   <!-- =================================================================== -->
   <!-- [核心] 网站图标与缓存破坏                                           -->
   <!-- =================================================================== -->
-  <!-- [修改] 确保使用png格式的图标，并指明尺寸 -->
-  <link rel="icon" type="image/jpg" sizes="48x48" href="/favicon.jpg?v=3" />
+  <!-- [修改] 为所有图标资源添加 "?v=2" 版本号来强制浏览器更新 -->
+  <link rel="icon" type="image/png" href="/favicon.jpg?v=3" />
+  <!-- [新增] 兼容 Apple 设备 (iPhone, iPad) 用户“添加到主屏幕”时显示的图标 -->
   <link rel="apple-touch-icon" href="/apple-touch-icon.jpg?v=3">
 
 
   <!-- =================================================================== -->
   <!-- [核心] 移动端体验 & PWA (渐进式网络应用)                           -->
   <!-- =================================================================== -->
+  <!-- 应用名 -->
   <meta name="application-name" content="孤独摇滚粉丝站">
+  <!-- Manifest for PWA -->
+  <!-- [修改] 为 manifest 文件添加版本号，确保 PWA 的图标和配置得到更新 -->
   <link rel="manifest" href="/manifest.json?v=3">
 
 
   <!-- =================================================================== -->
   <!-- [核心] 社交媒体分享 (Open Graph & Twitter Card)                  -->
   <!-- =================================================================== -->
+  <!-- Open Graph 协议 (用于 Facebook, Discord, QQ, 微信等) -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="孤独摇滚粉丝音乐站">
   <meta property="og:title" content="Bocchi the Rock! 粉丝音乐站">
   <meta property="og:description" content="在线畅听结束乐队全曲目，专为《孤独摇滚！》粉丝打造的沉浸式音乐播放器。">
+  <!-- [新增] 指定分享链接的官方URL -->
   <meta property="og:url" content="https://band.kessoku.us.kg/">
+  <!-- [修改] 为分享图添加版本号，确保社交平台能抓取到最新图片 -->
   <meta property="og:image" content="/favicon.jpg?v=3">
 
+  <!-- Twitter Card (用于在 Twitter 分享) -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Bocchi the Rock! 粉丝音乐站">
   <meta name="twitter:description" content="在线畅听结束乐队全曲目，专为《孤独摇滚！》粉丝打造的沉浸式音乐播放器。">
+  <!-- [修改] 为分享图添加版本号 -->
   <meta name="twitter:image" content="/favicon.jpg?v=3">
 
 
@@ -73,3 +77,10 @@
     }
   </style>
 </head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
