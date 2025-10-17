@@ -68,8 +68,9 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '登录失败');
             
-            // [集成] 调用 userStore 的 login 方法来更新全局状态
-            userStore.login(data.user, data.token);
+            // [修正] 将 data.token 修改为 data.accessToken 以匹配后端返回的字段名。
+            // [推荐] 同时传递 accessToken 和 refreshToken，以便 userStore 管理会话刷新。
+            userStore.login(data.user, data.accessToken, data.refreshToken);
             
             goHome();
         }
