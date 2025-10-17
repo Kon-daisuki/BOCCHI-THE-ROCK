@@ -76,7 +76,9 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
 }
 /* === [代码修改] END === */
 
-.label2 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 50%; color: yellow; font-size: 1.3em; font-weight: bold; }
+/* 修复重叠问题：将 Ciallo 文本从 50% 调整到 60%，增加与标题之间的距离 */
+.label2 { position: absolute; font-family: '微软雅黑'; left: 7%; top: 60%; color: yellow; font-size: 1.3em; font-weight: bold; }
+
 .container { position: relative; display: flex; width: 100%; height: auto; min-height: 70%; justify-content: center; padding-bottom: 50px; }
 .container-producer { position: relative; top: -15%; width: 70%; }
 
@@ -165,7 +167,10 @@ const producers = [ { name: 'Sudoria', url: '/assets/images/Sudoria.jpg', color:
     /* top: 30%;  (此样式已移动到 .title-container) */
     .github-icon { width: 32px; height: 32px; } /* 进一步缩小图标 */
     /* === [代码修改] END === */
-    .label2 { font-size: 1em; top: 65%; }
+    
+    /* 移动端上也需要调整 Ciallo 的位置，确保不会重叠 */
+    .label2 { font-size: 1em; top: 70%; }
+    
     .container { top: 0; min-height: 80vh; }
     .container-producer { width: 90%; top: -5%; position: relative; display: block; }
     
