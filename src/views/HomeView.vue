@@ -15,9 +15,7 @@ import Photos from '../components/Photos.vue';
 const scrollContainer = ref(null);
 const activeSection = ref('section1');
 
-// === [代码修改] START ===
-// This is the function to fix.
-// We must use scrollContainer.value.scrollTo() because you have a custom scroll area.
+// This function correctly handles navigation clicks within a custom scroll container.
 const handleNavClick = (to) => {
   const sectionId = to.replace('#', '');
   const target = document.getElementById(sectionId);
@@ -28,7 +26,6 @@ const handleNavClick = (to) => {
     });
   }
 };
-// === [代码修改] END ===
 
 onMounted(() => {
   // Use the faster IntersectionObserver options
@@ -87,12 +84,21 @@ onMounted(() => {
   height: 100vh;
   width: 100vw;
   overflow-y: scroll; 
-  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   position: fixed;
   top: 0;
   left: 0;
   background-color: #141414;
+  
+  /* === [代码修改] START === */
+  /* 默认或触摸设备使用强制贴靠，提供丝滑的翻页体验 */
+  scroll-snap-type: y mandatory;
+
+  /* 对于有精细指针（如鼠标）的设备，使用 proximity 避免跳页问题 */
+  @media (pointer: fine) {
+    scroll-snap-type: y proximity;
+  }
+  /* === [代码修改] END === */
 }
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
