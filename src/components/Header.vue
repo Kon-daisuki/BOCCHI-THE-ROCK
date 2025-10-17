@@ -11,11 +11,18 @@ const emit = defineEmits(['nav-click']);
 const router = useRouter();
 
 const clickedSection = ref(null);
+// [修复] 添加一个标志来追踪是否是程序触发的滚动
+const isProgrammaticScroll = ref(false);
 
+// [修复] 改进 watch 逻辑：只要 activeSection 发生变化，就清除 clickedSection
+// 这样可以确保滚动时始终使用 activeSection 作为激活状态的唯一来源
 watch(() => props.activeSection, (newSectionId) => {
-  if (clickedSection.value && clickedSection.value !== `#${newSectionId}`) {
+  // 如果不是程序触发的滚动（即用户手动滚动），立即清除 clickedSection
+  if (!isProgrammaticScroll.value) {
     clickedSection.value = null;
   }
+  // 重置标志
+  isProgrammaticScroll.value = false;
 });
 
 const nav = [
@@ -38,6 +45,8 @@ const handleClick = (e, item) => {
   e.preventDefault();
   const el = document.querySelector(item.to);
   if (el) {
+    // [修复] 在点击时设置标志，表示这是程序触发的滚动
+    isProgrammaticScroll.value = true;
     clickedSection.value = item.to;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     el.classList.add('section-active');
