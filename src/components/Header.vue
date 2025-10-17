@@ -1,7 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { userStore } from '../store/user'; // [集成] 导入全局用户状态
+import { userStore } from '../store/user';
 
 const props = defineProps({
   activeSection: String
@@ -11,18 +11,56 @@ const emit = defineEmits(['nav-click']);
 const router = useRouter();
 
 const clickedSection = ref(null);
-// [修复] 添加一个标志来追踪是否是程序触发的滚动
-const isProgrammaticScroll = ref(false);
+// [优化] 使用定时器来管理程序触发的滚动状态，而不是简单的布尔标志
+const scrollTimeoutId = ref(null);
+// [优化] 添加一个标志来追踪是否正在进行程序控制的滚动
+const isScrolling = ref(false);
 
-// [修复] 改进 watch 逻辑：只要 activeSection 发生变化，就清除 clickedSection
-// 这样可以确保滚动时始终使用 activeSection 作为激活状态的唯一来源
-watch(() => props.activeSection, (newSectionId) => {
-  // 如果不是程序触发的滚动（即用户手动滚动），立即清除 clickedSection
-  if (!isProgrammaticScroll.value) {
+// [优化] 清除点击状态的函数，确保状态被完全重置
+const clearClickedSection = () => {
+  clickedSection.value = null;
+  if (scrollTimeoutId.value) {
+    clearTimeout(scrollTimeoutId.value);
+    scrollTimeoutId.value = null;
+  }
+  isScrolling.value = false;
+};
+
+// [优化] 监听 activeSection 的变化
+// 当检测到用户手动滚动时（即非程序控制的滚动），立即清除点击状态
+watch(() => props.activeSection, (newSectionId, oldSectionId) => {
+  // 如果当前没有进行程序控制的滚动，说明这是用户手动滚动
+  // 需要立即清除 clickedSection，让 activeSection 接管控制
+  if (!isScrolling.value) {
     clickedSection.value = null;
   }
-  // 重置标志
-  isProgrammaticScroll.value = false;
+}, { flush: 'post' }); // 使用 post 时机确保 DOM 更新后再执行
+
+// [优化] 添加滚动事件监听，用于检测用户的手动滚动行为
+const handleUserScroll = () => {
+  // 如果检测到滚动事件，且当前有一个待清除的定时器
+  // 说明用户在程序滚动过程中开始了手动操作
+  // 这时应该立即取消程序滚动的保护状态
+  if (scrollTimeoutId.value && !isScrolling.value) {
+    clearClickedSection();
+  }
+};
+
+onMounted(() => {
+  // 监听滚动事件，用于检测用户的手动滚动
+  window.addEventListener('scroll', handleUserScroll, { passive: true });
+  // 监听触摸开始事件，移动端用户开始滑动时立即响应
+  window.addEventListener('touchstart', () => {
+    // 用户触摸屏幕时，如果不在程序滚动过程中，清除之前的点击状态
+    if (!isScrolling.value && scrollTimeoutId.value) {
+      clearClickedSection();
+    }
+  }, { passive: true });
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleUserScroll);
+  clearClickedSection();
 });
 
 const nav = [
@@ -45,14 +83,34 @@ const handleClick = (e, item) => {
   e.preventDefault();
   const el = document.querySelector(item.to);
   if (el) {
-    // [修复] 在点击时设置标志，表示这是程序触发的滚动
-    isProgrammaticScroll.value = true;
+    // [优化] 清除之前的定时器，避免状态混乱
+    if (scrollTimeoutId.value) {
+      clearTimeout(scrollTimeoutId.value);
+    }
+    
+    // [优化] 标记为程序控制的滚动
+    isScrolling.value = true;
     clickedSection.value = item.to;
+    
+    // 执行平滑滚动
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     el.classList.add('section-active');
     setTimeout(() => {
       el.classList.remove('section-active');
     }, 600);
+    
+    // [优化] 设置一个较长的定时器，确保在滚动动画完成后才清除保护状态
+    // 平滑滚动通常需要约 1 秒完成，我们设置 1.5 秒的保护期
+    scrollTimeoutId.value = setTimeout(() => {
+      isScrolling.value = false;
+      // 滚动完成后，如果当前的 activeSection 与点击的不一致
+      // 说明用户可能在滚动过程中进行了其他操作，此时清除点击状态
+      const targetSection = item.to.replace('#', '');
+      if (props.activeSection !== targetSection) {
+        clickedSection.value = null;
+      }
+      scrollTimeoutId.value = null;
+    }, 1500);
   }
   emit('nav-click', item.to);
 };
@@ -61,7 +119,6 @@ const goToLogin = () => {
   router.push('/login');
 };
 
-// [修复] 使用 userStore 和 router.push
 const handleLogout = () => {
   userStore.logout();
   router.push('/');
@@ -91,7 +148,6 @@ const handleLogout = () => {
     </div>
     
     <div class="user-area">
-      <!-- [集成] 完全依赖 userStore -->
       <button v-if="!userStore.isLoggedIn" class="login-btn" @click="goToLogin">登录</button>
       
       <div v-else class="user-info">
@@ -103,7 +159,6 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
-/* Styles remain unchanged, only the script logic was updated */
 .header { 
   position: fixed; 
   top: 0; 
@@ -139,7 +194,6 @@ const handleLogout = () => {
 .login-btn.logout { border-color: #ff8a8a; color: #ff8a8a; }
 .login-btn.logout:hover { background-color: #ff5252; border-color: #ff5252; color: white; }
 
-/* --- section 动画 --- */
 .section-active {
   animation: fadeIn 0.6s ease-out;
 }
@@ -154,19 +208,17 @@ const handleLogout = () => {
   }
 }
 
-/* --- 新增平板样式 --- */
 @media (min-width: 769px) and (max-width: 1024px) {
   .header {
-    padding: 0 25px; /* 调整内边距 */
+    padding: 0 25px;
   }
   .nav ul {
-    gap: 20px; /* 减小导航项之间的间距 */
+    gap: 20px;
   }
   .nav li a {
-    font-size: 15px; /* 稍微减小字体大小 */
+    font-size: 15px;
   }
 }
-/* --- 平板样式结束 --- */
 
 @media (max-width: 768px) {
   .header { padding: 0 15px; height: 60px; }
