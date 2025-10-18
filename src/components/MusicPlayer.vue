@@ -79,7 +79,7 @@ const fetchUserDataAndLikes = async () => {
 
     try {
         if (userStore.isLoggedIn) {
-            const token = localStorage.getItem('authToken');
+            const token = userStore.accessToken;
             const response = await fetch(`${API_BASE_URL}/api/likes`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -118,7 +118,7 @@ const toggleLike = async () => {
     alert('请先登录才能收藏歌曲哦！'); 
     return; 
   } 
-  const token = localStorage.getItem('authToken');
+  const token = userStore.accessToken;
   if (!token) { 
     alert('登录状态失效，请重新登录！'); 
     return; 
