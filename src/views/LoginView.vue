@@ -1,13 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { Icon } from '@iconify/vue'
-import { userStore } from '../store/user'; // [集成] 导入 userStore
+import { userStore } from '../store/user';
 
 const API_BASE_URL = 'https://login.bocchi.us.kg';
-const isLoading = ref(false); // [修复] 加载状态
+const isLoading = ref(false);
 
 const router = useRouter()
+const route = useRoute()
 
 const originalImages = [
     { url: '/assets/images/LoginImage1.jpg' },
@@ -68,11 +69,9 @@ const submitForm = async () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || '登录失败');
             
-            // [修正] 将 data.token 修改为 data.accessToken 以匹配后端返回的字段名。
-            // [推荐] 同时传递 accessToken 和 refreshToken，以便 userStore 管理会话刷新。
             userStore.login(data.user, data.accessToken, data.refreshToken);
             
-            goHome();
+            goBack();
         }
     } catch (error) {
         alert(error.message);
@@ -134,8 +133,17 @@ onMounted(() => {
     })
 })
 
+const goBack = () => {
+    const redirectUrl = route.query.redirect;
+    if (redirectUrl && redirectUrl !== '/login') {
+        router.push(redirectUrl);
+    } else {
+        router.push('/');
+    }
+}
+
 const goHome = () => {
-    router.push('/');
+    goBack();
 }
 </script>
 
@@ -211,7 +219,6 @@ const goHome = () => {
 </template>
 
 <style scoped>
-/* 样式部分无需改动 */
 .main {
     display: flex;
     align-items: center;
@@ -334,7 +341,6 @@ const goHome = () => {
 .slide {
     top: calc(100% - 10px - 50%);
 }
-
 
 .target-image-1 {
     width: 70%;
