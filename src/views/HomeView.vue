@@ -11,6 +11,7 @@ import { onMounted, ref } from 'vue';
 import About from '@/components/About.vue';
 import MusicPlayer from '@/components/MusicPlayer.vue';
 import Photos from '../components/Photos.vue';
+import { userStore } from '@/store/user'; // [新增] 导入 userStore
 
 const scrollContainer = ref(null);
 const activeSection = ref('section1');
@@ -28,6 +29,22 @@ const handleNavClick = (to) => {
 };
 
 onMounted(() => {
+  // [新增] 检查登录状态
+  console.log('🏠 HomeView 已加载');
+  console.log('📊 当前登录状态:', {
+    isLoggedIn: userStore.isLoggedIn,
+    user: userStore.user,
+    hasAccessToken: !!userStore.accessToken,
+    hasRefreshToken: !!userStore.refreshToken
+  });
+  
+  // [新增] 检查 localStorage
+  console.log('💾 localStorage 内容:', {
+    currentUser: localStorage.getItem('currentUser'),
+    accessToken: localStorage.getItem('accessToken') ? '存在' : '不存在',
+    refreshToken: localStorage.getItem('refreshToken') ? '存在' : '不存在'
+  });
+
   // Use the faster IntersectionObserver options
   const options = {
     root: scrollContainer.value,
@@ -70,6 +87,16 @@ onMounted(() => {
       <div class="title-container">
         <img src="/assets/images/logo_movie_cn.png"/>
       </div>
+      
+      <!-- [新增] 显示登录状态（用于调试） -->
+      <div style="position: absolute; top: 100px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 8px; font-size: 12px; z-index: 999;">
+        <div v-if="userStore.isLoggedIn">
+          ✅ 已登录: {{ userStore.user?.username }}
+        </div>
+        <div v-else>
+          ❌ 未登录
+        </div>
+      </div>
     </section>
     <section id="section2" class="scroll-page"><CharacterInfo /></section>
     <section id="section3" class="scroll-page"><MusicPlayer /></section>
@@ -89,16 +116,11 @@ onMounted(() => {
   top: 0;
   left: 0;
   background-color: #141414;
-  
-  /* === [代码修改] START === */
-  /* 默认或触摸设备使用强制贴靠，提供丝滑的翻页体验 */
   scroll-snap-type: y mandatory;
 
-  /* 对于有精细指针（如鼠标）的设备，使用 proximity 避免跳页问题 */
   @media (pointer: fine) {
     scroll-snap-type: y proximity;
   }
-  /* === [代码修改] END === */
 }
 .scroll-page { padding-top: 80px; height: 100vh; width: 100%; scroll-snap-align: start; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; }
 .video-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background: url('/assets/images/LoginImage1.jpg') no-repeat center center/cover; }
